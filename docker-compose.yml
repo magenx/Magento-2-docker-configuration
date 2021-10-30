@@ -238,3 +238,9 @@ volumes:
     certbot:
     nginx:
     varnish:
+
+
+
+networks:
+    default:
+    name: magenx
