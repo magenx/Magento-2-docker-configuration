@@ -1,0 +1,240 @@
+#
+# Welcome to Magento 2 Docker Configuration
+#  _ __ ___   __ _  __ _  ___ _ __ __  __
+# | '_ ` _ \ / _` |/ _` |/ _ \ '_ \\ \/ /
+# | | | | | | (_| | (_| |  __/ | | |>  < 
+# |_| |_| |_|\__,_|\__, |\___|_| |_/_/\_\
+#                   __/ |                
+#                  |___/                 
+#
+# This config is created by magenx.com
+# If you have any questions or need help
+# please dont hesitate to contact us at:
+#
+# [admin email]: admin@magenx.com
+# [website url]: https://www.magenx.com
+#
+
+
+version: '3.8'
+
+services:
+
+    mariadb:
+#        build:
+#            context: ./mariadb
+#            dockerfile: Dockerfile
+        image: mariadb:10.5.12-focal
+        container_name: ${BRAND}-mariadb
+        env_file:
+            - ./mariadb/mariadb.env
+        ports:
+            - "127.0.0.1:3306:3306"
+        volumes:
+            - mariadb:/var/lib/mysql
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"
+
+
+
+    elasticsearch:
+        build:
+            context: ./elasticsearch
+            dockerfile: Dockerfile
+        container_name: ${BRAND}-elasticsearch
+        env_file:
+            - ./elasticsearch/elasticsearch.env
+        ports:
+            - "127.0.0.1:9200:9200"
+            - "127.0.0.1:9300:9300"
+        restart: always
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        volumes:
+            - elasticsearch:/usr/share/elasticsearch/data
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"
+
+
+
+    redis:
+        image: redis:6.2.6-alpine
+        container_name: ${BRAND}-redis
+        env_file:
+            - ./redis/redis.env
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        ports:
+            - "127.0.0.1:6379:6379"            
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"             
+
+
+                
+    rabbitmq:
+        image: rabbitmq:3.8-alpine
+        container_name: ${BRAND}-rabbitmq
+        restart: always
+        env_file:
+            - ./rabbitmq/rabbitmq.env
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        ports:
+            - "127.0.0.1:5672:5672"           
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"
+                
+                
+                
+    varnish:
+        image: varnish:6.6.1-alpine
+        container_name: ${BRAND}-varnish
+        restart: always
+        depends_on:
+            - nginx
+            - php
+        env_file:
+            - ./varnish/varnish.env
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        ports:
+            - "127.0.0.1:8081:8081"
+            - "127.0.0.1:6082:6082" 
+        volumes:
+            - varnish:/etc/varnish
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"
+    
+    
+    
+    php:
+        build:
+            context: ./php
+            dockerfile: Dockerfile
+        container_name: ${BRAND}-php
+        restart: always
+        depends_on:
+            - mariadb
+            - redis
+            - rabbitmq
+            - elasticsearch
+        env_file:
+            - ./php/php.env
+        ports:
+            - "127.0.0.1:9000:9000"
+        volumes:
+            - app:/home/${BRAND}
+            - varnish:/etc/varnish
+            - phpmyadmin:/usr/share/phpmyadmin
+        working_dir: "/home/${BRAND}/public_html" 
+        entrypoint: php-fpm7 -F
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"
+                
+                
+                
+    nginx:
+        image: nginx:mainline-alpine-perl
+        container_name: ${BRAND}-nginx
+        restart: always
+        depends_on:
+            - mariadb
+            - php
+            - redis
+            - rabbitmq
+            - elasticsearch
+        env_file:
+            - ./nginx/nginx.env
+        ports:
+            - "80:80"
+            - "127.0.0.1:8080:8080" 
+            - "443:443"
+        volumes:
+            - app:/home/${BRAND}
+            - nginx:/etc/nginx
+            - certbot:/etc/letsencrypt
+            - phpmyadmin:/usr/share/phpmyadmin
+        working_dir: "/home/${BRAND}/public_html"
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"
+ 
+ 
+ 
+    phpmyadmin:
+        image: phpmyadmin:fpm-alpine
+        container_name: ${BRAND}-phpmyadmin
+        restart: always
+        depends_on:
+            - mariadb
+            - nginx
+        env_file:
+            - ./phpmyadmin/phpmyadmin.env
+        volumes:
+            - phpmyadmin:/var/www/html
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"
+            
+            
+    certbot:
+        image: certbot/certbot:latest
+        container_name: ${BRAND}-certbot
+        restart: always
+        depends_on:
+            - nginx
+        env_file:
+            - ./certbot/certbot.env
+        volumes:
+            - certbot:/etc/letsencrypt
+        working_dir: "/home/${BRAND}/public_html/pub"
+        entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 7d & wait $${!}; done;'"
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"  
+            
+            
+            
+volumes:
+    app:
+    mariadb:
+    phpmyadmin:
+    elasticsearch:
+    certbot:
+    nginx:
+    
