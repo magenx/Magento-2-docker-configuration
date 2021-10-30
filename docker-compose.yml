@@ -243,4 +243,4 @@ volumes:
 
 networks:
     default:
-    name: magenx
+        name: magenx
