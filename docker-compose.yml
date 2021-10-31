@@ -163,6 +163,13 @@ services:
                 
                 
     nginx:
+#        build:
+#            context: ./nginx
+#            dockerfile: Dockerfile
+#            args:
+#                - BRAND=${BRAND}
+#                - DOMAIN=${DOMAIN}
+#                - WEB_ROOT_PATH=/home/${BRAND}/public_html
         image: nginx:mainline-alpine-perl
         container_name: ${BRAND}-nginx
         restart: always
@@ -180,6 +187,7 @@ services:
             - "443:443"
         volumes:
             - app:/home/${BRAND}
+            - ssl:/etc/ssl
             - nginx:/etc/nginx
             - certbot:/etc/letsencrypt
             - phpmyadmin:/usr/share/phpmyadmin
@@ -210,6 +218,7 @@ services:
                 tag: "[ {{.Name}} ]"
             
             
+            
     certbot:
         image: certbot/certbot:latest
         container_name: ${BRAND}-certbot
@@ -232,6 +241,7 @@ services:
             
 volumes:
     app:
+    ssl:
     mariadb:
     phpmyadmin:
     elasticsearch:
