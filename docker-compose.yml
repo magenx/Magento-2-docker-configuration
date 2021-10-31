@@ -7,7 +7,7 @@
 #                   __/ |                
 #                  |___/                 
 #
-# This config is created by magenx.com
+# This config was created by magenx.com
 # If you have any questions or need help
 # please dont hesitate to contact us at:
 #
@@ -24,6 +24,8 @@ services:
 #        build:
 #            context: ./mariadb
 #            dockerfile: Dockerfile
+#            args:
+#                -
         image: mariadb:10.5.12-focal
         container_name: ${BRAND}-mariadb
         env_file:
