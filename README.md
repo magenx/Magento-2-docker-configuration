@@ -12,8 +12,7 @@
 > https://docs.docker.com/engine/install/debian/
 ```
     curl -fsSL https://get.docker.com -o get-docker.sh
-    curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" \
-    -o /usr/local/bin/docker-compose
+    curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     bash get-docker.sh
     chmod +x /usr/local/bin/docker-compose
 ```
