@@ -1,5 +1,12 @@
 FROM alpine:3.13
-MAINTAINER Magenx Admin <admin@magenx.com>
+
+LABEL org.opencontainers.image.authors="admin@magenx.com"
+
+ARG BRAND
+ARG PHP_USER
+ARG ROOT_PATH
+ARG APP_ROOT_PATH
+ARG WEB_ROOT_PATH
 
 RUN apk update && \
 	apk add --update --no-cache \
@@ -51,11 +58,16 @@ RUN apk update && \
 	php7-ssh2 \
 	php7-fpm
 
-#RUN addgroup -g 1001 www-data \
-#	&& adduser -D -u 1001 -G www-data www-data
+RUN mkdir -p ${APP_ROOT_PATH} && \
+    addgroup -S -g 1001 ${PHP_USER} && \
+    adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER} && \
+    chown -R .${PHP_USER} ${APP_ROOT_PATH} && \
+    chmod -R 770 ${APP_ROOT_PATH}
 
-#USER www-data:www-data
+USER ${PHP_USER}:${PHP_USER}
 
-VOLUME /var/www/html
+RUN cd ${APP_ROOT_PATH} && \
+    git clone https://github.com/magenx/Magento-2.git . && \
+    rm -rf .git
 
-WORKDIR /var/www/html
+

@@ -18,6 +18,14 @@
 
 version: '3.8'
 
+x-appsetargs: &appsetargs
+    - BRAND=${BRAND}
+    - DOMAIN=${DOMAIN}
+    - PHP_USER=${PHP_USER}
+    - ROOT_PATH=${ROOT_PATH}
+    - APP_ROOT_PATH=${APP_ROOT_PATH}
+    - WEB_ROOT_PATH=${WEB_ROOT_PATH}
+
 services:
 
     mariadb:
@@ -139,6 +147,7 @@ services:
         build:
             context: ./php
             dockerfile: Dockerfile
+            args: *appsetargs
         container_name: ${BRAND}-php
         restart: always
         depends_on:
@@ -151,10 +160,10 @@ services:
         ports:
             - "127.0.0.1:9000:9000"
         volumes:
-            - app:/home/${BRAND}
+            - app:${ROOT_PATH}
             - varnish:/etc/varnish
             - phpmyadmin:/usr/share/phpmyadmin
-        working_dir: "/home/${BRAND}/public_html" 
+        working_dir: ${WEB_ROOT_PATH}
         entrypoint: php-fpm7 -F
         logging:
             driver: syslog
@@ -165,14 +174,10 @@ services:
                 
                 
     nginx:
-#        build:
-#            context: ./nginx
-#            dockerfile: Dockerfile
-#            args:
-#                - BRAND=${BRAND}
-#                - DOMAIN=${DOMAIN}
-#                - WEB_ROOT_PATH=/home/${BRAND}/public_html
-        image: nginx:mainline-alpine-perl
+        build:
+            context: ./nginx
+            dockerfile: Dockerfile
+            args: *appsetargs
         container_name: ${BRAND}-nginx
         restart: always
         depends_on:
@@ -188,12 +193,12 @@ services:
             - "127.0.0.1:8080:8080" 
             - "443:443"
         volumes:
-            - app:/home/${BRAND}
+            - app:${ROOT_PATH}
             - ssl:/etc/ssl
             - nginx:/etc/nginx
             - certbot:/etc/letsencrypt
             - phpmyadmin:/usr/share/phpmyadmin
-        working_dir: "/home/${BRAND}/public_html"
+        working_dir: ${WEB_ROOT_PATH}
         logging:
             driver: syslog
             options:
@@ -231,7 +236,7 @@ services:
             - ./certbot/certbot.env
         volumes:
             - certbot:/etc/letsencrypt
-        working_dir: "/home/${BRAND}/public_html/pub"
+        working_dir: ${WEB_ROOT_PATH}
         entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 7d & wait $${!}; done;'"
         logging:
             driver: syslog
