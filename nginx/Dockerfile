@@ -13,15 +13,16 @@ ARG APP_ROOT_PATH
 ARG WEB_ROOT_PATH
 
 RUN if [ ! -d "/etc/nginx/conf_m2" ]; then \
+    apk add --no-cache openssl && \
     mkdir -p ${APP_ROOT_PATH} && \
     addgroup -S -g 1001 ${PHP_USER} && \
     adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER} && \
     addgroup -S -g 1000 ${BRAND} && \
-    adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${BRAND} ${PHP_USER} && \
+    adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND} && \
     chown -R ${BRAND}:${PHP_USER} ${ROOT_PATH} && \
     chmod -R 770 ${APP_ROOT_PATH} && \
-    curl -o /etc/nginx/fastcgi_params ${GITHUB_REPO_RAW_URL}/fastcgi_params && \
-    curl -o /etc/nginx/nginx.conf ${GITHUB_REPO_RAW_URL}/nginx.conf && \
+    curl -L "${GITHUB_REPO_RAW_URL}/fastcgi_params" -o /etc/nginx/fastcgi_params && \
+    curl -L "${GITHUB_REPO_RAW_URL}/nginx.conf" -o /etc/nginx/nginx.conf && \
     mkdir -p /etc/nginx/sites-enabled && \
     mkdir -p /etc/nginx/sites-available && \
     mkdir -p /etc/nginx/conf_m2 && \

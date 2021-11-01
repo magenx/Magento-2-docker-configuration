@@ -31,7 +31,6 @@ services:
     mariadb:
 #        build:
 #            context: ./mariadb
-#            dockerfile: Dockerfile
 #            args:
 #                -
         image: mariadb:10.5.12-focal
@@ -53,7 +52,6 @@ services:
     elasticsearch:
         build:
             context: ./elasticsearch
-            dockerfile: Dockerfile
         container_name: ${BRAND}-elasticsearch
         env_file:
             - ./elasticsearch/elasticsearch.env
@@ -146,7 +144,6 @@ services:
     php:
         build:
             context: ./php
-            dockerfile: Dockerfile
             args: *appsetargs
         container_name: ${BRAND}-php
         restart: always
@@ -176,7 +173,6 @@ services:
     nginx:
         build:
             context: ./nginx
-            dockerfile: Dockerfile
             args: *appsetargs
         container_name: ${BRAND}-nginx
         restart: always
