@@ -25,6 +25,7 @@ x-appsetargs: &appsetargs
     - ROOT_PATH=${ROOT_PATH}
     - APP_ROOT_PATH=${APP_ROOT_PATH}
     - WEB_ROOT_PATH=${WEB_ROOT_PATH}
+    - TIMEZONE=${TIMEZONE}
 
 services:
 
