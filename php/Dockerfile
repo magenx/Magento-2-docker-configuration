@@ -20,7 +20,7 @@ RUN apk update && \
 	curl \
 	git \
 	mariadb-client \
-		php7 \
+        php7 \
 	php7-apcu \
 	php7-bcmath \
 	php7-bz2 \
