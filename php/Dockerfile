@@ -20,7 +20,6 @@ RUN apk update && \
 	curl \
 	git \
 	mariadb-client \
-	composer \
 	php7 \
 	php7-calendar \
 	php7-mcrypt \
