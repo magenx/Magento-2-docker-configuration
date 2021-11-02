@@ -92,14 +92,14 @@ RUN mkdir -p ${APP_ROOT_PATH} && \
     adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND} && \
     chown -R ${BRAND}.${PHP_USER} ${APP_ROOT_PATH} && \
     chmod -R 2770 ${APP_ROOT_PATH} && \
-    setfacl -R -m u:${BRAND}:rwX,g:${PHP_USER}:r-X,o::-,d:u:${BRAND}:rwX,d:g:${PHP_USER}:r-X,d:o::- ${APP_ROOT_PATH} && \
     chown -R ${PHP_USER} /var/log/php7
 
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
-USER ${PHP_USER}:${PHP_USER}
+USER ${BRAND}:${PHP_USER}
 
 RUN cd ${APP_ROOT_PATH} && \
     git clone https://github.com/magenx/Magento-2.git . && \
     rm -rf .git
 
+USER ${PHP_USER}

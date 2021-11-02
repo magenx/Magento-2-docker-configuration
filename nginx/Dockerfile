@@ -39,3 +39,7 @@ RUN if [ ! -d "/etc/nginx/conf_m2" ]; then \
     sed -i "s/PROFILER_PLACEHOLDER/$${PROFILER_PLACEHOLDER}/" /etc/nginx/conf_m2/maps.conf && \
     openssl dhparam -dsaparam -out /etc/ssl/certs/dhparams.pem 4096 && \
     openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout /etc/ssl/certs/default_server.key -out /etc/ssl/certs/default_server.crt -subj "/CN=default_server" -days 3650 -subj "/C=US/ST=Oregon/L=Portland/O=default_server/OU=Org/CN=default_server"; fi
+
+RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
+
+

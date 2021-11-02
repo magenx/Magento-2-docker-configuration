@@ -240,7 +240,28 @@ services:
             options:
                 syslog-address: "unixgram:///dev/log"
                 tag: "[ {{.Name}} ]"  
-            
+
+
+
+    composer:
+        build:
+            context: ./composer
+            args: *appsetargs
+        container_name: ${BRAND}-composer
+        depends_on:
+            - php
+            - nginx
+            - mariadb
+        env_file:
+            - ./composer/composer.env
+        volumes:
+            - app:${ROOT_PATH}
+        working_dir: ${APP_ROOT_PATH}
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"            
             
             
 volumes:
