@@ -36,8 +36,12 @@ services:
 #                -
         image: mariadb:10.5.12-focal
         container_name: ${BRAND}-mariadb
-        env_file:
-            - ./mariadb/mariadb.env
+        environment:
+            - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+            - MARIADB_DATABASE=${MARIADB_DATABASE}
+            - MARIADB_USER=${MARIADB_USER}
+            - MARIADB_PASSWORD=${MARIADB_PASSWORD}
+            - TZ=${TIMEZONE}
         ports:
             - "127.0.0.1:3306:3306"
         volumes:
@@ -54,8 +58,13 @@ services:
         build:
             context: ./elasticsearch
         container_name: ${BRAND}-elasticsearch
-        env_file:
-            - ./elasticsearch/elasticsearch.env
+        environment:
+            - cluster.name=magento
+            - node.name=magento-node1
+            - discovery.type=single-node
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - cluster.routing.allocation.disk.threshold_enabled=false
+            - index.blocks.read_only_allow_delete
         ports:
             - "127.0.0.1:9200:9200"
             - "127.0.0.1:9300:9300"
@@ -80,8 +89,6 @@ services:
     redis:
         image: redis:6.2.6-alpine
         container_name: ${BRAND}-redis
-        env_file:
-            - ./redis/redis.env
         ulimits:
             memlock:
                 soft: -1
@@ -100,8 +107,6 @@ services:
         image: rabbitmq:3.8-alpine
         container_name: ${BRAND}-rabbitmq
         restart: always
-        env_file:
-            - ./rabbitmq/rabbitmq.env
         ulimits:
             memlock:
                 soft: -1
@@ -123,8 +128,6 @@ services:
         depends_on:
             - nginx
             - php
-        env_file:
-            - ./varnish/varnish.env
         ulimits:
             memlock:
                 soft: -1
@@ -153,8 +156,6 @@ services:
             - redis
             - rabbitmq
             - elasticsearch
-        env_file:
-            - ./php/php.env
         ports:
             - "127.0.0.1:9000:9000"
         volumes:
@@ -183,8 +184,6 @@ services:
             - redis
             - rabbitmq
             - elasticsearch
-        env_file:
-            - ./nginx/nginx.env
         ports:
             - "80:80"
             - "127.0.0.1:8080:8080" 
@@ -207,12 +206,13 @@ services:
     phpmyadmin:
         image: phpmyadmin:fpm-alpine
         container_name: ${BRAND}-phpmyadmin
+        environment:
+            - PMA_HOST="mariadb"
+            - PMA_PORT="3306" 
         restart: always
         depends_on:
             - mariadb
             - nginx
-        env_file:
-            - ./phpmyadmin/phpmyadmin.env
         volumes:
             - phpmyadmin:/var/www/html
         logging:
@@ -229,8 +229,6 @@ services:
         restart: always
         depends_on:
             - nginx
-        env_file:
-            - ./certbot/certbot.env
         volumes:
             - certbot:/etc/letsencrypt
         working_dir: ${WEB_ROOT_PATH}
@@ -252,8 +250,6 @@ services:
             - php
             - nginx
             - mariadb
-        env_file:
-            - ./composer/composer.env
         volumes:
             - app:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}

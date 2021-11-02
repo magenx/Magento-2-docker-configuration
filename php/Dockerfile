@@ -99,6 +99,11 @@ USER ${BRAND}:${PHP_USER}
 
 RUN cd ${APP_ROOT_PATH} && \
     git clone https://github.com/magenx/Magento-2.git . && \
-    rm -rf .git
+    rm -rf .git && \
+    find . -type d -exec chmod 2750 {} \; && \
+    find . -type f -exec chmod 640 {} \; && \
+    chmod +x bin/magento && \
+    find var generated pub/media pub/static -type d -exec chmod 2770 {} \; && \
+    find var generated pub/media pub/static -type f -exec chmod 660 {} \;
 
 USER ${PHP_USER}

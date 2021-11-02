@@ -54,6 +54,7 @@ RUN apk update && \
 	php7-fileinfo \
 	php7-xsl \
 	php7-sockets \
+        php7-tokenizer \
 	php7-pear \
 	php7-redis \
 	php7-oauth \
@@ -69,7 +70,7 @@ RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} >
 
 ENV COMPOSER_MEMORY_LIMIT=-1 
 
-WORKDIR ${APP_ROOT_PATH}
-
 USER ${BRAND}
+
+CMD ["composer"]
 
