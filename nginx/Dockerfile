@@ -6,6 +6,8 @@ LABEL org.opencontainers.image.authors="admin@magenx.com"
 ARG GITHUB_REPO_RAW_URL="https://raw.githubusercontent.com/magenx/Magento-nginx-config/master/magento2/"
 ARG GITHUB_REPO_API_URL="https://api.github.com/repos/magenx/Magento-nginx-config/contents/magento2"
 
+ARG nginx
+
 ARG BRAND
 ARG PHP_USER
 ARG DOMAIN
@@ -14,13 +16,13 @@ ARG APP_ROOT_PATH
 ARG WEB_ROOT_PATH
 ARG TIMEZONE
 
-RUN if [ ! -d "/etc/nginx/conf_m2" ]; then \
-    apk add --no-cache openssl && \
+RUN apk add --no-cache openssl && \
     mkdir -p ${APP_ROOT_PATH} && \
     addgroup -S -g 1001 ${PHP_USER} && \
     adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER} && \
     addgroup -S -g 1000 ${BRAND} && \
     adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND} && \
+    if [ ! -z ${nginx} ]; then \
     curl -L "${GITHUB_REPO_RAW_URL}/fastcgi_params" -o /etc/nginx/fastcgi_params && \
     curl -L "${GITHUB_REPO_RAW_URL}/nginx.conf" -o /etc/nginx/nginx.conf && \
     mkdir -p /etc/nginx/sites-enabled && \

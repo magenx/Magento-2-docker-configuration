@@ -6,6 +6,8 @@ ARG PHP_FPM_POOL="/etc/php7/php-fpm.d/www.conf"
 ARG PHP_INI="/etc/php7/php.ini"
 ARG TIMEZONE
 
+ARG magento
+
 ARG BRAND
 ARG PHP_USER
 ARG ROOT_PATH
@@ -38,6 +40,7 @@ RUN apk update && \
 	php7-json \
 	php7-mbstring \
 	php7-mcrypt \
+        php7-msgpack \
 	php7-mysqli \
 	php7-oauth \
 	php7-odbc \
@@ -80,7 +83,6 @@ php_flag[display_errors] = on \n\
 php_admin_flag[log_errors] = on \n\
 php_admin_value[error_log] = /proc/self/fd/2 \n\
 php_admin_value[default_charset] = UTF-8 \n\
-php_flag[display_errors] = off \n\
 php_admin_value[memory_limit] = 2G \n\
 php_admin_value[date.timezone] = ${TIMEZONE} \n\
 " >> ${PHP_FPM_POOL}
@@ -98,13 +100,13 @@ RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} >
 
 USER ${BRAND}:${PHP_USER}
 
-RUN cd ${APP_ROOT_PATH} && \
+RUN if [ ! -z ${magento} ]; then \
+    cd ${APP_ROOT_PATH} && \
     git clone https://github.com/magenx/Magento-2.git . && \
     rm -rf .git && \
-    find . -type d -exec chmod 2750 {} \; && \
-    find . -type f -exec chmod 640 {} \; && \
-    chmod +x bin/magento && \
-    find var generated pub/media pub/static -type d -exec chmod 2770 {} \; && \
-    find var generated pub/media pub/static -type f -exec chmod 660 {} \;
+    find . -type d -exec chmod 2770 {} \; && \
+    find . -type f -exec chmod 660 {} \; && \
+    chmod +x bin/magento; fi
 
 USER ${PHP_USER}
+
