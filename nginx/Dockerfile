@@ -17,14 +17,14 @@ ARG APP_ROOT_PATH
 ARG WEB_ROOT_PATH
 ARG TIMEZONE
 
-RUN apk add --no-cache openssl && \
-    mkdir -p ${APP_ROOT_PATH} && \
+RUN mkdir -p ${APP_ROOT_PATH} && \
     addgroup -S -g 1001 ${PHP_USER} && \
     adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER} && \
     addgroup -S -g 1000 ${BRAND} && \
     adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND}
     
 RUN if [ ! -z ${nginx} ]; then \
+    apk add --no-cache openssl && \
     curl -L "${GITHUB_REPO_RAW_URL}/fastcgi_params" -o /etc/nginx/fastcgi_params && \
     curl -L "${GITHUB_REPO_RAW_URL}/nginx.conf" -o /etc/nginx/nginx.conf && \
     mkdir -p /etc/nginx/sites-enabled && \
