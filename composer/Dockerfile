@@ -68,6 +68,9 @@ RUN addgroup -S -g 1001 ${PHP_USER} && \
 
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
-ENV COMPOSER_MEMORY_LIMIT=-1 
+ENV COMPOSER_MEMORY_LIMIT=-1
+
+ENTRYPOINT ["composer"]
 
 USER ${BRAND}
+
