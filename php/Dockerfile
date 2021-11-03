@@ -1,6 +1,7 @@
 FROM alpine:3.13
 
 LABEL org.opencontainers.image.authors="admin@magenx.com"
+LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG PHP_FPM_POOL="/etc/php7/php-fpm.d/www.conf"
 ARG PHP_INI="/etc/php7/php.ini"
