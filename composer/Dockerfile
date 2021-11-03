@@ -71,7 +71,6 @@ RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} >
 
 ENV COMPOSER_MEMORY_LIMIT=-1
 
-ENTRYPOINT ["composer"]
-
 USER ${BRAND}
 
+ENTRYPOINT ["composer"]
