@@ -2,6 +2,7 @@
 FROM nginx:mainline-alpine-perl
 
 LABEL org.opencontainers.image.authors="admin@magenx.com"
+LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG GITHUB_REPO_RAW_URL="https://raw.githubusercontent.com/magenx/Magento-nginx-config/master/magento2/"
 ARG GITHUB_REPO_API_URL="https://api.github.com/repos/magenx/Magento-nginx-config/contents/magento2"
@@ -21,8 +22,9 @@ RUN apk add --no-cache openssl && \
     addgroup -S -g 1001 ${PHP_USER} && \
     adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER} && \
     addgroup -S -g 1000 ${BRAND} && \
-    adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND} && \
-    if [ ! -z ${nginx} ]; then \
+    adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND}
+    
+RUN if [ ! -z ${nginx} ]; then \
     curl -L "${GITHUB_REPO_RAW_URL}/fastcgi_params" -o /etc/nginx/fastcgi_params && \
     curl -L "${GITHUB_REPO_RAW_URL}/nginx.conf" -o /etc/nginx/nginx.conf && \
     mkdir -p /etc/nginx/sites-enabled && \
@@ -43,5 +45,4 @@ RUN apk add --no-cache openssl && \
     openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout /etc/ssl/certs/default_server.key -out /etc/ssl/certs/default_server.crt -subj "/CN=default_server" -days 3650 -subj "/C=US/ST=Oregon/L=Portland/O=default_server/OU=Org/CN=default_server"; fi
 
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
-
 
