@@ -29,6 +29,10 @@
 **[ ! ]** Check all data, adjust your settings, edit your variables  
 - [x] Run to pull and build images and start containers:
 ```
+   docker-compose build \
+        --build-arg magento \
+        --build-arg nginx
+        
    docker-compose up -d
 ```
 - [x] Watch syslog for errors and issues:
