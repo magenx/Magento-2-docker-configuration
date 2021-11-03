@@ -23,7 +23,7 @@
 - [x] Clone repo:  
 > 
 ```
-  git clone https://github.com/magenx/docker-magento2.git .
+  git clone https://github.com/magenx/Magento-2-docker-configuration.git .
 ```
 > 
 **[ ! ]** Check all data, adjust your settings, edit your variables  
