@@ -104,6 +104,7 @@ USER ${BRAND}:${PHP_USER}
 RUN if [ ! -z ${magento} ]; then \
     cd ${APP_ROOT_PATH} && \
     git clone https://github.com/magenx/Magento-2.git . && \
+    echo 007 > magento_umask
     rm -rf .git && \
     find . -type d -exec chmod 2770 {} \; && \
     find . -type f -exec chmod 660 {} \; && \
