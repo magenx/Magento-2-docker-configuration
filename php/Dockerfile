@@ -74,6 +74,7 @@ RUN sed -i "s/\[www\]/\[${BRAND}\]/" ${PHP_FPM_POOL} && \
     sed -i "s/^group =.*/group = ${PHP_USER}/" ${PHP_FPM_POOL} && \
     sed -ri "s/;?listen.group =.*/listen.group = ${PHP_USER}/" ${PHP_FPM_POOL} && \
     sed -ri "s/;?listen.mode = 0660/listen.mode = 0660/" ${PHP_FPM_POOL} && \
+    sed -i "s/listen = 127.0.0.1:9000/listen = php:9000/" ${PHP_FPM_POOL} && \
     sed -i '/sendmail_path/,$d' ${PHP_FPM_POOL} && \
     sed -i '/PHPSESSID/d' ${PHP_INI} && \
     sed -i "s,.*date.timezone.*,date.timezone = ${TIMEZONE}," ${PHP_INI} && \
