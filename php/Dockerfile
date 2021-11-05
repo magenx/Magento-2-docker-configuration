@@ -16,57 +16,57 @@ ARG APP_ROOT_PATH
 ARG WEB_ROOT_PATH
 
 RUN apk update && \
-	apk add --update --no-cache \
-        acl \
-        attr \
-	bash \
-	curl \
-	git \
-	mariadb-client \
-        php7 \
-	php7-apcu \
-	php7-bcmath \
-	php7-bz2 \
-	php7-calendar \
-	php7-ctype \
-	php7-curl \
-	php7-dom \
-	php7-fileinfo \
-	php7-fpm \
-	php7-gd \
-	php7-gettext \
-	php7-gmp \
-	php7-iconv \
-	php7-intl \
-	php7-json \
-	php7-mbstring \
-	php7-mcrypt \
-        php7-msgpack \
-	php7-mysqli \
-	php7-oauth \
-	php7-odbc \
-	php7-opcache \
-	php7-openssl \
-	php7-pdo \
-	php7-pdo_dblib \
-	php7-pdo_mysql \
-	php7-pdo_odbc \
-	php7-pdo_sqlite \
-	php7-pear \
-	php7-phar \
-	php7-redis \
-	php7-simplexml \
-	php7-soap \
-	php7-sockets \
-	php7-sodium \
-	php7-sqlite3 \
-	php7-ssh2 \
-	php7-tokenizer \
-	php7-xmlreader \
-	php7-xmlrpc \
-	php7-xmlwriter \
-	php7-xsl \
-	php7-zip
+    apk add --update --no-cache \
+    acl \
+    attr \
+    bash \
+    curl \
+    git \
+    mariadb-client \
+    php7 \
+    php7-apcu \
+    php7-bcmath \
+    php7-bz2 \
+    php7-calendar \
+    php7-ctype \
+    php7-curl \
+    php7-dom \
+    php7-fileinfo \
+    php7-fpm \
+    php7-gd \
+    php7-gettext \
+    php7-gmp \
+    php7-iconv \
+    php7-intl \
+    php7-json \
+    php7-mbstring \
+    php7-mcrypt \
+    php7-msgpack \
+    php7-mysqli \
+    php7-oauth \
+    php7-odbc \
+    php7-opcache \
+    php7-openssl \
+    php7-pdo \
+    php7-pdo_dblib \
+    php7-pdo_mysql \
+    php7-pdo_odbc \
+    php7-pdo_sqlite \
+    php7-pear \
+    php7-phar \
+    php7-redis \
+    php7-simplexml \
+    php7-soap \
+    php7-sockets \
+    php7-sodium \
+    php7-sqlite3 \
+    php7-ssh2 \
+    php7-tokenizer \
+    php7-xmlreader \
+    php7-xmlrpc \
+    php7-xmlwriter \
+    php7-xsl \
+    php7-zip
 
 
 RUN sed -i "s/\[www\]/\[${BRAND}\]/" ${PHP_FPM_POOL} && \
@@ -78,6 +78,19 @@ RUN sed -i "s/\[www\]/\[${BRAND}\]/" ${PHP_FPM_POOL} && \
     sed -i '/sendmail_path/,$d' ${PHP_FPM_POOL} && \
     sed -i '/PHPSESSID/d' ${PHP_INI} && \
     sed -i "s,.*date.timezone.*,date.timezone = ${TIMEZONE}," ${PHP_INI} && \
+    sed -i 's/^\(max_execution_time = \)[0-9]*/\17200/' ${PHP_INI} && \
+    sed -i 's/^\(max_input_time = \)[0-9]*/\17200/' ${PHP_INI} && \
+    sed -i 's/^\(memory_limit = \)[0-9]*M/\12048M/' ${PHP_INI} && \
+    sed -i 's/^\(post_max_size = \)[0-9]*M/\164M/' ${PHP_INI} && \
+    sed -i 's/^\(upload_max_filesize = \)[0-9]*M/\164M/' ${PHP_INI} && \
+    sed -i 's/expose_php = On/expose_php = Off/' ${PHP_INI} && \
+    sed -i 's/;realpath_cache_size =.*/realpath_cache_size = 4096k/' ${PHP_INI} && \
+    sed -i 's/;realpath_cache_ttl =.*/realpath_cache_ttl = 86400/' ${PHP_INI} && \
+    sed -i 's/short_open_tag = Off/short_open_tag = On/' ${PHP_INI} && \
+    sed -i 's/;max_input_vars =.*/max_input_vars = 50000/' ${PHP_INI} && \
+    sed -i 's/session.gc_maxlifetime = 1440/session.gc_maxlifetime = 28800/' ${PHP_INI} && \
+    sed -i 's/mysql.allow_persistent = On/mysql.allow_persistent = Off/' ${PHP_INI} && \
+    sed -i 's/mysqli.allow_persistent = On/mysqli.allow_persistent = Off/' ${PHP_INI}
     echo -e "\n\
 \n\
 ; Custom pool settings \n\
