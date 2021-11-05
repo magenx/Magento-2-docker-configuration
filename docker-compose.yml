@@ -236,7 +236,7 @@ services:
         container_name: ${BRAND}-nodejs
         volumes:
             - app:${ROOT_PATH}
-        working_dir: ${WEB_ROOT_PATH}
+        working_dir: ${APP_ROOT_PATH}
         logging:
             driver: syslog
             options:
@@ -322,7 +322,7 @@ services:
             - mariadb
         volumes:
             - app:${ROOT_PATH}
-        working_dir: ${WEB_ROOT_PATH}
+        working_dir: ${APP_ROOT_PATH}
         logging:
             driver: syslog
             options:
