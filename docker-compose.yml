@@ -18,6 +18,9 @@
 
 version: '3.8'
 
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Configure reusable arguments
+# # ---------------------------------------------------------------------------------------------------------------------#
 x-appsetargs: &appsetargs
     - BRAND=${BRAND}
     - DOMAIN=${DOMAIN}
@@ -28,13 +31,15 @@ x-appsetargs: &appsetargs
     - TIMEZONE=${TIMEZONE}
 
 services:
-
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  MariaDB is a high performing open source relational database
+# # ---------------------------------------------------------------------------------------------------------------------#
     mariadb:
 #        build:
 #            context: ./mariadb
 #            args:
 #                -
-        image: mariadb:10.5.12-focal
+        image: mariadb:${MARIADB_VERSION}
         container_name: ${BRAND}-mariadb
         environment:
             - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
@@ -61,7 +66,9 @@ services:
                 tag: "[ {{.Name}} ]"
 
 
-
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Elasticsearch is a powerful open source search and analytics engine
+# # ---------------------------------------------------------------------------------------------------------------------#
     elasticsearch:
         build:
             context: ./elasticsearch
@@ -93,9 +100,11 @@ services:
                 tag: "[ {{.Name}} ]"
 
 
-
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Redis is an open source key-value store that functions as a data structure server.
+# # ---------------------------------------------------------------------------------------------------------------------#
     redis:
-        image: redis:6.2.6-alpine
+        image: redis:${REDIS_VERSION}
         container_name: ${BRAND}-redis
         ulimits:
             memlock:
@@ -110,9 +119,11 @@ services:
                 tag: "[ {{.Name}} ]"             
 
 
-                
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  RabbitMQ is an open source multi-protocol messaging broker
+# # ---------------------------------------------------------------------------------------------------------------------#                
     rabbitmq:
-        image: rabbitmq:3.8-alpine
+        image: rabbitmq:${RABBITMQ_VERSION}
         container_name: ${BRAND}-rabbitmq
         restart: always
         ulimits:
@@ -120,7 +131,7 @@ services:
                 soft: -1
                 hard: -1
         ports:
-            - "127.0.0.1:5672:5672"           
+            - "127.0.0.1:5671:5671"           
         logging:
             driver: syslog
             options:
@@ -128,9 +139,11 @@ services:
                 tag: "[ {{.Name}} ]"
                 
                 
-                
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Varnish is an HTTP accelerator designed for content-heavy dynamic web sites as well as APIs.
+# # ---------------------------------------------------------------------------------------------------------------------#                  
     varnish:
-        image: varnish:6.6.1-alpine
+        image: varnish:${VARNISH_VERSION}
         container_name: ${BRAND}-varnish
         restart: always
         depends_on:
@@ -152,7 +165,9 @@ services:
                 tag: "[ {{.Name}} ]"
     
     
-    
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Configure container to run php and php-fpm
+# # ---------------------------------------------------------------------------------------------------------------------#    
     php:
         build:
             context: ./php
@@ -179,7 +194,9 @@ services:
                 tag: "[ {{.Name}} ]"
                 
                 
-                
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Nginx is an open source reverse proxy server for HTTP, HTTPS
+# # ---------------------------------------------------------------------------------------------------------------------#                   
     nginx:
         build:
             context: ./nginx
@@ -209,9 +226,11 @@ services:
                 tag: "[ {{.Name}} ]"
  
  
- 
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  phpMyAdmin - A web interface for MariaDB
+# # ---------------------------------------------------------------------------------------------------------------------#  
     phpmyadmin:
-        image: phpmyadmin:fpm-alpine
+        image: phpmyadmin:${PHPMYADMIN_VERSION}
         container_name: ${BRAND}-phpmyadmin
         environment:
             - PMA_HOST="mariadb"
@@ -229,7 +248,9 @@ services:
                 tag: "[ {{.Name}} ]"
             
             
-            
+# # ---------------------------------------------------------------------------------------------------------------------#
+#   Certbot tool for obtaining TLS/SSL certificates from Let's Encrypt
+# # ---------------------------------------------------------------------------------------------------------------------#           
     certbot:
         image: certbot/certbot:latest
         container_name: ${BRAND}-certbot
@@ -247,7 +268,9 @@ services:
                 tag: "[ {{.Name}} ]"  
 
 
-
+# # ---------------------------------------------------------------------------------------------------------------------#
+#   Composer is a dependency manager written in and for PHP
+# # ---------------------------------------------------------------------------------------------------------------------# 
     composer:
         build:
             context: ./composer
@@ -265,8 +288,33 @@ services:
             options:
                 syslog-address: "unixgram:///dev/log"
                 tag: "[ {{.Name}} ]"            
+
+
+# # ---------------------------------------------------------------------------------------------------------------------#
+#   Cron job scheduler run arbitrary commands, or "jobs", according to a schedule
+# # ---------------------------------------------------------------------------------------------------------------------# 
+    cron:
+        build:
+            context: ./cron
+            args: *appsetargs
+        container_name: ${BRAND}-cron
+        depends_on:
+            - php
+            - nginx
+            - mariadb
+        volumes:
+            - app:${ROOT_PATH}
+        working_dir: ${WEB_ROOT_PATH}
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"            
             
             
+# # ---------------------------------------------------------------------------------------------------------------------#
+#   Named volumes list
+# # ---------------------------------------------------------------------------------------------------------------------#            
 volumes:
     app:
     ssl:
@@ -278,7 +326,9 @@ volumes:
     varnish:
 
 
-
+# # ---------------------------------------------------------------------------------------------------------------------#
+#   Named networks list
+# # ---------------------------------------------------------------------------------------------------------------------# 
 networks:
     default:
         name: ${BRAND}
