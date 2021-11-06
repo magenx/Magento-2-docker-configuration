@@ -164,8 +164,27 @@ services:
             options:
                 syslog-address: "unixgram:///dev/log"
                 tag: "[ {{.Name}} ]"
-    
-    
+
+
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Configure container for magento app
+# # ---------------------------------------------------------------------------------------------------------------------#    
+    magento:
+        build:
+            context: ./magento
+            args: *appsetargs
+        container_name: ${BRAND}-magento
+        volumes:
+            - app:${ROOT_PATH}
+        working_dir: ${APP_ROOT_PATH}
+        entrypoint: ["bin/magento", "-vv"]
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                tag: "[ {{.Name}} ]"
+
+
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Configure container to run php and php-fpm
 # # ---------------------------------------------------------------------------------------------------------------------#    
@@ -176,6 +195,7 @@ services:
         container_name: ${BRAND}-php
         restart: always
         depends_on:
+            - magento
             - mariadb
             - redis
             - rabbitmq
@@ -205,6 +225,7 @@ services:
         container_name: ${BRAND}-nginx
         restart: always
         depends_on:
+            - magento
             - mariadb
             - php
             - redis
