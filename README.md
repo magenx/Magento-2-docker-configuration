@@ -56,6 +56,7 @@
    Stopping magenx-cron          ... done
    Stopping magenx-nginx         ... done
    Stopping magenx-php           ... done
+   Stopping magenx-magento       ... done
    Stopping magenx-elasticsearch ... done
    Stopping magenx-rabbitmq      ... done
    Stopping magenx-varnish       ... done
