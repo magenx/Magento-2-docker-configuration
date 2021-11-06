@@ -177,7 +177,6 @@ services:
         volumes:
             - app:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
-        entrypoint: ["bin/magento", "-vv"]
         logging:
             driver: syslog
             options:
