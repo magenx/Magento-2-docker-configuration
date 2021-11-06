@@ -315,6 +315,7 @@ services:
             args: *appsetargs
         container_name: ${BRAND}-composer
         depends_on:
+            - magento
             - php
             - nginx
             - mariadb
@@ -337,6 +338,7 @@ services:
             args: *appsetargs
         container_name: ${BRAND}-cron
         depends_on:
+            - magento
             - php
             - nginx
             - mariadb
