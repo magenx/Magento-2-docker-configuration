@@ -51,5 +51,7 @@ RUN if [ ! -z ${magento} ]; then \
     find . -type d -exec chmod 2770 {} \; && \
     find . -type f -exec chmod 660 {} \; && \
     chmod +x bin/magento; fi
+    
+ENTRYPOINT ["bin/magento", "-vv"]
 
 USER ${BRAND}
