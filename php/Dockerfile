@@ -65,5 +65,7 @@ RUN addgroup -S -g 1001 ${PHP_USER} && \
 
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
+ENTRYPOINT ["php-fpm7", "-F"]
+
 USER ${PHP_USER}
 
