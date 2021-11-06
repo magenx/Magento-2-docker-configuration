@@ -7,8 +7,6 @@ ARG PHP_FPM_POOL="/etc/php7/php-fpm.d/www.conf"
 ARG PHP_INI="/etc/php7/php.ini"
 ARG TIMEZONE
 
-ARG magento
-
 ARG BRAND
 ARG PHP_USER
 ARG ROOT_PATH
