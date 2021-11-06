@@ -36,5 +36,32 @@
    docker-compose up -d
 ```
 - [x] Watch syslog for errors and issues:
+```
+   tail -f /var/log/syslog
+```
 
 <br />
+
+- [x] Run composer command from host:
+```
+   docker-compose run composer update
+```
+
+<br />
+
+- [x] Stop all services:
+```
+   docker-compose down
+   
+   Stopping magenx-cron          ... done
+   Stopping magenx-nginx         ... done
+   Stopping magenx-php           ... done
+   Stopping magenx-elasticsearch ... done
+   Stopping magenx-rabbitmq      ... done
+   Stopping magenx-varnish       ... done
+   Stopping magenx-certbot       ... done
+   Stopping magenx-nodejs        ... done
+   Stopping magenx-phpmyadmin    ... done
+   Stopping magenx-mariadb       ... done
+   Stopping magenx-redis         ... done
+```
