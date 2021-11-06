@@ -48,7 +48,7 @@ RUN sed -i "s/\[www\]/\[${BRAND}\]/" ${PHP_FPM_POOL} && \
     sed -i 's/;max_input_vars =.*/max_input_vars = 50000/' ${PHP_INI} && \
     sed -i 's/session.gc_maxlifetime = 1440/session.gc_maxlifetime = 28800/' ${PHP_INI} && \
     sed -i 's/mysql.allow_persistent = On/mysql.allow_persistent = Off/' ${PHP_INI} && \
-    sed -i 's/mysqli.allow_persistent = On/mysqli.allow_persistent = Off/' ${PHP_INI}
+    sed -i 's/mysqli.allow_persistent = On/mysqli.allow_persistent = Off/' ${PHP_INI} && \
     echo -e "\n\
 \n\
 ; Custom pool settings \n\
@@ -70,7 +70,7 @@ RUN mkdir -p ${APP_ROOT_PATH} && \
     mkdir -p ${ROOT_PATH}/.cache && chown -R ${BRAND} ${ROOT_PATH}/.cache && \
     mkdir -p ${ROOT_PATH}/.local && chown -R ${BRAND} ${ROOT_PATH}/.local && \
     mkdir -p ${ROOT_PATH}/.composer && chown -R ${BRAND} ${ROOT_PATH}/.composer && \
-    mkdir -p ${ROOT_PATH}/.npm && && chown -R ${BRAND} ${ROOT_PATH}/.npm && \
+    mkdir -p ${ROOT_PATH}/.npm && chown -R ${BRAND} ${ROOT_PATH}/.npm && \
     chmod -R 2770 ${APP_ROOT_PATH} && \
     chown -R ${PHP_USER} /var/log/php7
 
@@ -81,7 +81,7 @@ USER ${BRAND}:${PHP_USER}
 RUN if [ ! -z ${magento} ]; then \
     cd ${APP_ROOT_PATH} && \
     git clone https://github.com/magenx/Magento-2.git . && \
-    echo 007 > magento_umask
+    echo 007 > magento_umask && \
     rm -rf .git && \
     find . -type d -exec chmod 2770 {} \; && \
     find . -type f -exec chmod 660 {} \; && \
