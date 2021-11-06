@@ -207,7 +207,6 @@ services:
             - varnish:/etc/varnish
             - phpmyadmin:/usr/share/phpmyadmin
         working_dir: ${WEB_ROOT_PATH}
-        entrypoint: php-fpm7 -F
         logging:
             driver: syslog
             options:
@@ -345,7 +344,6 @@ services:
         volumes:
             - app:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
-        entrypoint: php-fpm7 -F
         logging:
             driver: syslog
             options:
