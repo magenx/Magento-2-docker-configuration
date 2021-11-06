@@ -324,6 +324,7 @@ services:
         volumes:
             - app:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
+        entrypoint: php-fpm7 -F
         logging:
             driver: syslog
             options:
