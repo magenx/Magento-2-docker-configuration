@@ -22,7 +22,6 @@ RUN apk update && \
     attr \
     bash \
     curl \
-    git \
     mariadb-client \
     ${PHP_PACKAGES}
 
@@ -60,32 +59,13 @@ php_admin_value[memory_limit] = 2G \n\
 php_admin_value[date.timezone] = ${TIMEZONE} \n\
 " >> ${PHP_FPM_POOL}
 
-RUN mkdir -p ${APP_ROOT_PATH} && \
-    addgroup -S -g 1001 ${PHP_USER} && \
+RUN addgroup -S -g 1001 ${PHP_USER} && \
     adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER} && \
     addgroup -S -g 1000 ${BRAND} && \
-    adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND} && \
-    chown -R ${BRAND}.${PHP_USER} ${APP_ROOT_PATH} && \
-    mkdir -p ${ROOT_PATH}/.config && chown -R ${BRAND} ${ROOT_PATH}/.config && \
-    mkdir -p ${ROOT_PATH}/.cache && chown -R ${BRAND} ${ROOT_PATH}/.cache && \
-    mkdir -p ${ROOT_PATH}/.local && chown -R ${BRAND} ${ROOT_PATH}/.local && \
-    mkdir -p ${ROOT_PATH}/.composer && chown -R ${BRAND} ${ROOT_PATH}/.composer && \
-    mkdir -p ${ROOT_PATH}/.npm && chown -R ${BRAND} ${ROOT_PATH}/.npm && \
-    chmod -R 2770 ${APP_ROOT_PATH} && \
+    adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND} && \ 
     chown -R ${PHP_USER} /var/log/php7
 
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
-
-USER ${BRAND}:${PHP_USER}
-
-RUN if [ ! -z ${magento} ]; then \
-    cd ${APP_ROOT_PATH} && \
-    git clone https://github.com/magenx/Magento-2.git . && \
-    echo 007 > magento_umask && \
-    rm -rf .git && \
-    find . -type d -exec chmod 2770 {} \; && \
-    find . -type f -exec chmod 660 {} \; && \
-    chmod +x bin/magento; fi
 
 USER ${PHP_USER}
 
