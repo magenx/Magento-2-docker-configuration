@@ -27,4 +27,6 @@ RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} >
 
 RUN echo "* * * * * ${APP_ROOT_PATH}/bin/magento cron:run 2>&1 | grep -v 'Ran jobs by schedule' >> ${APP_ROOT_PATH}/var/log/magento.cron.log" > /etc/crontabs/${PHP_USER}
 
+ENTRYPOINT ["php-fpm7", "-F"]
+
 USER ${PHP_USER}
