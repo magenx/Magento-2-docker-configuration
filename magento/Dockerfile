@@ -24,6 +24,9 @@ RUN apk update && \
     git \
     mariadb-client \
     ${PHP_PACKAGES}
+    
+RUN curl -o /usr/local/bin/magerun2 https://files.magerun.net/n98-magerun2.phar && \
+    chmod +x /usr/local/bin/magerun2
 
 RUN mkdir -p ${APP_ROOT_PATH} && \
     addgroup -S -g 1001 ${PHP_USER} && \
@@ -52,6 +55,6 @@ RUN if [ ! -z ${magento} ]; then \
     find . -type f -exec chmod 660 {} \; && \
     chmod +x bin/magento; fi
     
-ENTRYPOINT ["bin/magento", "-vv"]
+ENTRYPOINT ["magerun2", "-vv"]
 
 USER ${BRAND}
