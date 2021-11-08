@@ -1,4 +1,4 @@
-
+# syntax = docker/dockerfile:labs
 FROM elasticsearch:7.14.2
 
 LABEL org.opencontainers.image.authors="admin@magenx.com"
