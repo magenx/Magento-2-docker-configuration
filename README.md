@@ -28,6 +28,10 @@
 > 
 **[ ! ]** Check all data, adjust your settings, edit your variables  
 - [x] Run to pull and build images and start containers:
+> to enable [buildkit](https://docs.docker.com/develop/develop-images/build_enhancements/):  
+>    ```echo '{ "features": { "buildkit": true } }' > /etc/docker/daemon.json```  
+>    ```export DOCKER_BUILDKIT=1```  
+
 ```
    docker-compose build \
         --build-arg magento \
