@@ -13,16 +13,20 @@ ARG APP_ROOT_PATH
 ARG WEB_ROOT_PATH
 ARG PHP_PACKAGES
 
-RUN apk update && \
+RUN <<EOF
+    apk update
     apk add --update --no-cache \
     syslog-ng \
     bash \
     ${PHP_PACKAGES}
-  
-RUN mkdir -p ${APP_ROOT_PATH} && \
-    addgroup -S -g 1001 ${PHP_USER} && \
-    adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER} && \
+EOF
+
+RUN <<EOF
+    mkdir -p ${APP_ROOT_PATH}
+    addgroup -S -g 1001 ${PHP_USER}
+    adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER}
     chown -R ${PHP_USER} /var/log/php7
+EOF
 
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
