@@ -83,6 +83,7 @@ services:
             - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
             - cluster.routing.allocation.disk.threshold_enabled=false
             - index.blocks.read_only_allow_delete
+            - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
         ports:
             - "127.0.0.1:9200:9200"
             - "127.0.0.1:9300:9300"
