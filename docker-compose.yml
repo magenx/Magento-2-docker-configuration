@@ -132,6 +132,9 @@ services:
     rabbitmq:
         image: rabbitmq:${RABBITMQ_VERSION}
         container_name: ${BRAND}-rabbitmq
+        environment:
+            - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+            - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
         restart: always
         depends_on:
             - magento
