@@ -6,9 +6,10 @@ LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docke
 
 ARG TIMEZONE
 
-RUN apk update && \
-	apk add --update --no-cache \
-	uuidgen
+RUN <<EOF
+    apk update
+    apk add --update --no-cache uuidgen
+EOF
 
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
