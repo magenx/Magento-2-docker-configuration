@@ -15,7 +15,8 @@ ARG APP_ROOT_PATH
 ARG WEB_ROOT_PATH
 ARG PHP_PACKAGES
 
-RUN apk update && \
+RUN <<EOF
+    apk update
     apk add --update --no-cache \
     acl \
     attr \
@@ -23,30 +24,32 @@ RUN apk update && \
     curl \
     mariadb-client \
     ${PHP_PACKAGES}
+EOF
 
-
-RUN sed -i "s/\[www\]/\[${BRAND}\]/" ${PHP_FPM_POOL} && \
-    sed -i "s/^user =.*/user = ${PHP_USER}/" ${PHP_FPM_POOL} && \
-    sed -i "s/^group =.*/group = ${PHP_USER}/" ${PHP_FPM_POOL} && \
-    sed -ri "s/;?listen.group =.*/listen.group = ${PHP_USER}/" ${PHP_FPM_POOL} && \
-    sed -ri "s/;?listen.mode = 0660/listen.mode = 0660/" ${PHP_FPM_POOL} && \
-    sed -i "s/listen = 127.0.0.1:9000/listen = php:9000/" ${PHP_FPM_POOL} && \
-    sed -i '/sendmail_path/,$d' ${PHP_FPM_POOL} && \
-    sed -i '/PHPSESSID/d' ${PHP_INI} && \
-    sed -i "s,.*date.timezone.*,date.timezone = ${TIMEZONE}," ${PHP_INI} && \
-    sed -i 's/^\(max_execution_time = \)[0-9]*/\17200/' ${PHP_INI} && \
-    sed -i 's/^\(max_input_time = \)[0-9]*/\17200/' ${PHP_INI} && \
-    sed -i 's/^\(memory_limit = \)[0-9]*M/\12048M/' ${PHP_INI} && \
-    sed -i 's/^\(post_max_size = \)[0-9]*M/\164M/' ${PHP_INI} && \
-    sed -i 's/^\(upload_max_filesize = \)[0-9]*M/\164M/' ${PHP_INI} && \
-    sed -i 's/expose_php = On/expose_php = Off/' ${PHP_INI} && \
-    sed -i 's/;realpath_cache_size =.*/realpath_cache_size = 4096k/' ${PHP_INI} && \
-    sed -i 's/;realpath_cache_ttl =.*/realpath_cache_ttl = 86400/' ${PHP_INI} && \
-    sed -i 's/short_open_tag = Off/short_open_tag = On/' ${PHP_INI} && \
-    sed -i 's/;max_input_vars =.*/max_input_vars = 50000/' ${PHP_INI} && \
-    sed -i 's/session.gc_maxlifetime = 1440/session.gc_maxlifetime = 28800/' ${PHP_INI} && \
-    sed -i 's/mysql.allow_persistent = On/mysql.allow_persistent = Off/' ${PHP_INI} && \
+RUN <<EOF
+    sed -i "s/\[www\]/\[${BRAND}\]/" ${PHP_FPM_POOL}
+    sed -i "s/^user =.*/user = ${PHP_USER}/" ${PHP_FPM_POOL}
+    sed -i "s/^group =.*/group = ${PHP_USER}/" ${PHP_FPM_POOL}
+    sed -ri "s/;?listen.group =.*/listen.group = ${PHP_USER}/" ${PHP_FPM_POOL}
+    sed -ri "s/;?listen.mode = 0660/listen.mode = 0660/" ${PHP_FPM_POOL}
+    sed -i "s/listen = 127.0.0.1:9000/listen = php:9000/" ${PHP_FPM_POOL}
+    sed -i '/sendmail_path/,$d' ${PHP_FPM_POOL}
+    sed -i '/PHPSESSID/d' ${PHP_INI}
+    sed -i "s,.*date.timezone.*,date.timezone = ${TIMEZONE}," ${PHP_INI}
+    sed -i 's/^\(max_execution_time = \)[0-9]*/\17200/' ${PHP_INI}
+    sed -i 's/^\(max_input_time = \)[0-9]*/\17200/' ${PHP_INI}
+    sed -i 's/^\(memory_limit = \)[0-9]*M/\12048M/' ${PHP_INI}
+    sed -i 's/^\(post_max_size = \)[0-9]*M/\164M/' ${PHP_INI}
+    sed -i 's/^\(upload_max_filesize = \)[0-9]*M/\164M/' ${PHP_INI}
+    sed -i 's/expose_php = On/expose_php = Off/' ${PHP_INI}
+    sed -i 's/;realpath_cache_size =.*/realpath_cache_size = 4096k/' ${PHP_INI}
+    sed -i 's/;realpath_cache_ttl =.*/realpath_cache_ttl = 86400/' ${PHP_INI}
+    sed -i 's/short_open_tag = Off/short_open_tag = On/' ${PHP_INI}
+    sed -i 's/;max_input_vars =.*/max_input_vars = 50000/' ${PHP_INI}
+    sed -i 's/session.gc_maxlifetime = 1440/session.gc_maxlifetime = 28800/' ${PHP_INI}
+    sed -i 's/mysql.allow_persistent = On/mysql.allow_persistent = Off/' ${PHP_INI}
     sed -i 's/mysqli.allow_persistent = On/mysqli.allow_persistent = Off/' ${PHP_INI}
+EOF
 
 RUN <<EOF cat >> ${PHP_FPM_POOL}
 ; Custom pool settings
@@ -58,11 +61,13 @@ php_admin_value[memory_limit] = 2G
 php_admin_value[date.timezone] = ${TIMEZONE}
 EOF
 
-RUN addgroup -S -g 1001 ${PHP_USER} && \
-    adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER} && \
-    addgroup -S -g 1000 ${BRAND} && \
-    adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND} && \ 
+RUN <<EOF
+    addgroup -S -g 1001 ${PHP_USER}
+    adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER}
+    addgroup -S -g 1000 ${BRAND}
+    adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND}
     chown -R ${PHP_USER} /var/log/php7
+EOF
 
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
