@@ -1,4 +1,4 @@
-
+# syntax = docker/dockerfile:labs
 FROM nginx:mainline-alpine-perl
 
 LABEL org.opencontainers.image.authors="admin@magenx.com"
