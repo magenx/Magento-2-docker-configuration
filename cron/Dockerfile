@@ -16,7 +16,6 @@ ARG PHP_PACKAGES
 RUN <<EOF
     apk update
     apk add --update --no-cache \
-    syslog-ng \
     bash \
     ${PHP_PACKAGES}
 EOF
@@ -30,8 +29,7 @@ EOF
 
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
-RUN echo "* * * * * ${APP_ROOT_PATH}/bin/magento cron:run 2>&1 | grep -v 'Ran jobs by schedule' >> ${APP_ROOT_PATH}/var/log/magento.cron.log" > /etc/crontabs/${PHP_USER}
+RUN echo "* * * * * umask 007; ${APP_ROOT_PATH}/bin/magento cron:run 2>&1 | grep -v 'Ran jobs by schedule' >> ${APP_ROOT_PATH}/var/log/magento.cron.log 2>&1" > /etc/crontabs/${PHP_USER}
 
-ENTRYPOINT ["php-fpm7", "-F"]
+CMD crond -f
 
-USER ${PHP_USER}
