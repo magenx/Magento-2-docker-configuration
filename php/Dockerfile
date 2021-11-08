@@ -1,3 +1,4 @@
+# syntax = docker/dockerfile:labs
 FROM alpine:3.13
 
 LABEL org.opencontainers.image.authors="admin@magenx.com"
@@ -45,17 +46,17 @@ RUN sed -i "s/\[www\]/\[${BRAND}\]/" ${PHP_FPM_POOL} && \
     sed -i 's/;max_input_vars =.*/max_input_vars = 50000/' ${PHP_INI} && \
     sed -i 's/session.gc_maxlifetime = 1440/session.gc_maxlifetime = 28800/' ${PHP_INI} && \
     sed -i 's/mysql.allow_persistent = On/mysql.allow_persistent = Off/' ${PHP_INI} && \
-    sed -i 's/mysqli.allow_persistent = On/mysqli.allow_persistent = Off/' ${PHP_INI} && \
-    echo -e "\n\
-\n\
-; Custom pool settings \n\
-php_flag[display_errors] = on \n\
-php_admin_flag[log_errors] = on \n\
-php_admin_value[error_log] = /proc/self/fd/2 \n\
-php_admin_value[default_charset] = UTF-8 \n\
-php_admin_value[memory_limit] = 2G \n\
-php_admin_value[date.timezone] = ${TIMEZONE} \n\
-" >> ${PHP_FPM_POOL}
+    sed -i 's/mysqli.allow_persistent = On/mysqli.allow_persistent = Off/' ${PHP_INI}
+
+RUN <<EOF cat >> ${PHP_FPM_POOL}
+; Custom pool settings
+php_flag[display_errors] = on
+php_admin_flag[log_errors] = on
+php_admin_value[error_log] = /proc/self/fd/2
+php_admin_value[default_charset] = UTF-8
+php_admin_value[memory_limit] = 2G
+php_admin_value[date.timezone] = ${TIMEZONE}
+EOF
 
 RUN addgroup -S -g 1001 ${PHP_USER} && \
     adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER} && \
