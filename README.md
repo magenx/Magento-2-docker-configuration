@@ -46,9 +46,10 @@
 
 <br />
 
-- [x] Run composer command from host:
+- [x] Run composer or magento command from host:
 ```
-   docker-compose run composer update
+   docker-compose run --rm composer update
+   docker-compose run --rm magento module:status --enabled
 ```
 
 <br />
