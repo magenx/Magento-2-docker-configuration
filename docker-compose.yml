@@ -176,7 +176,7 @@ services:
             args: *appsetargs
         container_name: ${BRAND}-magento
         volumes:
-            - app:${ROOT_PATH}
+            - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
         logging:
             driver: syslog
@@ -203,7 +203,7 @@ services:
         ports:
             - "127.0.0.1:9000:9000"
         volumes:
-            - app:${ROOT_PATH}
+            - magento:${ROOT_PATH}
             - varnish:/etc/varnish
             - phpmyadmin:/usr/share/phpmyadmin
         working_dir: ${WEB_ROOT_PATH}
@@ -234,7 +234,7 @@ services:
             - "80:80"
             - "443:443"
         volumes:
-            - app:${ROOT_PATH}
+            - magento:${ROOT_PATH}
             - ssl:/etc/ssl
             - nginx:/etc/nginx
             - certbot:/etc/letsencrypt
@@ -256,7 +256,7 @@ services:
             args: *appsetargs
         container_name: ${BRAND}-nodejs
         volumes:
-            - app:${ROOT_PATH}
+            - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
         logging:
             driver: syslog
@@ -321,7 +321,7 @@ services:
             - nginx
             - mariadb
         volumes:
-            - app:${ROOT_PATH}
+            - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
         logging:
             driver: syslog
@@ -344,7 +344,7 @@ services:
             - nginx
             - mariadb
         volumes:
-            - app:${ROOT_PATH}
+            - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
         logging:
             driver: syslog
@@ -357,7 +357,7 @@ services:
 #   Named volumes list
 # # ---------------------------------------------------------------------------------------------------------------------#            
 volumes:
-    app:
+    magento:
     ssl:
     mariadb:
     phpmyadmin:
