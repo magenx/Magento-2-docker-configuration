@@ -1,4 +1,4 @@
-
+# syntax = docker/dockerfile:labs
 FROM alpine:3.13
 
 LABEL org.opencontainers.image.authors="admin@magenx.com"
