@@ -35,12 +35,13 @@ RUN if [ ! -z ${nginx} ]; then \
     cd /etc/nginx/conf_m2 && \
     curl -s ${GITHUB_REPO_API_URL}/conf_m2 2>&1 | awk -F'"' '/download_url/ {print $4 ; system("curl -sO "$4)}' && \
     sed -i "s/example.com/${DOMAIN}/g" /etc/nginx/sites-available/magento2.conf && \
+    sed -i "s/127.0.0.1/nginx/g" /etc/nginx/sites-available/magento2.conf && \
     sed -i "s,/var/www/html,${APP_ROOT_PATH},g" /etc/nginx/conf_m2/maps.conf && \
+    sed -i "s/PROFILER_PLACEHOLDER/$(openssl rand -hex 4)/" /etc/nginx/conf_m2/maps.conf && \
+    sed -i "s/127.0.0.1/varnish/" /etc/nginx/conf_m2/varnish_proxy.conf && \
     sed -i "s,user  nginx,user  ${BRAND},g" /etc/nginx/nginx.conf && \
     ln -s /etc/nginx/sites-available/magento2.conf /etc/nginx/sites-enabled/magento2.conf && \
     ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf && \
-    PROFILER_PLACEHOLDER="$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)" && \
-    sed -i "s/PROFILER_PLACEHOLDER/$${PROFILER_PLACEHOLDER}/" /etc/nginx/conf_m2/maps.conf && \
     openssl dhparam -dsaparam -out /etc/ssl/certs/dhparams.pem 4096 && \
     openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout /etc/ssl/certs/default_server.key -out /etc/ssl/certs/default_server.crt -subj "/CN=default_server" -days 3650 -subj "/C=US/ST=Oregon/L=Portland/O=default_server/OU=Org/CN=default_server"; fi
 
