@@ -144,7 +144,8 @@ services:
 #  Varnish is an HTTP accelerator designed for content-heavy dynamic web sites as well as APIs.
 # # ---------------------------------------------------------------------------------------------------------------------#                  
     varnish:
-        image: varnish:${VARNISH_VERSION}
+        build:
+            context: ./varnish
         container_name: ${BRAND}-varnish
         restart: always
         depends_on:
