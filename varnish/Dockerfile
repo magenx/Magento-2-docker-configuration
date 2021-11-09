@@ -11,6 +11,8 @@ RUN <<EOF
     apk add --update --no-cache uuidgen
 EOF
 
+COPY default.vcl /etc/varnish/
+
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
 RUN uuidgen > /etc/varnish/secret
