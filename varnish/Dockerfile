@@ -9,13 +9,11 @@ ARG TIMEZONE
 RUN <<EOF
     apk update
     apk add --update --no-cache uuidgen
+    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
+    uuidgen > /etc/varnish/secret
 EOF
 
 COPY default.vcl /etc/varnish/
-
-RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
-
-RUN uuidgen > /etc/varnish/secret
 
 RUN <<EOF cat > /usr/local/bin/docker-varnish-entrypoint
 #!/bin/sh
