@@ -1,5 +1,6 @@
 # syntax = docker/dockerfile:labs
-FROM elasticsearch:7.14.2
+ARG ELASTICSEARCH_VERSION
+FROM elasticsearch:${ELASTICSEARCH_VERSION}
 
 LABEL org.opencontainers.image.authors="admin@magenx.com"
 LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docker-configuration"
