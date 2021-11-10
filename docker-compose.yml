@@ -36,11 +36,11 @@ services:
 #  MariaDB is a high performing open source relational database
 # # ---------------------------------------------------------------------------------------------------------------------#
     mariadb:
-#        build:
-#            context: ./mariadb
-#            args:
-#                -
-        image: mariadb:${MARIADB_VERSION}
+        build:
+            context: ./mariadb
+            args:
+                - MARIADB_VERSION
+                - BRAND
         container_name: ${BRAND}-mariadb
         environment:
             - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
@@ -62,6 +62,7 @@ services:
                 hard: 65536
         volumes:
             - mariadb:/var/lib/mysql
+            - mariadbcnf:/etc/mysql
         logging:
             driver: syslog
             options:
@@ -377,6 +378,7 @@ volumes:
     magento:
     ssl:
     mariadb:
+    mariadbcnf:
     phpmyadmin:
     elasticsearch:
     certbot:
