@@ -30,6 +30,17 @@ x-appsetargs: &appsetargs
     - WEB_ROOT_PATH=${WEB_ROOT_PATH}
     - TIMEZONE=${TIMEZONE}
     - PHP_PACKAGES=${PHP_PACKAGES}
+    
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Configure logger driver
+# # ---------------------------------------------------------------------------------------------------------------------#
+x-logger: &logger
+        logging:
+            driver: syslog
+            options:
+                syslog-address: "unixgram:///dev/log"
+                mode: non-blocking
+                tag: "[ {{.Name}} ]"
 
 services:
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -63,11 +74,7 @@ services:
         volumes:
             - mariadb:/var/lib/mysql
             - mariadbcnf:/etc/mysql
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"
+        << : *logger
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -102,11 +109,7 @@ services:
                 hard: 65536
         volumes:
             - elasticsearch:/usr/share/elasticsearch/data
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"
+        << : *logger
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -123,11 +126,7 @@ services:
                 hard: -1
         ports:
             - "127.0.0.1:6379:6379"            
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"             
+        << : *logger           
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -148,11 +147,7 @@ services:
                 hard: -1
         ports:
             - "127.0.0.1:5671:5671"           
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"
+        << : *logger
                 
                 
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -178,11 +173,7 @@ services:
             - "127.0.0.1:6082:6082" 
         volumes:
             - varnish:/etc/varnish
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"
+        << : *logger
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -196,11 +187,7 @@ services:
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"
+        << : *logger
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -225,11 +212,7 @@ services:
             - varnish:/etc/varnish
             - phpmyadmin:/usr/share/phpmyadmin
         working_dir: ${WEB_ROOT_PATH}
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"
+        << : *logger
                 
                 
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -258,11 +241,7 @@ services:
             - certbot:/etc/letsencrypt
             - phpmyadmin:/usr/share/phpmyadmin
         working_dir: ${WEB_ROOT_PATH}
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"
+        << : *logger
  
  
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -278,11 +257,7 @@ services:
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"
+        << : *logger
                 
  
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -301,11 +276,7 @@ services:
             - nginx
         volumes:
             - phpmyadmin:/var/www/html
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"
+        << : *logger
             
             
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -322,11 +293,7 @@ services:
             - certbot:/etc/letsencrypt
         working_dir: ${WEB_ROOT_PATH}
         entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 7d & wait $${!}; done;'"
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"  
+        << : *logger 
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -345,11 +312,7 @@ services:
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"            
+        << : *logger            
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -368,11 +331,7 @@ services:
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                tag: "[ {{.Name}} ]"            
+        << : *logger            
             
             
 # # ---------------------------------------------------------------------------------------------------------------------#
