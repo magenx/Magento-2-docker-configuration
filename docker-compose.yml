@@ -76,6 +76,8 @@ services:
     elasticsearch:
         build:
             context: ./elasticsearch
+            args:
+                - ELASTICSEARCH_VERSION
         container_name: ${BRAND}-elasticsearch
         environment:
             - cluster.name=magento
