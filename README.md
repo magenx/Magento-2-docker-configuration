@@ -33,8 +33,6 @@
 >    ```export DOCKER_BUILDKIT=1```  
 
 ```
-   docker-compose build php --no-cache  
-   
    docker-compose build \
         --build-arg magento \
         --build-arg nginx
