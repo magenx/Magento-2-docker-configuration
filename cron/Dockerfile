@@ -9,12 +9,6 @@ ARG BRAND
 ARG PHP_USER
 ARG APP_ROOT_PATH
 
-RUN <<EOF
-    apk update
-    apk add --update --no-cache \
-    bash
-EOF
-
 RUN echo "* * * * * umask 007; ${APP_ROOT_PATH}/bin/magento cron:run 2>&1 | grep -v 'Ran jobs by schedule' >> ${APP_ROOT_PATH}/var/log/magento.cron.log 2>&1" > /etc/crontabs/${PHP_USER}
 
 CMD crond -f
