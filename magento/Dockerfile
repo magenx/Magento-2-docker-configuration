@@ -15,13 +15,7 @@ ARG WEB_ROOT_PATH
 
 RUN <<EOF
     apk update
-    apk add --update --no-cache \
-    acl \
-    attr \
-    bash \
-    curl \
-    git \
-    mariadb-client
+    apk add --update --no-cache git
 EOF
 
 RUN <<EOF
