@@ -211,7 +211,9 @@ services:
             - magento:${ROOT_PATH}
             - varnish:/etc/varnish
             - phpmyadmin:/usr/share/phpmyadmin
+        user: ${PHP_USER}
         working_dir: ${WEB_ROOT_PATH}
+        entrypoint: ["php-fpm7", "-F"]
         << : *logger
                 
                 
@@ -267,8 +269,8 @@ services:
         image: phpmyadmin:${PHPMYADMIN_VERSION}
         container_name: ${BRAND}-phpmyadmin
         environment:
-            - PMA_HOST="mariadb"
-            - PMA_PORT="3306" 
+            - PMA_HOST=mariadb
+            - PMA_PORT=3306
         restart: always
         depends_on:
             - magento
