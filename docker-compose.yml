@@ -62,8 +62,6 @@ services:
         ports:
             - "127.0.0.1:3306:3306"
         restart: always
-        depends_on:
-            - magento
         ulimits:
             memlock:
                 soft: -1
@@ -98,8 +96,6 @@ services:
             - "127.0.0.1:9200:9200"
             - "127.0.0.1:9300:9300"
         restart: always
-        depends_on:
-            - magento
         ulimits:
             memlock:
                 soft: -1
@@ -118,8 +114,6 @@ services:
     redis:
         image: redis:${REDIS_VERSION}
         container_name: ${BRAND}-redis
-        depends_on:
-            - magento
         ulimits:
             memlock:
                 soft: -1
@@ -139,8 +133,6 @@ services:
             - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
             - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
         restart: always
-        depends_on:
-            - magento
         ulimits:
             memlock:
                 soft: -1
@@ -161,7 +153,6 @@ services:
         container_name: ${BRAND}-varnish
         restart: always
         depends_on:
-            - magento
             - nginx
             - php
         ulimits:
@@ -201,10 +192,6 @@ services:
         restart: always
         depends_on:
             - magento
-            - mariadb
-            - redis
-            - rabbitmq
-            - elasticsearch
         ports:
             - "127.0.0.1:9000:9000"
         volumes:
@@ -254,8 +241,6 @@ services:
             context: ./nodejs
             args: *appsetargs
         container_name: ${BRAND}-nodejs
-        depends_on:
-            - magento
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
@@ -273,7 +258,6 @@ services:
             - PMA_PORT=3306
         restart: always
         depends_on:
-            - magento
             - mariadb
             - nginx
         volumes:
@@ -306,11 +290,6 @@ services:
             context: ./composer
             args: *appsetargs
         container_name: ${BRAND}-composer
-        depends_on:
-            - magento
-            - php
-            - nginx
-            - mariadb
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
