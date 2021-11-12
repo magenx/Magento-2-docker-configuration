@@ -176,7 +176,7 @@ services:
             args: *appsetargs
         container_name: ${BRAND}-magento
         volumes:
-            - magento:${ROOT_PATH}
+            - magento:${ROOT_PATH}:delegated
         working_dir: ${APP_ROOT_PATH}
         << : *logger
 
@@ -196,8 +196,6 @@ services:
             - "127.0.0.1:9000:9000"
         volumes:
             - magento:${ROOT_PATH}
-            - varnish:/etc/varnish
-            - phpmyadmin:/usr/share/phpmyadmin
         user: ${PHP_USER}
         working_dir: ${WEB_ROOT_PATH}
         entrypoint: ["php-fpm7", "-F"]
@@ -224,11 +222,12 @@ services:
             - "80:80"
             - "443:443"
         volumes:
-            - magento:${ROOT_PATH}
+            - magento:${ROOT_PATH}:ro
             - ssl:/etc/ssl
             - nginx:/etc/nginx
-            - certbot:/etc/letsencrypt
-            - phpmyadmin:/usr/share/phpmyadmin
+            - certbot:/etc/letsencrypt:ro
+            - phpmyadmin:/var/www/html:ro
+            - phpmyadmincfg:/etc/phpmyadmin:ro
         working_dir: ${WEB_ROOT_PATH}
         << : *logger
  
@@ -241,6 +240,8 @@ services:
             context: ./nodejs
             args: *appsetargs
         container_name: ${BRAND}-nodejs
+        depends_on:
+            - magento
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
@@ -262,6 +263,7 @@ services:
             - nginx
         volumes:
             - phpmyadmin:/var/www/html
+            - phpmyadmincfg:/etc/phpmyadmin
         << : *logger
             
             
@@ -276,7 +278,7 @@ services:
             - magento
             - nginx
         volumes:
-            - certbot:/etc/letsencrypt
+            - certbot:/etc/letsencrypt:delegated
         working_dir: ${WEB_ROOT_PATH}
         entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 7d & wait $${!}; done;'"
         << : *logger 
@@ -290,6 +292,8 @@ services:
             context: ./composer
             args: *appsetargs
         container_name: ${BRAND}-composer
+        depends_on:
+            - magento
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
@@ -324,6 +328,7 @@ volumes:
     mariadb:
     mariadbcnf:
     phpmyadmin:
+    phpmyadmincfg:
     elasticsearch:
     certbot:
     nginx:
