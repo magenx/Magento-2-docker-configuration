@@ -7,3 +7,5 @@ LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docke
 ARG BRAND
 
 ADD https://raw.githubusercontent.com/magenx/Magento-mysql/master/my.cnf/my.cnf /etc/mysql/conf.d/${BRAND}.cnf
+
+RUN sed -i "s/127.0.0.1/mariadb/" /etc/mysql/conf.d/${BRAND}.cnf
