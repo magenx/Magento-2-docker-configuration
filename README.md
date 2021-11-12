@@ -73,3 +73,22 @@
    Stopping magenx-mariadb       ... done
    Stopping magenx-redis         ... done
 ```
+  
+<br />
+  
+# :hammer_and_wrench: Stack components in use:  
+- [x] [MariaDB](https://hub.docker.com/_/mariadb) - MariaDB Server is a high performing open source relational database, forked from MySQL.
+- [x] [Nginx](https://hub.docker.com/_/nginx) - Official build of Nginx.
+- [x] [PHP](https://hub.docker.com/_/php) - PHP scripting language.
+- [x] [Varnish](https://hub.docker.com/_/varnish) - Varnish is an HTTP accelerator designed for content-heavy dynamic web sites as well as APIs.
+- [x] [ElasticSearch](https://hub.docker.com/_/elasticsearch) - Elasticsearch is a powerful open source search and analytics engine that makes data easy to explore.
+- [x] [Redis](https://hub.docker.com/_/redis) - Redis is an open source key-value store that functions as a data structure server.
+- [x] [RabbitMQ](https://hub.docker.com/_/rabbitmq) - RabbitMQ is an open source multi-protocol messaging broker.
+- [x] [NodeJS](https://hub.docker.com/_/node) - Node.js is a JavaScript-based platform for server-side and networking applications.
+- [x] [PHPMyAdmin](https://hub.docker.com/_/phpmyadmin) - phpMyAdmin - A web interface for MySQL and MariaDB.
+- [x] [Certbot](https://hub.docker.com/r/certbot/certbot) - Official build of EFF's Certbot tool for obtaining TLS/SSL certificates from Let's Encrypt.
+- [x] [Composer 2]
+- [x] [Cron]
+  
+<br />
+  
