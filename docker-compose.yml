@@ -54,7 +54,7 @@ services:
                 - BRAND
         container_name: ${BRAND}-mariadb
         environment:
-            - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+            - MARIADB_RANDOM_ROOT_PASSWORD=yes
             - MARIADB_DATABASE=${MARIADB_DATABASE}
             - MARIADB_USER=${MARIADB_USER}
             - MARIADB_PASSWORD=${MARIADB_PASSWORD}
