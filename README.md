@@ -75,7 +75,54 @@
 ```
   
 <br />
+
+- [x] Source variables and issue magento installation command:  
+```
+    docker-compose run --rm magento setup:install --base-url=${DOMAIN} \
+   --db-host=mariadb \
+   --db-name=${MARIADB_NAME} \
+   --db-user=${MARIADB_USER} \
+   --db-password='${MARIADB_PASSWORD}' \
+   --admin-firstname=${ADMIN_FIRSTNAME} \
+   --admin-lastname=${ADMIN_LASTNAME} \
+   --admin-email=${ADMIN_EMAIL} \
+   --admin-user=${ADMIN_LOGIN} \
+   --admin-password='${ADMIN_PASSWORD}' \
+   --language=${LOCALE} \
+   --currency=${CURRENCY} \
+   --timezone=${TIMEZONE} \
+   --cleanup-database \
+   --cache-backend=redis \
+   --cache-backend-redis-server=redis \
+   --cache-backend-redis-port=6379 \
+   --cache-backend-redis-db=2 \
+   --cache-backend-redis-compress-data=1 \
+   --cache-backend-redis-compression-lib=gzip \
+   --cache-backend-redis-password='${REDIS_PASSWORD}' \
+   --session-save=redis \
+   --session-save-redis-host=redis \
+   --session-save-redis-port=6379 \
+   --session-save-redis-log-level=3 \
+   --session-save-redis-db=1 \
+   --session-save-redis-compression-lib=gzip \
+   --session-save-redis-password='${REDIS_PASSWORD}' \
+   --use-rewrites=1 \
+   --amqp-host=rabbitmq \
+   --amqp-port=5672 \
+   --amqp-user=magento \
+   --amqp-password='${RABBITMQ_PASSWORD}' \
+   --amqp-virtualhost='/' \
+   --consumers-wait-for-messages=0 \
+   --search-engine=elasticsearch7 \
+   --elasticsearch-host=elasticsearch \
+   --elasticsearch-port=9200 \
+   --elasticsearch-enable-auth=1 \
+   --elasticsearch-username=elastic \
+   --elasticsearch-password='${ELASTIC_PASSWORD}'
+```
   
+<br />
+
 # :hammer_and_wrench: Stack components in use:  
 - [x] [MariaDB](https://hub.docker.com/_/mariadb) - MariaDB Server is a high performing open source relational database, forked from MySQL.
 - [x] [Nginx](https://hub.docker.com/_/nginx) - Official build of Nginx.
