@@ -52,6 +52,7 @@
 ```
    docker-compose run --rm composer update
    docker-compose run --rm magento module:status --enabled
+   docker-compose run --rm magento module:enable --all
 ```
 
 <br />
