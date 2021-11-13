@@ -114,6 +114,10 @@ services:
     redis:
         image: redis:${REDIS_VERSION}
         container_name: ${BRAND}-redis
+        command:
+            - |
+              --requirepass ${REDIS_PASSWORD}
+              --save ""
         ulimits:
             memlock:
                 soft: -1
