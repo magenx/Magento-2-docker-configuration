@@ -111,13 +111,26 @@ services:
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Redis is an open source key-value store that functions as a data structure server.
 # # ---------------------------------------------------------------------------------------------------------------------#
-    redis:
+    redis-cache:
         image: redis:${REDIS_VERSION}
-        container_name: ${BRAND}-redis
-        command:
-            - |
-              --requirepass ${REDIS_PASSWORD}
-              --save ""
+        container_name: ${BRAND}-redis-cache
+        command: --requirepass ${REDIS_PASSWORD} --port 6380 --save ""
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        ports:
+            - "127.0.0.1:6380:6380"            
+        << : *logger           
+
+
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Redis is an open source key-value store that functions as a data structure server.
+# # ---------------------------------------------------------------------------------------------------------------------#
+    redis-session:
+        image: redis:${REDIS_VERSION}
+        container_name: ${BRAND}-redis-session
+        command: --requirepass ${REDIS_PASSWORD} --save ""
         ulimits:
             memlock:
                 soft: -1
