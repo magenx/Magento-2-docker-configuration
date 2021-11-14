@@ -232,7 +232,8 @@ services:
             - magento
             - mariadb
             - php
-            - redis
+            - redis-cache
+            - redis-session
             - rabbitmq
             - elasticsearch
         ports:
