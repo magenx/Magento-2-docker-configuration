@@ -94,17 +94,17 @@
    --timezone=${TIMEZONE} \
    --cleanup-database \
    --cache-backend=redis \
-   --cache-backend-redis-server=redis \
-   --cache-backend-redis-port=6379 \
-   --cache-backend-redis-db=2 \
+   --cache-backend-redis-server=redis-cache \
+   --cache-backend-redis-port=6380 \
+   --cache-backend-redis-db=0 \
    --cache-backend-redis-compress-data=1 \
    --cache-backend-redis-compression-lib=gzip \
    --cache-backend-redis-password='${REDIS_PASSWORD}' \
    --session-save=redis \
-   --session-save-redis-host=redis \
+   --session-save-redis-host=redis-session \
    --session-save-redis-port=6379 \
    --session-save-redis-log-level=3 \
-   --session-save-redis-db=1 \
+   --session-save-redis-db=0 \
    --session-save-redis-compression-lib=gzip \
    --session-save-redis-password='${REDIS_PASSWORD}' \
    --use-rewrites=1 \
@@ -130,7 +130,7 @@
 - [x] [PHP](https://hub.docker.com/_/php) - PHP scripting language.
 - [x] [Varnish](https://hub.docker.com/_/varnish) - Varnish is an HTTP accelerator designed for content-heavy dynamic web sites as well as APIs.
 - [x] [ElasticSearch](https://hub.docker.com/_/elasticsearch) - Elasticsearch is a powerful open source search and analytics engine that makes data easy to explore.
-- [x] [Redis](https://hub.docker.com/_/redis) - Redis is an open source key-value store that functions as a data structure server.
+- [x] [Redis x2](https://hub.docker.com/_/redis) - Redis is an open source key-value store that functions as a data structure server.
 - [x] [RabbitMQ](https://hub.docker.com/_/rabbitmq) - RabbitMQ is an open source multi-protocol messaging broker.
 - [x] [NodeJS](https://hub.docker.com/_/node) - Node.js is a JavaScript-based platform for server-side and networking applications.
 - [x] [PHPMyAdmin](https://hub.docker.com/_/phpmyadmin) - phpMyAdmin - A web interface for MySQL and MariaDB.
