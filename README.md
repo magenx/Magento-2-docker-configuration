@@ -135,7 +135,7 @@
 - [x] [NodeJS](https://hub.docker.com/_/node) - Node.js is a JavaScript-based platform for server-side and networking applications.
 - [x] [PHPMyAdmin](https://hub.docker.com/_/phpmyadmin) - phpMyAdmin - A web interface for MySQL and MariaDB.
 - [x] [Certbot](https://hub.docker.com/r/certbot/certbot) - Official build of EFF's Certbot tool for obtaining TLS/SSL certificates from Let's Encrypt.
-- [x] [Composer 2]
+- [x] [Composer]
 - [x] [Cron]
   
 <br />
