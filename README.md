@@ -28,6 +28,7 @@
 ```
 >   
 - [x] To avoid copying default passwords and hacking through open ports - generate new passwords:  
+> https://docs.docker.com/compose/compose-file/compose-file-v3/#secrets  
 ```
    bash passgen.sh
 ```
