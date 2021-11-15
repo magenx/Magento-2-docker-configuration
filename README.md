@@ -27,7 +27,7 @@
   git clone https://github.com/magenx/Magento-2-docker-configuration.git .
 ```
 >   
-- [x] to avoid copying default passwords and hacking through open ports - generate new passwords:  
+- [x] To avoid copying default passwords and hacking through open ports - generate new passwords:  
 ```
    bash passgen.sh
 ```
