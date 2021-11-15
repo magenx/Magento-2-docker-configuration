@@ -57,8 +57,10 @@ services:
             - MARIADB_RANDOM_ROOT_PASSWORD=yes
             - MARIADB_DATABASE=${MARIADB_DATABASE}
             - MARIADB_USER=${MARIADB_USER}
-            - MARIADB_PASSWORD=${MARIADB_PASSWORD}
+            - MARIADB_PASSWORD_FILE=/run/secrets/mariadb_password
             - TZ=${TIMEZONE}
+        secrets:
+            - mariadb_password
         ports:
             - "127.0.0.1:3306:3306"
         restart: always
@@ -91,7 +93,9 @@ services:
             - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
             - cluster.routing.allocation.disk.threshold_enabled=false
             - index.blocks.read_only_allow_delete
-            - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+            - ELASTIC_PASSWORD_FILE=/run/secrets/elasticsearch_password
+        secrets:
+            - elasticsearch_password
         ports:
             - "127.0.0.1:9200:9200"
             - "127.0.0.1:9300:9300"
@@ -114,7 +118,9 @@ services:
     redis-cache:
         image: redis:${REDIS_VERSION}
         container_name: ${BRAND}-redis-cache
-        command: --requirepass ${REDIS_PASSWORD} --port 6380 --save ""
+        command: --bind redis-cache --port 6380 --save "" --aclfile /run/secrets/redis_password
+        secrets:
+            - redis_password
         ulimits:
             memlock:
                 soft: -1
@@ -130,7 +136,9 @@ services:
     redis-session:
         image: redis:${REDIS_VERSION}
         container_name: ${BRAND}-redis-session
-        command: --requirepass ${REDIS_PASSWORD} --save ""
+        command: --bind redis-session --save "" --aclfile /run/secrets/redis_password
+        secrets:
+            - redis_password
         ulimits:
             memlock:
                 soft: -1
@@ -148,7 +156,9 @@ services:
         container_name: ${BRAND}-rabbitmq
         environment:
             - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
-            - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+            - RABBITMQ_DEFAULT_PASS_FILE=/run/secrets/rabbitmq_password
+        secrets:
+            - rabbitmq_password
         restart: always
         ulimits:
             memlock:
@@ -359,3 +369,18 @@ volumes:
 networks:
     default:
         name: ${BRAND}
+
+
+# # ---------------------------------------------------------------------------------------------------------------------#
+#   Secrects emulation
+# # ---------------------------------------------------------------------------------------------------------------------# 
+secrets:
+  mariadb_password:
+    file: mariadb/mariadb_password
+  redis_password:
+    file: redis/redis_password
+  elasticsearch_password:
+    file: elasticsearch/elasticsearch_password
+  rabbitmq_password:
+    file: rabbitmq/rabbitmq_password
+
