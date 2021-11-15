@@ -26,13 +26,18 @@
 ```
   git clone https://github.com/magenx/Magento-2-docker-configuration.git .
 ```
-> 
+>   
+- [x] to avoid copying default passwords and hacking through open ports - generate new passwords:  
+```
+   bash passgen.sh
+```
+  
 **[ ! ]** Check all data, adjust your settings, edit your variables  
 - [x] Run to pull and build images and start containers:
 > to enable [buildkit](https://docs.docker.com/develop/develop-images/build_enhancements/):  
 >    ```echo '{ "features": { "buildkit": true } }' > /etc/docker/daemon.json```  
->    ```export DOCKER_BUILDKIT=1```  
-
+>    ```export DOCKER_BUILDKIT=1```
+  
 ```
    docker-compose build --no-cache php
    
