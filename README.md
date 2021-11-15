@@ -8,6 +8,7 @@
 
 # :rocket: Deploy your project:
 - [x] Install Docker:
+> you can use any linux host or Docker Desktop
 > https://docs.docker.com/
 > https://docs.docker.com/engine/install/debian/
 ```
