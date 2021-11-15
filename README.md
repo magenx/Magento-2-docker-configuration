@@ -31,6 +31,8 @@
 ```
    bash passgen.sh
 ```
+
+<br />
   
 **[ ! ]** Check all data, adjust your settings, edit your variables  
 - [x] Run to pull and build images and start containers:
