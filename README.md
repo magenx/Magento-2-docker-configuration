@@ -55,26 +55,6 @@
    docker-compose run --rm magento module:status --enabled
    docker-compose run --rm magento module:enable --all
 ```
-
-<br />
-
-- [x] Stop all services:
-```
-   docker-compose down
-   
-   Stopping magenx-cron          ... done
-   Stopping magenx-nginx         ... done
-   Stopping magenx-php           ... done
-   Stopping magenx-magento       ... done
-   Stopping magenx-elasticsearch ... done
-   Stopping magenx-rabbitmq      ... done
-   Stopping magenx-varnish       ... done
-   Stopping magenx-certbot       ... done
-   Stopping magenx-nodejs        ... done
-   Stopping magenx-phpmyadmin    ... done
-   Stopping magenx-mariadb       ... done
-   Stopping magenx-redis         ... done
-```
   
 <br />
 
@@ -121,6 +101,26 @@
    --elasticsearch-enable-auth=1 \
    --elasticsearch-username=elastic \
    --elasticsearch-password='${ELASTIC_PASSWORD}'
+```
+
+<br />
+
+- [x] Stop all services:
+```
+   docker-compose down
+   
+   Stopping magenx-cron          ... done
+   Stopping magenx-nginx         ... done
+   Stopping magenx-php           ... done
+   Stopping magenx-magento       ... done
+   Stopping magenx-elasticsearch ... done
+   Stopping magenx-rabbitmq      ... done
+   Stopping magenx-varnish       ... done
+   Stopping magenx-certbot       ... done
+   Stopping magenx-nodejs        ... done
+   Stopping magenx-phpmyadmin    ... done
+   Stopping magenx-mariadb       ... done
+   Stopping magenx-redis         ... done
 ```
   
 <br />
