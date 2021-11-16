@@ -57,10 +57,19 @@
 
 <br />
 
-- [x] Run composer or magento command from host:
+- [x] Get random mariadb root password from log:
+```
+docker-compose logs mariadb 2>&1 | grep GENERATED
+magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT PASSWORD: m5.QyKl.PS8o<Yx|Jv(~DV&9cY-`i~XZ
+```
+
+<br />
+
+- [x] Example how to run composer or magento command from host:
 ```
    docker-compose run --rm composer update
    docker-compose run --rm magento module:status --enabled
+   docker-compose run --rm magento module:disable Magento_TwoFactorAuth
 ```
   
 <br />
