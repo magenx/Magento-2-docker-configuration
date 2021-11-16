@@ -295,7 +295,6 @@ services:
         volumes:
             - certbot:/etc/letsencrypt
             - certbotlib:/var/lib/letsencrypt
-            - certbotlog:/var/log/letsencrypt
         << : *logger 
 
 
@@ -346,7 +345,6 @@ volumes:
     phpmyadmincfg:
     elasticsearch:
     certbot:
-    certbotlog:
     certbotlib:
     nginx:
     varnish:
