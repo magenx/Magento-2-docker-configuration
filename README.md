@@ -65,7 +65,8 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
 
 <br />
 
-- [x] Example how to run composer or magento command from host:
+- [x] Example how to run composer or magento command from host:  
+> magento entrypoint is n98-magerun2 script, looks like providing more commands and options  
 ```
    docker-compose run --rm composer update
    docker-compose run --rm magento module:status --enabled
