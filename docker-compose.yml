@@ -292,14 +292,10 @@ services:
     certbot:
         image: certbot/certbot:latest
         container_name: ${BRAND}-certbot
-        restart: always
-        depends_on:
-            - magento
-            - nginx
         volumes:
-            - certbot:/etc/letsencrypt:delegated
-        working_dir: ${WEB_ROOT_PATH}
-        entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 7d & wait $${!}; done;'"
+            - certbot:/etc/letsencrypt
+            - certbotlib:/var/lib/letsencrypt
+            - certbotlog:/var/log/letsencrypt
         << : *logger 
 
 
@@ -350,6 +346,8 @@ volumes:
     phpmyadmincfg:
     elasticsearch:
     certbot:
+    certbotlog:
+    certbotlib:
     nginx:
     varnish:
 
