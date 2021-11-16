@@ -41,6 +41,20 @@ x-logger: &logger
                 syslog-address: "unixgram:///dev/log"
                 mode: non-blocking
                 tag: "[ {{.Name}} ]"
+                
+                
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Configure ulimits
+# # ---------------------------------------------------------------------------------------------------------------------#
+x-ulimits: &ulimits
+        ulimits:
+            memlock:
+               soft: -1
+               hard: -1
+            nofile:
+               soft: 65536
+               hard: 65536
+
 
 services:
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -64,16 +78,10 @@ services:
         ports:
             - "127.0.0.1:3306:3306"
         restart: always
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
-            nofile:
-                soft: 65536
-                hard: 65536
         volumes:
             - mariadb:/var/lib/mysql
             - mariadbcnf:/etc/mysql
+        << : *ulimits
         << : *logger
 
 
@@ -100,15 +108,9 @@ services:
             - "127.0.0.1:9200:9200"
             - "127.0.0.1:9300:9300"
         restart: always
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
-            nofile:
-                soft: 65536
-                hard: 65536
         volumes:
             - elasticsearch:/usr/share/elasticsearch/data
+        << : *ulimits
         << : *logger
 
 
@@ -121,12 +123,9 @@ services:
         command: --bind redis-cache --port 6380 --save "" --aclfile /run/secrets/redis_password
         secrets:
             - redis_password
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
         ports:
-            - "127.0.0.1:6380:6380"            
+            - "127.0.0.1:6380:6380"
+        << : *ulimits
         << : *logger           
 
 
@@ -139,12 +138,9 @@ services:
         command: --bind redis-session --save "" --aclfile /run/secrets/redis_password
         secrets:
             - redis_password
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
         ports:
-            - "127.0.0.1:6379:6379"            
+            - "127.0.0.1:6379:6379"
+        << : *ulimits
         << : *logger           
 
 
@@ -160,12 +156,8 @@ services:
         secrets:
             - rabbitmq_password
         restart: always
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
         ports:
-            - "127.0.0.1:5671:5671"           
+            - "127.0.0.1:5671:5671"
         << : *logger
                 
                 
@@ -182,15 +174,12 @@ services:
         depends_on:
             - nginx
             - php
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
         ports:
             - "127.0.0.1:8081:8081"
             - "127.0.0.1:6082:6082" 
         volumes:
             - varnish:/etc/varnish
+        << : *ulimits
         << : *logger
 
 
@@ -205,6 +194,7 @@ services:
         volumes:
             - magento:${ROOT_PATH}:delegated
         working_dir: ${APP_ROOT_PATH}
+        << : *ulimits
         << : *logger
 
 
@@ -226,6 +216,7 @@ services:
         user: ${PHP_USER}
         working_dir: ${WEB_ROOT_PATH}
         entrypoint: ["php-fpm7", "-F"]
+        << : *ulimits
         << : *logger
                 
                 
