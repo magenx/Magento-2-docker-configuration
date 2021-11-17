@@ -293,6 +293,7 @@ services:
         image: certbot/certbot:latest
         container_name: ${BRAND}-certbot
         volumes:
+            - magento:${ROOT_PATH}
             - certbot:/etc/letsencrypt
             - certbotlib:/var/lib/letsencrypt
         << : *logger 
