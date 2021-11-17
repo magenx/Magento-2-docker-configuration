@@ -95,7 +95,7 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
 
 - [x] Source variables and issue magento installation command:  
 ```
-    docker-compose run --rm magento setup:install --base-url=${DOMAIN} \
+    docker-compose run --rm magento setup:install --base-url=http://${DOMAIN}/ \
    --db-host=mariadb \
    --db-name=${MARIADB_NAME} \
    --db-user=${MARIADB_USER} \
