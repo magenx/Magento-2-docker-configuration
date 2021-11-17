@@ -7,6 +7,7 @@
 <br />
 
 # :rocket: Deploy your project:
+> Disclaimer: By default, the latest versions of packages are downloaded, above those recommended by Magento 2.
 - [x] Install Docker:
 > you can use any linux host or Docker Desktop  
 > https://docs.docker.com/  
