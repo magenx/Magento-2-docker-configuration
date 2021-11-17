@@ -39,15 +39,16 @@
 - [x] Run to pull and build images and start containers:
 > to enable [buildkit](https://docs.docker.com/develop/develop-images/build_enhancements/):  
 >    ```echo '{ "features": { "buildkit": true } }' > /etc/docker/daemon.json```  
->    ```export DOCKER_BUILDKIT=1```
-  
+>   or ```export DOCKER_BUILDKIT=1```  
+>    ```--build-arg <magento> --build-arg <nginx> is used to pull magento code and nginx config```
 ```
    docker-compose build --no-cache php
-   
-   docker-compose build \
-        --build-arg magento \
-        --build-arg nginx
-        
+```
+<pre><code>   docker-compose build \
+        --build-arg <b>magento</b> \
+        --build-arg <b>nginx</b>
+</code></pre>
+```        
    docker-compose up -d
 ```
 - [x] Watch syslog for errors and issues:
