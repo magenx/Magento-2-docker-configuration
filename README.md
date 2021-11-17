@@ -56,6 +56,24 @@
 ```
 
 <br />
+ 
+- [x] To request TLS/SSL certificate with certbot you can run this command [--staging] to test:  
+```
+  docker-compose stop nginx  
+  docker-compose run -p 80:80 --rm certbot certonly \
+  --email ${ADMIN_EMAIL} --agree-tos --no-eff-email --standalone -d ${DOMAIN} --staging  
+  docker-compose start nginx  
+```
+> change your nginx configuration to uncomment tls/ssl  
+> remove [--staging] flag to reissue live certificate  
+- [x] To request TLS/SSL certificate with certbot in realtime you can run this command: 
+```
+  docker-compose run --rm certbot certonly \
+  --email ${ADMIN_EMAIL} --agree-tos --no-eff-email --webroot -w ${WEB_ROOT_PATH} -d ${DOMAIN}  
+  docker-compose restart nginx
+```
+
+<br />
 
 - [x] Get random mariadb root password from log:
 ```
