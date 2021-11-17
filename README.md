@@ -18,6 +18,13 @@
     bash get-docker.sh
     chmod +x /usr/local/bin/docker-compose
 ```
+- [x] Install docker compose v2 instead:  
+```
+  mkdir -p ~/.docker/cli-plugins/  
+  curl -SL https://github.com/docker/compose/releases/download/v2.1.1/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose  
+  chmod +x ~/.docker/cli-plugins/docker-compose
+```
+  
 - [x] Create deployment directory:  
 ```
   mkdir magento && cd magento
