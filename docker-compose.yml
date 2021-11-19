@@ -29,6 +29,8 @@ x-appsetargs: &appsetargs
     - APP_ROOT_PATH=${APP_ROOT_PATH}
     - WEB_ROOT_PATH=${WEB_ROOT_PATH}
     - TIMEZONE=${TIMEZONE}
+    - ALPINE_VERSION=${ALPINE_VERSION}
+    - PHP_VERSION=${PHP_VERSION}
     - PHP_PACKAGES=${PHP_PACKAGES}
     
 # # ---------------------------------------------------------------------------------------------------------------------#
