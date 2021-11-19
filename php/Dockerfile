@@ -23,6 +23,7 @@ RUN <<EOF
     bash \
     curl \
     mariadb-client \
+    strace \
     ${PHP_PACKAGES}
 EOF
 
