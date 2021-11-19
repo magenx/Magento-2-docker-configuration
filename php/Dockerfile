@@ -1,3 +1,4 @@
+# syntax = docker/dockerfile:labs
 ARG ALPINE_VERSION
 FROM alpine:${ALPINE_VERSION}
 
