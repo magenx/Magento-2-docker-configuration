@@ -91,6 +91,11 @@ services:
         volumes:
             - mariadb:/var/lib/mysql
             - mariadbcnf:/etc/mysql
+        cpuset: "0-3"
+        cpu_shares: 1024
+        mem_limit: 2048m
+        mem_reservation: 512m
+        oom_kill_disable: true
         << : *ulimits
         << : *logger
 
@@ -121,6 +126,11 @@ services:
         restart: always
         volumes:
             - elasticsearch:/usr/share/elasticsearch/data
+        cpuset: "0-2"
+        cpu_shares: 1024
+        mem_limit: 2048m
+        mem_reservation: 512m
+        oom_kill_disable: true
         << : *ulimits
         << : *logger
 
@@ -136,6 +146,11 @@ services:
             - redis_password
         ports:
             - "127.0.0.1:6380:6380"
+        cpuset: "1"
+        cpu_shares: 614
+        mem_limit: 512m
+        mem_reservation: 128m
+        oom_kill_disable: true
         << : *ulimits
         << : *logger           
 
@@ -151,6 +166,11 @@ services:
             - redis_password
         ports:
             - "127.0.0.1:6379:6379"
+        cpuset: "2"
+        cpu_shares: 614
+        mem_limit: 512m
+        mem_reservation: 128m
+        oom_kill_disable: true
         << : *ulimits
         << : *logger           
 
@@ -169,6 +189,12 @@ services:
         restart: always
         ports:
             - "127.0.0.1:5671:5671"
+        cpuset: "3"
+        cpu_shares: 614
+        mem_limit: 512m
+        mem_reservation: 128m
+        oom_kill_disable: true
+        << : *ulimits
         << : *logger
                 
                 
@@ -190,6 +216,10 @@ services:
             - "127.0.0.1:6082:6082" 
         volumes:
             - varnish:/etc/varnish
+        cpuset: "0"
+        cpu_shares: 614
+        mem_limit: 1024m
+        mem_reservation: 128m
         << : *ulimits
         << : *logger
 
@@ -205,6 +235,10 @@ services:
         volumes:
             - magento:${ROOT_PATH}:delegated
         working_dir: ${APP_ROOT_PATH}
+        cpuset: "0-3"
+        cpu_shares: 614
+        mem_limit: 2048m
+        mem_reservation: 128m
         << : *ulimits
         << : *logger
 
@@ -227,6 +261,10 @@ services:
         user: ${PHP_USER}
         working_dir: ${WEB_ROOT_PATH}
         entrypoint: ["php-fpm7", "-F"]
+        cpuset: "0-3"
+        cpu_shares: 1024
+        mem_limit: 2024m
+        mem_reservation: 128m
         << : *ulimits
         << : *cap_add
         << : *logger
@@ -260,6 +298,11 @@ services:
             - phpmyadmin:/var/www/html:ro
             - phpmyadmincfg:/etc/phpmyadmin:ro
         working_dir: ${WEB_ROOT_PATH}
+        cpuset: "1"
+        cpu_shares: 614
+        mem_limit: 512m
+        mem_reservation: 128m
+        << : *ulimits
         << : *logger
  
  
@@ -276,6 +319,11 @@ services:
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
+        cpuset: "1"
+        cpu_shares: 614
+        mem_limit: 248m
+        mem_reservation: 128m
+        << : *ulimits
         << : *logger
                 
  
@@ -295,6 +343,11 @@ services:
         volumes:
             - phpmyadmin:/var/www/html
             - phpmyadmincfg:/etc/phpmyadmin
+        cpuset: "1"
+        cpu_shares: 614
+        mem_limit: 512m
+        mem_reservation: 248m
+        << : *ulimits
         << : *logger
             
             
@@ -308,6 +361,7 @@ services:
             - magento:${ROOT_PATH}
             - certbot:/etc/letsencrypt
             - certbotlib:/var/lib/letsencrypt
+        << : *ulimits
         << : *logger 
 
 
@@ -324,6 +378,11 @@ services:
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
+        cpuset: "0-3"
+        cpu_shares: 1024
+        mem_limit: 1024m
+        mem_reservation: 512m
+        << : *ulimits
         << : *logger            
 
 
@@ -343,6 +402,11 @@ services:
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
+        cpuset: "0-3"
+        cpu_shares: 1024
+        mem_limit: 2048m
+        mem_reservation: 512m
+        << : *ulimits
         << : *logger            
             
             
