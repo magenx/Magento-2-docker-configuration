@@ -16,12 +16,19 @@
     curl -fsSL https://get.docker.com -o get-docker.sh
     bash get-docker.sh
 ```
+  
 - [x] Install docker compose v2:  
 ```
   mkdir -p ~/.docker/cli-plugins/  
   curl -SL https://github.com/docker/compose/releases/download/v2.1.1/docker-compose-linux-x86_64 \
   -o ~/.docker/cli-plugins/docker-compose  
   chmod +x ~/.docker/cli-plugins/docker-compose
+```
+  
+- [x] Add alias or use auto completion feature:  
+```
+  echo "alias doco='docker compose'" >> ~/.bash_profile
+  . ~/.bash_profile
 ```
   
 - [x] Create deployment directory:  
@@ -49,14 +56,14 @@
 >   or ```export DOCKER_BUILDKIT=1```  
 >    ```--build-arg <magento> --build-arg <nginx> is used to pull magento code and nginx config```
 ```
-   docker-compose build --no-cache php
+   doco build --no-cache php
 ```
-<pre><code>   docker-compose build \
+<pre><code>   doco build \
         --build-arg <b>magento</b> \
         --build-arg <b>nginx</b>
 </code></pre>
 ```        
-   docker-compose up -d
+   doco up -d
 ```
 - [x] Watch syslog for errors and issues:
 ```
@@ -67,25 +74,25 @@
  
 - [x] To request TLS/SSL certificate with certbot you can run this command [--staging] to test:  
 ```
-  docker-compose stop nginx  
-  docker-compose run -p 80:80 --rm certbot certonly \
+  doco stop nginx  
+  doco run -p 80:80 --rm certbot certonly \
   --email ${ADMIN_EMAIL} --agree-tos --no-eff-email --standalone -d ${DOMAIN} --staging  
-  docker-compose start nginx  
+  doco start nginx  
 ```
 > change your nginx configuration to uncomment tls/ssl  
 > remove [--staging] flag to reissue live certificate  
 - [x] To request TLS/SSL certificate with certbot in realtime you can run this command: 
 ```
-  docker-compose run --rm certbot certonly \
+  doco run --rm certbot certonly \
   --email ${ADMIN_EMAIL} --agree-tos --no-eff-email --webroot -w ${WEB_ROOT_PATH} -d ${DOMAIN}  
-  docker-compose restart nginx
+  doco restart nginx
 ```
 
 <br />
 
 - [x] Get random mariadb root password from log:
 ```
-docker-compose logs mariadb 2>&1 | grep GENERATED
+doco logs mariadb 2>&1 | grep GENERATED
 magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT PASSWORD: m5.QyKl.PS8o<Yx|Jv(~DV&9cY-`i~XZ
 ```
 
@@ -94,16 +101,16 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
 - [x] Example how to run composer or magento command from host:  
 > magento entrypoint is n98-magerun2 script, looks like providing more commands and options  
 ```
-   docker-compose run --rm composer update
-   docker-compose run --rm magento module:status --enabled
-   docker-compose run --rm magento module:disable Magento_TwoFactorAuth
+   doco run --rm composer update
+   doco run --rm magento module:status --enabled
+   doco run --rm magento module:disable Magento_TwoFactorAuth
 ```
   
 <br />
 
 - [x] Source variables and issue magento installation command:  
 ```
-    docker-compose run --rm magento setup:install --base-url=http://${DOMAIN}/ \
+    doco run --rm magento setup:install --base-url=http://${DOMAIN}/ \
    --db-host=mariadb \
    --db-name=${MARIADB_NAME} \
    --db-user=${MARIADB_USER} \
@@ -150,7 +157,7 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
 
 - [x] Stop all services:
 ```
-   docker-compose down
+   doco down
    
    Stopping magenx-cron          ... done
    Stopping magenx-nginx         ... done
