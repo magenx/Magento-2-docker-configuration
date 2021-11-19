@@ -1,11 +1,15 @@
-# syntax = docker/dockerfile:labs
-FROM alpine:3.13
+ARG ALPINE_VERSION
+FROM alpine:${ALPINE_VERSION}
 
 LABEL org.opencontainers.image.authors="admin@magenx.com"
 LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docker-configuration"
 
-ARG PHP_FPM_POOL="/etc/php7/php-fpm.d/www.conf"
-ARG PHP_INI="/etc/php7/php.ini"
+ARG PHP_PACKAGES
+ARG PHP_VERSION
+
+ARG PHP_FPM_POOL="/etc/${PHP_VERSION}/php-fpm.d/www.conf"
+ARG PHP_INI="/etc/${PHP_VERSION}/php.ini"
+
 ARG TIMEZONE
 
 ARG BRAND
@@ -13,7 +17,6 @@ ARG PHP_USER
 ARG ROOT_PATH
 ARG APP_ROOT_PATH
 ARG WEB_ROOT_PATH
-ARG PHP_PACKAGES
 
 RUN <<EOF
     apk update
@@ -22,9 +25,14 @@ RUN <<EOF
     attr \
     bash \
     curl \
-    mariadb-client \
-    strace \
-    ${PHP_PACKAGES}
+    mariadb-client
+EOF
+
+SHELL ["/bin/bash","-c"]
+
+RUN <<EOF
+    _PHP_PACKAGES+=(${PHP_PACKAGES})
+    apk add --update --no-cache ${PHP_VERSION} ${_PHP_PACKAGES[@]/#/${PHP_VERSION}-}
 EOF
 
 RUN <<EOF
@@ -67,8 +75,7 @@ RUN <<EOF
     adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER}
     addgroup -S -g 1000 ${BRAND}
     adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND}
-    chown -R ${PHP_USER} /var/log/php7
+    chown -R ${PHP_USER} /var/log/${PHP_VERSION}
 EOF
 
 RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
-
