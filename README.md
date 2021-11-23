@@ -59,8 +59,8 @@
    doco build --no-cache php
 ```
 <pre><code>   doco build \
-        --build-arg <b>magento</b> \
-        --build-arg <b>nginx</b>
+        --build-arg <b>magento=yes</b> \
+        --build-arg <b>nginx=yes</b>
 </code></pre>
 ```        
    doco up -d
