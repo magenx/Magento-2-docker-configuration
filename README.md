@@ -27,7 +27,7 @@
   
 - [x] Add alias or use auto completion feature:  
 ```
-  echo "alias doco='docker compose'" >> ~/.bash_profile
+  echo "alias doco='docker-compose'" >> ~/.bash_profile
   . ~/.bash_profile
 ```
   
