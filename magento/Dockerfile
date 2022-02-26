@@ -31,7 +31,7 @@ RUN <<EOF
     mkdir -p ${ROOT_PATH}/.local && chown -R ${BRAND} ${ROOT_PATH}/.local
     mkdir -p ${ROOT_PATH}/.composer && chown -R ${BRAND} ${ROOT_PATH}/.composer
     mkdir -p ${ROOT_PATH}/.npm && chown -R ${BRAND} ${ROOT_PATH}/.npm
-    chmod -R 2770 ${APP_ROOT_PATH}
+    chmod -R 2750 ${APP_ROOT_PATH}
 EOF
 
 USER ${BRAND}:${PHP_USER}
@@ -42,8 +42,8 @@ if [ ! -z ${magento} ]; then
     git clone https://github.com/magenx/Magento-2.git .
     echo 007 > magento_umask
     rm -rf .git
-    find . -type d -exec chmod 2770 {} \;
-    find . -type f -exec chmod 660 {} \;
+    find . -type d -exec chmod 2750 {} \;
+    find . -type f -exec chmod 640 {} \;
     chmod +x bin/magento
 fi
 EOF
