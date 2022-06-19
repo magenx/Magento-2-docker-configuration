@@ -54,15 +54,8 @@
 > to enable [buildkit](https://docs.docker.com/develop/develop-images/build_enhancements/):  
 >    ```echo '{ "features": { "buildkit": true } }' > /etc/docker/daemon.json```  
 >   or ```export DOCKER_BUILDKIT=1```  
->    ```--build-arg <magento> --build-arg <nginx> is used to pull magento code and nginx config```
 ```
-   doco build --no-cache php
-```
-<pre><code>   doco build \
-        --build-arg <b>magento=yes</b> \
-        --build-arg <b>nginx=yes</b>
-</code></pre>
-```        
+   doco build --no-cache php       
    doco up -d
 ```
 - [x] Watch syslog for errors and issues:
