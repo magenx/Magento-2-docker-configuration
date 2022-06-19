@@ -37,15 +37,14 @@ EOF
 USER ${BRAND}:${PHP_USER}
 
 RUN <<EOF
-if [ ! -z ${magento} ]; then
     cd ${APP_ROOT_PATH}
-    git clone https://github.com/magenx/Magento-2.git .
-    echo 007 > magento_umask
-    rm -rf .git
-    find . -type d -exec chmod 2750 {} \;
-    find . -type f -exec chmod 640 {} \;
-    chmod +x bin/magento
-fi
+    git remote add origin ${APP_GITHUB_REPO}
+    git fetch origin
+    git reset --hard origin/main
+    composer -n install --optimize-autoloader --prefer-dist --no-dev --no-cache --no-ansi
+    bin/magento setup:di:compile
+    composer -n dump-autoload --no-dev --optimize --apcu
+    bin/magento setup:static-content:deploy -f -n
 EOF
 
 ENTRYPOINT ["n98-magerun2", "-vv"]
