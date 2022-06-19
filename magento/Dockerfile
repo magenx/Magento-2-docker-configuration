@@ -5,13 +5,12 @@ FROM ${BRAND}_php
 LABEL org.opencontainers.image.authors="admin@magenx.com"
 LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docker-configuration"
 
-ARG magento
-
 ARG BRAND
 ARG PHP_USER
 ARG ROOT_PATH
 ARG APP_ROOT_PATH
 ARG WEB_ROOT_PATH
+ARG APP_GITHUB_REPO
 
 RUN <<EOF
     apk update
