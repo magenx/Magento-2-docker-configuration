@@ -5,6 +5,10 @@ FROM ${BRAND}_php
 LABEL org.opencontainers.image.authors="admin@magenx.com"
 LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docker-configuration"
 
+ARG APP_GITHUB_REPO="https://github.com/magenx/Magento-2-docker-demo"
+ARG COMPOSER_USER="8c681734f22763b50ea0c29dff9e7af2"
+ARG COMPOSER_PASSWORD="02dfee497e669b5db1fe1c8d481d6974"
+
 ARG BRAND
 ARG PHP_USER
 ARG ROOT_PATH
@@ -20,6 +24,9 @@ EOF
 RUN <<EOF
     curl -o /usr/local/bin/n98-magerun2 https://files.magerun.net/n98-magerun2.phar
     chmod +x /usr/local/bin/n98-magerun2
+    ${PHP_VERSION} -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+    ${PHP_VERSION} composer-setup.php --install-dir=/usr/bin --filename=composer
+    ${PHP_VERSION} -r "unlink('composer-setup.php');"
 EOF
 
 RUN <<EOF
@@ -36,14 +43,20 @@ EOF
 USER ${BRAND}:${PHP_USER}
 
 RUN <<EOF
+    composer -n -q config -g http-basic.repo.magento.com ${COMPOSER_USER} ${COMPOSER_PASSWORD}
     cd ${APP_ROOT_PATH}
+    git init
     git remote add origin ${APP_GITHUB_REPO}
     git fetch origin
     git reset --hard origin/main
-    composer -n install --optimize-autoloader --prefer-dist --no-dev --no-cache --no-ansi
-    bin/magento setup:di:compile
+    mv app/etc/env.php app/etc/env.php.build
+    composer -n update
+    composer -n install --prefer-dist --no-dev --no-cache --no-ansi
+    bin/magento setup:di:compile -n
     composer -n dump-autoload --no-dev --optimize --apcu
-    bin/magento setup:static-content:deploy -f -n
+    bin/magento setup:static-content:deploy -n
+    mv app/etc/env.php.build app/etc/env.php
+    rm -rf /usr/bin/composer
 EOF
 
 ENTRYPOINT ["n98-magerun2", "-vv"]
