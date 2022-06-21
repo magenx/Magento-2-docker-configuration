@@ -36,39 +36,70 @@ RUN <<EOF
     apk add --update --no-cache ${PHP_VERSION} ${_PHP_PACKAGES[@]/#/${PHP_VERSION}-}
 EOF
 
-RUN <<EOF
-    sed -i "s/\[www\]/\[${BRAND}\]/" ${PHP_FPM_POOL}
-    sed -i "s/^user =.*/user = ${PHP_USER}/" ${PHP_FPM_POOL}
-    sed -i "s/^group =.*/group = ${PHP_USER}/" ${PHP_FPM_POOL}
-    sed -ri "s/;?listen.group =.*/listen.group = ${PHP_USER}/" ${PHP_FPM_POOL}
-    sed -ri "s/;?listen.mode = 0660/listen.mode = 0660/" ${PHP_FPM_POOL}
-    sed -i "s/listen = 127.0.0.1:9000/listen = php:9000/" ${PHP_FPM_POOL}
-    sed -i '/sendmail_path/,$d' ${PHP_FPM_POOL}
-    sed -i '/PHPSESSID/d' ${PHP_INI}
-    sed -i "s,.*date.timezone.*,date.timezone = ${TIMEZONE}," ${PHP_INI}
-    sed -i 's/^\(max_execution_time = \)[0-9]*/\17200/' ${PHP_INI}
-    sed -i 's/^\(max_input_time = \)[0-9]*/\17200/' ${PHP_INI}
-    sed -i 's/^\(memory_limit = \)[0-9]*M/\12048M/' ${PHP_INI}
-    sed -i 's/^\(post_max_size = \)[0-9]*M/\164M/' ${PHP_INI}
-    sed -i 's/^\(upload_max_filesize = \)[0-9]*M/\164M/' ${PHP_INI}
-    sed -i 's/expose_php = On/expose_php = Off/' ${PHP_INI}
-    sed -i 's/;realpath_cache_size =.*/realpath_cache_size = 4096k/' ${PHP_INI}
-    sed -i 's/;realpath_cache_ttl =.*/realpath_cache_ttl = 86400/' ${PHP_INI}
-    sed -i 's/short_open_tag = Off/short_open_tag = On/' ${PHP_INI}
-    sed -i 's/;max_input_vars =.*/max_input_vars = 50000/' ${PHP_INI}
-    sed -i 's/session.gc_maxlifetime = 1440/session.gc_maxlifetime = 28800/' ${PHP_INI}
-    sed -i 's/mysql.allow_persistent = On/mysql.allow_persistent = Off/' ${PHP_INI}
-    sed -i 's/mysqli.allow_persistent = On/mysqli.allow_persistent = Off/' ${PHP_INI}
-EOF
-
-RUN <<EOF cat >> ${PHP_FPM_POOL}
-; Custom pool settings
-php_flag[display_errors] = on
-php_admin_flag[log_errors] = on
-php_admin_value[error_log] = /proc/self/fd/2
-php_admin_value[default_charset] = UTF-8
-php_admin_value[memory_limit] = 2G
-php_admin_value[date.timezone] = ${TIMEZONE}
+RUN <<EOF cat > ${PHP_FPM_POOL}
+[${BRAND}]
+user = ${PHP_USER}
+group = ${PHP_USER}
+listen = php:9000
+listen.owner = ${BRAND}
+listen.group = ${PHP_USER}
+listen.mode = 0660
+listen.allowed_clients = nginx
+pm = ondemand
+pm.max_children = 100
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+pm.max_requests = 10000
+;;
+;; [php ini] settings
+php_admin_flag[expose_php] = Off
+php_admin_flag[short_open_tag] = On
+php_admin_flag[display_errors] = Off
+php_admin_flag[log_errors] = On
+php_admin_flag[mysql.allow_persistent] = On
+php_admin_flag[mysqli.allow_persistent] = On
+php_admin_value[default_charset] = "UTF-8"
+php_admin_value[memory_limit] = 1024M
+php_admin_value[max_execution_time] = 7200
+php_admin_value[max_input_time] = 7200
+php_admin_value[max_input_vars] = 50000
+php_admin_value[post_max_size] = 64M
+php_admin_value[upload_max_filesize] = 64M
+php_admin_value[realpath_cache_size] = 4096k
+php_admin_value[realpath_cache_ttl] = 86400
+php_admin_value[session.gc_maxlifetime] = 28800
+php_admin_value[error_log] = "${APP_ROOT_PATH}/var/log/php-fpm-error.log"
+php_admin_value[date.timezone] = "${TIMEZONE}"
+php_admin_value[upload_tmp_dir] = "${APP_ROOT_PATH}/var/tmp"
+php_admin_value[sys_temp_dir] = "${APP_ROOT_PATH}/var/tmp"
+;;
+;; [opcache] settings
+php_admin_flag[opcache.enable] = On
+php_admin_flag[opcache.use_cwd] = On
+php_admin_flag[opcache.validate_root] = On
+php_admin_flag[opcache.revalidate_path] = Off
+php_admin_flag[opcache.validate_timestamps] = Off
+php_admin_flag[opcache.save_comments] = On
+php_admin_flag[opcache.load_comments] = On
+php_admin_flag[opcache.fast_shutdown] = On
+php_admin_flag[opcache.enable_file_override] = Off
+php_admin_flag[opcache.inherited_hack] = On
+php_admin_flag[opcache.consistency_checks] = Off
+php_admin_flag[opcache.protect_memory] = Off
+php_admin_value[opcache.memory_consumption] = 512
+php_admin_value[opcache.interned_strings_buffer] = 4
+php_admin_value[opcache.max_accelerated_files] = 60000
+php_admin_value[opcache.max_wasted_percentage] = 5
+php_admin_value[opcache.file_update_protection] = 2
+php_admin_value[opcache.optimization_level] = 0xffffffff
+php_admin_value[opcache.blacklist_filename] = "/etc/opcache-default.blacklist"
+php_admin_value[opcache.max_file_size] = 0
+php_admin_value[opcache.force_restart_timeout] = 60
+php_admin_value[opcache.error_log] = "/var/log/php-fpm/opcache.log"
+php_admin_value[opcache.log_verbosity_level] = 1
+php_admin_value[opcache.preferred_memory_model] = ""
+END
 EOF
 
 RUN <<EOF
@@ -79,4 +110,4 @@ RUN <<EOF
     chown -R ${PHP_USER} /var/log/${PHP_VERSION}
 EOF
 
-RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone && /usr/bin/${PHP_VERSION} /usr/local/bin/php
+RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone && ln -s /usr/bin/${PHP_VERSION} /usr/local/bin/php
