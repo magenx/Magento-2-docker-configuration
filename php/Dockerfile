@@ -79,4 +79,4 @@ RUN <<EOF
     chown -R ${PHP_USER} /var/log/${PHP_VERSION}
 EOF
 
-RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
+RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone && /usr/bin/${PHP_VERSION} /usr/local/bin/php
