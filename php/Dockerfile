@@ -99,7 +99,6 @@ php_admin_value[opcache.force_restart_timeout] = 60
 php_admin_value[opcache.error_log] = "/var/log/php-fpm/opcache.log"
 php_admin_value[opcache.log_verbosity_level] = 1
 php_admin_value[opcache.preferred_memory_model] = ""
-END
 EOF
 
 RUN <<EOF
