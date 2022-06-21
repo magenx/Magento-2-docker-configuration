@@ -77,6 +77,7 @@ services:
                 - MARIADB_VERSION
                 - BRAND
         container_name: ${BRAND}-mariadb
+        hostname: mariadb
         environment:
             - MARIADB_RANDOM_ROOT_PASSWORD=yes
             - MARIADB_DATABASE=${MARIADB_DATABASE}
@@ -109,6 +110,7 @@ services:
             args:
                 - ELASTICSEARCH_VERSION
         container_name: ${BRAND}-elasticsearch
+        hostname: elasticsearch
         environment:
             - cluster.name=magento
             - node.name=magento-node1
@@ -141,6 +143,7 @@ services:
     redis-cache:
         image: redis:${REDIS_VERSION}
         container_name: ${BRAND}-redis-cache
+        hostname: redis-cache
         command: --bind redis-cache --port 6380 --save "" --aclfile /run/secrets/redis_password
         secrets:
             - redis_password
@@ -161,6 +164,7 @@ services:
     redis-session:
         image: redis:${REDIS_VERSION}
         container_name: ${BRAND}-redis-session
+        hostname: redis-session
         command: --bind redis-session --save "" --aclfile /run/secrets/redis_password
         secrets:
             - redis_password
@@ -181,6 +185,7 @@ services:
     rabbitmq:
         image: rabbitmq:${RABBITMQ_VERSION}
         container_name: ${BRAND}-rabbitmq
+        hostname: rabbitmq
         environment:
             - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
             - RABBITMQ_DEFAULT_PASS_FILE=/run/secrets/rabbitmq_password
@@ -207,6 +212,7 @@ services:
             args:
                 - VARNISH_VERSION
         container_name: ${BRAND}-varnish
+        hostname: varnish
         restart: always
         depends_on:
             - nginx
@@ -231,7 +237,6 @@ services:
         build:
             context: ./magento
             args: *appsetargs
-                - APP_GITHUB_REPO
         container_name: ${BRAND}-magento
         environment:
             - MARIADB_DATABASE=${MARIADB_DATABASE}
@@ -262,6 +267,7 @@ services:
             context: ./php
             args: *appsetargs
         container_name: ${BRAND}-php
+        hostname: php
         restart: always
         depends_on:
             - magento
@@ -289,6 +295,7 @@ services:
             context: ./nginx
             args: *appsetargs
         container_name: ${BRAND}-nginx
+        hostname: nginx
         restart: always
         depends_on:
             - magento
