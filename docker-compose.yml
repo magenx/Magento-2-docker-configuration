@@ -231,6 +231,7 @@ services:
         build:
             context: ./magento
             args: *appsetargs
+                - APP_GITHUB_REPO
         container_name: ${BRAND}-magento
         environment:
             - MARIADB_DATABASE=${MARIADB_DATABASE}
