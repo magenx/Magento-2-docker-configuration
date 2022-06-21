@@ -241,10 +241,6 @@ services:
         environment:
             - MARIADB_DATABASE=${MARIADB_DATABASE}
             - MARIADB_USER=${MARIADB_USER}
-            - MARIADB_PASSWORD=${MARIADB_PASSWORD}
-            - REDIS_PASSWORD=${REDIS_PASSWORD}
-            - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
-            - ELK_PASSWORD=${ELK_PASSWORD}
             - DOMAIN=${DOMAIN}
             - ADMIN_PATH=${ADMIN_PATH}
             - CRYPT_KEY=${CRYPT_KEY}
