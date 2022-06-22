@@ -50,7 +50,6 @@ RUN <<EOF
     git remote add origin ${APP_GITHUB_REPO}
     git fetch origin
     git reset --hard origin/main
-    mv app/etc/env.php app/etc/env.php.build
     composer -n install --prefer-dist --no-dev --no-cache --no-ansi
     bin/magento setup:di:compile -n
     composer -n dump-autoload --no-dev --optimize --apcu
