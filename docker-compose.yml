@@ -134,7 +134,7 @@ services:
 #  Redis is an open source key-value store that functions as a data structure server.
 # # ---------------------------------------------------------------------------------------------------------------------#
     redis-cache:
-        image: redis:6.2.7-alpine
+        image: &redis_image redis:6.2.7-alpine
         container_name: ${BRAND}-redis-cache
         hostname: redis-cache
         command: --bind redis-cache --port 6380 --save "" --aclfile /run/secrets/redis_password
@@ -155,7 +155,7 @@ services:
 #  Redis is an open source key-value store that functions as a data structure server.
 # # ---------------------------------------------------------------------------------------------------------------------#
     redis-session:
-        image: redis:6.2.7-alpine
+        image: *redis_image
         container_name: ${BRAND}-redis-session
         hostname: redis-session
         command: --bind redis-session --save "" --aclfile /run/secrets/redis_password
@@ -176,7 +176,7 @@ services:
 #  RabbitMQ is an open source multi-protocol messaging broker
 # # ---------------------------------------------------------------------------------------------------------------------#                
     rabbitmq:
-        image: rabbitmq:3.8-alpine
+        image: rabbitmq:3.8.34-alpine
         container_name: ${BRAND}-rabbitmq
         hostname: rabbitmq
         environment:
