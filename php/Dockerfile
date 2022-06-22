@@ -4,7 +4,7 @@ FROM alpine:3.16
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
-ARG PHP_PACKAGES
+ARG PHP_PACKAGES="apcu bcmath bz2 calendar ctype curl dom fileinfo fpm gd gettext gmp iconv intl json mbstring mysqli odbc opcache openssl pdo pdo_dblib pdo_mysql pdo_odbc pdo_sqlite pear phar redis simplexml soap sockets sodium sqlite3 tokenizer xmlreader xmlwriter xsl zip"
 ARG PHP_VERSION
 
 ARG PHP_FPM_POOL="/etc/${PHP_VERSION}/php-fpm.d/www.conf"
