@@ -1,11 +1,9 @@
-ARG MARIADB_VERSION
-FROM mariadb:${MARIADB_VERSION}
 
-LABEL org.opencontainers.image.authors="admin@magenx.com"
-LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docker-configuration"
+FROM mariadb:10.5.16-focal
 
-ARG BRAND
+LABEL author="admin@magenx.com"
+LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
-ADD https://raw.githubusercontent.com/magenx/Magento-mysql/master/my.cnf/my.cnf /etc/mysql/conf.d/${BRAND}.cnf
+ADD https://raw.githubusercontent.com/magenx/Magento-mysql/master/my.cnf/my.cnf /etc/mysql/conf.d/my.cnf
 
-RUN sed -i "s/127.0.0.1/mariadb/" /etc/mysql/conf.d/${BRAND}.cnf
+RUN sed -i "s/127.0.0.1/mariadb/" /etc/mysql/conf.d/my.cnf
