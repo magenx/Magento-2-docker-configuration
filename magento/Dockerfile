@@ -54,9 +54,8 @@ RUN <<EOF
     composer -n install --prefer-dist --no-dev --no-cache --no-ansi
     bin/magento setup:di:compile -n
     composer -n dump-autoload --no-dev --optimize --apcu
-    bin/magento setup:static-content:deploy -n
+    bin/magento setup:static-content:deploy -n -f
     mv app/etc/env.php.build app/etc/env.php
-    rm -rf /usr/bin/composer
 EOF
 
 ENTRYPOINT ["n98-magerun2", "-vv"]
