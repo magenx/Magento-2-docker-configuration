@@ -1,4 +1,3 @@
-
 FROM mariadb:10.5.16-focal
 
 LABEL author="admin@magenx.com"
