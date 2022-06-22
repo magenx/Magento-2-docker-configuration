@@ -1,9 +1,8 @@
 # syntax = docker/dockerfile:labs
-ARG ALPINE_VERSION
-FROM alpine:${ALPINE_VERSION}
+FROM alpine:3.16
 
-LABEL org.opencontainers.image.authors="admin@magenx.com"
-LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docker-configuration"
+LABEL author="admin@magenx.com"
+LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG PHP_PACKAGES
 ARG PHP_VERSION
@@ -22,11 +21,8 @@ ARG WEB_ROOT_PATH
 RUN <<EOF
     apk update
     apk add --update --no-cache \
-    acl \
-    attr \
     bash \
-    curl \
-    mariadb-client
+    curl
 EOF
 
 SHELL ["/bin/bash","-c"]
@@ -109,4 +105,8 @@ RUN <<EOF
     chown -R ${PHP_USER} /var/log/${PHP_VERSION}
 EOF
 
-RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone && ln -s /usr/bin/${PHP_VERSION} /usr/local/bin/php
+RUN <<EOF
+    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+    echo ${TIMEZONE} > /etc/timezone
+    ln -s /usr/bin/${PHP_VERSION} /usr/local/bin/php
+EOF
