@@ -51,7 +51,7 @@ RUN <<EOF
     git fetch origin
     git reset --hard origin/main
     composer -n install --prefer-dist --no-dev --no-cache --no-ansi
-    bin/magento setup:di:compile -n
+    ${PHP_VERSION} -d memory_limit=-1 bin/magento setup:di:compile -n
     composer -n dump-autoload --no-dev --optimize --apcu
     bin/magento setup:static-content:deploy -n -f
     mv app/etc/env.php.build app/etc/env.php
