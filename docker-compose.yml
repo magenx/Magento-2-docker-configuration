@@ -73,9 +73,6 @@ services:
     mariadb:
         build:
             context: ./mariadb
-            args:
-                - MARIADB_VERSION
-                - BRAND
         container_name: ${BRAND}-mariadb
         hostname: mariadb
         environment:
@@ -107,8 +104,6 @@ services:
     elasticsearch:
         build:
             context: ./elasticsearch
-            args:
-                - ELASTICSEARCH_VERSION
         container_name: ${BRAND}-elasticsearch
         hostname: elasticsearch
         environment:
@@ -141,7 +136,7 @@ services:
 #  Redis is an open source key-value store that functions as a data structure server.
 # # ---------------------------------------------------------------------------------------------------------------------#
     redis-cache:
-        image: redis:${REDIS_VERSION}
+        image: redis:6.2.7-alpine
         container_name: ${BRAND}-redis-cache
         hostname: redis-cache
         command: --bind redis-cache --port 6380 --save "" --aclfile /run/secrets/redis_password
@@ -162,7 +157,7 @@ services:
 #  Redis is an open source key-value store that functions as a data structure server.
 # # ---------------------------------------------------------------------------------------------------------------------#
     redis-session:
-        image: redis:${REDIS_VERSION}
+        image: redis:6.2.7-alpine
         container_name: ${BRAND}-redis-session
         hostname: redis-session
         command: --bind redis-session --save "" --aclfile /run/secrets/redis_password
@@ -183,11 +178,11 @@ services:
 #  RabbitMQ is an open source multi-protocol messaging broker
 # # ---------------------------------------------------------------------------------------------------------------------#                
     rabbitmq:
-        image: rabbitmq:${RABBITMQ_VERSION}
+        image: rabbitmq:3.8-alpine
         container_name: ${BRAND}-rabbitmq
         hostname: rabbitmq
         environment:
-            - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+            - RABBITMQ_DEFAULT_USER="magento"
             - RABBITMQ_DEFAULT_PASS_FILE=/run/secrets/rabbitmq_password
         secrets:
             - rabbitmq_password
@@ -209,8 +204,6 @@ services:
     varnish:
         build:
             context: ./varnish
-            args:
-                - VARNISH_VERSION
         container_name: ${BRAND}-varnish
         hostname: varnish
         restart: always
@@ -244,6 +237,8 @@ services:
             - DOMAIN=${DOMAIN}
             - ADMIN_PATH=${ADMIN_PATH}
             - CRYPT_KEY=${CRYPT_KEY}
+        env_file:
+            - env.php.env
         volumes:
             - magento:${ROOT_PATH}:delegated
         working_dir: ${APP_ROOT_PATH}
@@ -270,7 +265,9 @@ services:
         ports:
             - "127.0.0.1:9000:9000"
         volumes:
-            - magento:${ROOT_PATH}
+            - magento:${ROOT_PATH}:ro
+            - media:${APP_ROOT_PATH}/pub/media:rw
+            - var:${APP_ROOT_PATH}/var:rw
         user: ${PHP_USER}
         working_dir: ${WEB_ROOT_PATH}
         entrypoint: ["php-fpm7", "-F"]
@@ -345,7 +342,7 @@ services:
 #  phpMyAdmin - A web interface for MariaDB
 # # ---------------------------------------------------------------------------------------------------------------------#  
     phpmyadmin:
-        image: phpmyadmin:${PHPMYADMIN_VERSION}
+        image: phpmyadmin:fpm-alpine
         container_name: ${BRAND}-phpmyadmin
         environment:
             - PMA_HOST=mariadb
@@ -429,6 +426,8 @@ services:
 # # ---------------------------------------------------------------------------------------------------------------------#            
 volumes:
     magento:
+    media:
+    var:
     ssl:
     mariadb:
     mariadbcnf:
