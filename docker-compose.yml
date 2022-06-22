@@ -268,7 +268,7 @@ services:
             - var:${APP_ROOT_PATH}/var:rw
         user: ${PHP_USER}
         working_dir: ${WEB_ROOT_PATH}
-        entrypoint: ["php-fpm7", "-F"]
+        entrypoint: ["php-fpm81", "-F"]
         cpuset: "0-3"
         cpu_shares: 1024
         mem_limit: 2024m
