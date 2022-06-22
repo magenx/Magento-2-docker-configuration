@@ -1,8 +1,8 @@
 # syntax = docker/dockerfile:labs
 FROM nginx:mainline-alpine-perl
 
-LABEL org.opencontainers.image.authors="admin@magenx.com"
-LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docker-configuration"
+LABEL author="admin@magenx.com"
+LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG NGINX_GITHUB_REPO="https://github.com/magenx/Magento-2-docker-nginx-config"
 
