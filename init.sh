@@ -11,8 +11,6 @@ chmod +x ~/.docker/cli-plugins/docker-compose
 echo "alias doco='docker compose'" >> ~/.bash_profile
 . ~/.bash_profile
 
-git clone https://github.com/magenx/Magento-2-docker-configuration.git .
-
 bash passgen.sh
 
 echo '{ "features": { "buildkit": true } }' > /etc/docker/daemon.json
