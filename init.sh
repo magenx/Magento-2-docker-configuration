@@ -11,8 +11,6 @@ chmod +x ~/.docker/cli-plugins/docker-compose
 echo "alias doco='docker compose'" >> ~/.bash_profile
 . ~/.bash_profile
 
-apt -y install git
-
 mkdir -p /usr/local/src/magento && cd $_
 git clone https://github.com/magenx/Magento-2-docker-configuration.git .
 
