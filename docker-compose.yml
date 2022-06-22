@@ -186,7 +186,7 @@ services:
             - rabbitmq_password
         restart: always
         ports:
-            - "127.0.0.1:5671:5671"
+            - "127.0.0.1:5672:5672"
         cpuset: "3"
         cpu_shares: 614
         mem_limit: 512m
