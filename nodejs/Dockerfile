@@ -1,8 +1,8 @@
 # syntax = docker/dockerfile:labs
 FROM node:16.13.0-alpine
 
-LABEL org.opencontainers.image.authors="admin@magenx.com"
-LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docker-configuration"
+LABEL author="admin@magenx.com"
+LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG BRAND
 ARG PHP_USER
