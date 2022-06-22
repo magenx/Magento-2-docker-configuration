@@ -2,10 +2,11 @@
 ARG BRAND
 FROM ${BRAND}_php
 
-LABEL org.opencontainers.image.authors="admin@magenx.com"
-LABEL org.opencontainers.image.source="https://github.com/magenx/Magento-2-docker-configuration"
+LABEL author="admin@magenx.com"
+LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG APP_GITHUB_REPO="https://github.com/magenx/Magento-2-docker-demo"
+
 ARG COMPOSER_USER="8c681734f22763b50ea0c29dff9e7af2"
 ARG COMPOSER_PASSWORD="02dfee497e669b5db1fe1c8d481d6974"
 
@@ -50,7 +51,6 @@ RUN <<EOF
     git fetch origin
     git reset --hard origin/main
     mv app/etc/env.php app/etc/env.php.build
-    composer -n update
     composer -n install --prefer-dist --no-dev --no-cache --no-ansi
     bin/magento setup:di:compile -n
     composer -n dump-autoload --no-dev --optimize --apcu
