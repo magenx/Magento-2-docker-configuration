@@ -8,7 +8,7 @@ ARG PHP_PACKAGES="apcu bcmath bz2 calendar ctype curl dom fileinfo fpm gd gettex
 ARG PHP_VERSION
 
 ARG PHP_FPM_POOL="/etc/${PHP_VERSION}/php-fpm.d/www.conf"
-ARG PHP_INI_OVERRIDES="/etc/${PHP_VERSION}/conf.d/"
+ARG PHP_INI_OVERRIDES="/etc/${PHP_VERSION}/conf.d"
 
 ARG TIMEZONE
 
