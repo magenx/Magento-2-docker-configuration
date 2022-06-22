@@ -23,7 +23,7 @@ RUN <<EOF
 EOF
 
 RUN <<EOF
-    apk add --no-cache openssl
+    apk add --no-cache openssl git
     cd /etc/nginx
     git init
     git remote add origin ${NGINX_GITHUB_REPO}
