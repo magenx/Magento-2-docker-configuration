@@ -299,6 +299,7 @@ services:
         ports:
             - "80:80"
             - "443:443"
+            - "127.0.0.1:8080:8080"
         volumes:
             - magento:${ROOT_PATH}:ro
             - ssl:/etc/ssl
