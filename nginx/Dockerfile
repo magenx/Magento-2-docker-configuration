@@ -33,7 +33,6 @@ RUN <<EOF
     sed -i "s,/var/www/html,${APP_ROOT_PATH},g" /etc/nginx/conf_m2/maps.conf
     sed -i "s/PROFILER_PLACEHOLDER/$(openssl rand -hex 4)/" /etc/nginx/conf_m2/maps.conf
     sed -i "s,user  nginx,user  ${BRAND},g" /etc/nginx/nginx.conf
-    sed -i "s/#resolver 8.8.8.8 8.8.4.4 valid=3600s;/resolver 127.0.0.11 valid=10s ipv6=off;/" /etc/nginx/nginx.conf
     ln -s /etc/nginx/sites-available/magento2.conf /etc/nginx/sites-enabled/magento2.conf
     ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
     openssl dhparam -dsaparam -out /etc/ssl/certs/dhparams.pem 4096
