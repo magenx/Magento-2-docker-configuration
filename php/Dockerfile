@@ -22,7 +22,8 @@ RUN <<EOF
     apk update
     apk add --update --no-cache \
     bash \
-    curl
+    curl \
+    strace
 EOF
 
 SHELL ["/bin/bash","-c"]
@@ -85,13 +86,13 @@ listen = php:9000
 listen.owner = ${BRAND}
 listen.group = ${PHP_USER}
 listen.mode = 0660
-listen.allowed_clients = nginx
 pm = ondemand
 pm.max_children = 100
 pm.start_servers = 2
 pm.min_spare_servers = 1
 pm.max_spare_servers = 3
 pm.max_requests = 10000
+clear_env = no
 ;;
 ;; [php ini] settings
 php_admin_flag[expose_php] = Off
