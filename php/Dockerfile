@@ -26,7 +26,8 @@ RUN <<EOF
     apk add --update --no-cache \
     bash \
     curl \
-    strace
+    strace \
+    composer
 EOF
 
 SHELL ["/bin/bash","-c"]
