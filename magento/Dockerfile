@@ -25,9 +25,6 @@ EOF
 RUN <<EOF
     curl -o /usr/local/bin/n98-magerun2 https://files.magerun.net/n98-magerun2.phar
     chmod +x /usr/local/bin/n98-magerun2
-    ${PHP_VERSION} -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-    ${PHP_VERSION} composer-setup.php --install-dir=/usr/bin --filename=composer
-    ${PHP_VERSION} -r "unlink('composer-setup.php');"
 EOF
 
 RUN <<EOF
