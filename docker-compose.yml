@@ -229,13 +229,13 @@ services:
             context: ./magento
             args: *appsetargs
         container_name: ${BRAND}-magento
-        environment:
+        environment: &setphpenv
             - MARIADB_DATABASE=${MARIADB_DATABASE}
             - MARIADB_USER=${MARIADB_USER}
             - DOMAIN=${DOMAIN}
             - ADMIN_PATH=${ADMIN_PATH}
             - CRYPT_KEY=${CRYPT_KEY}
-        env_file:
+        env_file: &setphpenvfile
             - env.php.env
         volumes:
             - magento:${ROOT_PATH}:delegated
@@ -256,6 +256,8 @@ services:
             context: ./php
             args: *appsetargs
         container_name: ${BRAND}-php
+        environment: *setphpenv
+        env_file: *setphpenvfile
         hostname: php
         restart: always
         depends_on:
