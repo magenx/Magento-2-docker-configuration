@@ -7,12 +7,6 @@ LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG BRAND
 
-RUN <<EOF
-    apk update
-    apk add --update --no-cache \
-    composer
-EOF
-
 ENV COMPOSER_MEMORY_LIMIT=-1
 
 USER ${BRAND}
