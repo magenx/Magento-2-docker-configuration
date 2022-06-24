@@ -72,8 +72,6 @@ services:
         image: portainer/portainer-ce:latest
         container_name: portainer
         restart: unless-stopped
-        profiles:
-            - portainer
         security_opt:
             - no-new-privileges:true
         volumes:
@@ -164,6 +162,7 @@ services:
             - redis_password
         ports:
             - "127.0.0.1:6380:6380"
+        restart: always
         cpuset: "1"
         cpu_shares: 614
         mem_limit: 512m
@@ -185,6 +184,7 @@ services:
             - redis_password
         ports:
             - "127.0.0.1:6379:6379"
+        restart: always
         cpuset: "2"
         cpu_shares: 614
         mem_limit: 512m
@@ -350,6 +350,9 @@ services:
         container_name: ${BRAND}-nodejs
         depends_on:
             - magento
+        restart: always
+        ports:
+            - "127.0.0.1:3000:3000"
         volumes:
             - magento:${ROOT_PATH}
         working_dir: ${APP_ROOT_PATH}
