@@ -81,7 +81,7 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock:ro
             - /opt/portainer-data:/data
         ports:
-            - "${PORTAINER_PORT}:9000"
+            - "10535:9000"
         oom_kill_disable: true
         << : *ulimits
         << : *logger
