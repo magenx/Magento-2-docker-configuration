@@ -66,6 +66,27 @@ x-cap_add: &cap_add
 
 services:
 # # ---------------------------------------------------------------------------------------------------------------------#
+#  Containers management with Portainer
+# # ---------------------------------------------------------------------------------------------------------------------#
+    portainer:
+        image: portainer/portainer-ce:latest
+        container_name: portainer
+        restart: unless-stopped
+        profiles:
+            - portainer
+        security_opt:
+            - no-new-privileges:true
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - /opt/portainer-data:/data
+        ports:
+            - "${PORTAINER_PORT}:9000"
+        oom_kill_disable: true
+        << : *ulimits
+        << : *logger
+
+# # ---------------------------------------------------------------------------------------------------------------------#
 #  MariaDB is a high performing open source relational database
 # # ---------------------------------------------------------------------------------------------------------------------#
     mariadb:
