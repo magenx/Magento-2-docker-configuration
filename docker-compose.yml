@@ -339,29 +339,6 @@ services:
         << : *ulimits
         << : *logger
  
- 
-# # ---------------------------------------------------------------------------------------------------------------------#
-#  Node.js is a JavaScript-based platform for server-side and networking applications
-# # ---------------------------------------------------------------------------------------------------------------------#                   
-    nodejs:
-        build:
-            context: ./nodejs
-            args: *appsetargs
-        container_name: ${BRAND}-nodejs
-        depends_on:
-            - magento
-        restart: always
-        ports:
-            - "127.0.0.1:3000:3000"
-        volumes:
-            - magento:${ROOT_PATH}
-        working_dir: ${APP_ROOT_PATH}
-        cpuset: "1"
-        cpu_shares: 614
-        mem_limit: 248m
-        mem_reservation: 128m
-        << : *ulimits
-        << : *logger
                 
  
 # # ---------------------------------------------------------------------------------------------------------------------#
