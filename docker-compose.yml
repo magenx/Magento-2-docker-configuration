@@ -107,6 +107,7 @@ services:
         volumes:
             - mariadb:/var/lib/mysql
             - mariadbcnf:/etc/mysql
+            - ./mariadb/init.sql.gz:/docker-entrypoint-initdb.d/init.sql.gz:ro
         cpuset: "0-3"
         cpu_shares: 1024
         mem_limit: 2048m
