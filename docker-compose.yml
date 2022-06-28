@@ -469,4 +469,4 @@ secrets:
   rabbitmq_password:
     file: rabbitmq/rabbitmq_password
   portainer_password:
-    file: ./portainer/portainer_password
+    file: portainer/portainer_password
