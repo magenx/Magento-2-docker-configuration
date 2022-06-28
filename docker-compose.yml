@@ -266,6 +266,8 @@ services:
             - env.php.env
         volumes:
             - magento:${ROOT_PATH}:delegated
+            - media:${APP_ROOT_PATH}/pub/media
+            - var:${APP_ROOT_PATH}/var
         working_dir: ${APP_ROOT_PATH}
         cpuset: "0-3"
         cpu_shares: 614
