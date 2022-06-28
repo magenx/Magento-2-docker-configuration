@@ -78,6 +78,10 @@ services:
             - /etc/localtime:/etc/localtime:ro
             - /var/run/docker.sock:/var/run/docker.sock:ro
             - /opt/portainer-data:/data
+        command:
+            - "--admin-password-file=/run/secrets/portainer_password"
+        secrets:
+            - portainer_password
         ports:
             - "10535:9000"
         oom_kill_disable: true
@@ -464,4 +468,5 @@ secrets:
     file: elasticsearch/elasticsearch_password
   rabbitmq_password:
     file: rabbitmq/rabbitmq_password
-
+  portainer_password:
+    file: ./portainer/portainer_password
