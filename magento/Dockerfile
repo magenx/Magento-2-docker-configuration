@@ -29,13 +29,17 @@ EOF
 
 RUN <<EOF
     mkdir -p ${APP_ROOT_PATH}
-    chown -R ${BRAND}.${PHP_USER} ${APP_ROOT_PATH}
+    mkdir -p ${APP_ROOT_PATH}/var
+    mkdir -p ${APP_ROOT_PATH}/pub/media 
+    chown -R ${BRAND}:${PHP_USER} ${APP_ROOT_PATH}
     mkdir -p ${ROOT_PATH}/.config && chown -R ${BRAND} ${ROOT_PATH}/.config
     mkdir -p ${ROOT_PATH}/.cache && chown -R ${BRAND} ${ROOT_PATH}/.cache
     mkdir -p ${ROOT_PATH}/.local && chown -R ${BRAND} ${ROOT_PATH}/.local
     mkdir -p ${ROOT_PATH}/.composer && chown -R ${BRAND} ${ROOT_PATH}/.composer
     mkdir -p ${ROOT_PATH}/.npm && chown -R ${BRAND} ${ROOT_PATH}/.npm
     chmod -R 2750 ${APP_ROOT_PATH}
+    chmod -R 2770 ${APP_ROOT_PATH}/var
+    chmod -R 2770 ${APP_ROOT_PATH}/pub/media
 EOF
 
 USER ${BRAND}:${PHP_USER}
