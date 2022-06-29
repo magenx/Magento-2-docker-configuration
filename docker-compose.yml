@@ -162,7 +162,19 @@ services:
         image: &redis_image redis:6.2.7-alpine
         container_name: ${BRAND}-redis-cache
         hostname: redis-cache
-        command: --bind redis-cache --port 6380 --save "" --aclfile /run/secrets/redis_password
+        command: >
+            --bind redis-cache
+            --port 6380
+            --save ""
+            --loglevel warning
+            --aclfile /run/secrets/redis_password
+            --maxmemory 1024mb
+            --maxmemory-policy allkeys-lru
+            --lazyfree-lazy-eviction yes
+            --lazyfree-lazy-expire yes
+            --lazyfree-lazy-server-del yes
+            --replica-lazy-flush yes
+            --lazyfree-lazy-user-del yes
         secrets:
             - redis_password
         ports:
@@ -170,7 +182,7 @@ services:
         restart: always
         cpuset: "1"
         cpu_shares: 614
-        mem_limit: 512m
+        mem_limit: 1024mb
         mem_reservation: 128m
         oom_kill_disable: true
         << : *ulimits
@@ -184,15 +196,28 @@ services:
         image: *redis_image
         container_name: ${BRAND}-redis-session
         hostname: redis-session
-        command: --bind redis-session --save "" --aclfile /run/secrets/redis_password
+        command: >
+            --bind redis-session
+            --port 6379
+            --save 300 15
+            --aclfile /run/secrets/redis_password
+            --maxmemory 1024mb
+            --maxmemory-policy allkeys-lru
+            --lazyfree-lazy-eviction yes
+            --lazyfree-lazy-expire yes
+            --lazyfree-lazy-server-del yes
+            --replica-lazy-flush yes
+            --lazyfree-lazy-user-del yes
         secrets:
             - redis_password
         ports:
             - "127.0.0.1:6379:6379"
         restart: always
+        volumes:
+            - redis:/data
         cpuset: "2"
         cpu_shares: 614
-        mem_limit: 512m
+        mem_limit: 1024mb
         mem_reservation: 128m
         oom_kill_disable: true
         << : *ulimits
@@ -444,6 +469,7 @@ volumes:
     phpmyadmin:
     phpmyadmincfg:
     elasticsearch:
+    redis:
     certbot:
     certbotlib:
     nginx:
