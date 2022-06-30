@@ -46,6 +46,9 @@
 ```
    bash passgen.sh
 ```
+<br />
+
+When mariadb is started for the first time, a new database with the specified name will be created and initialized with the provided configuration variables. Furthermore, it will execute files with extensions .sh, .sql, .sql.gz, .sql.xz and .sql.zst that are found in ./mariadb/
 
 <br />
   
@@ -101,7 +104,7 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
   
 <br />
 
-- [x] Source variables and issue magento installation command:  
+- [x] Source variables and issue magento installation command for example:  
 ```
     doco run --rm magento setup:install --base-url=http://${DOMAIN}/ \
    --db-host=mariadb \
