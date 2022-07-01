@@ -79,9 +79,7 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock:ro
             - /opt/portainer-data:/data
         command:
-            - "--admin-password-file=/run/secrets/portainer_password"
-        secrets:
-            - portainer_password
+            - "--admin-password=${PORTAINER_PASSWORD}"
         ports:
             - "10535:9000"
         oom_kill_disable: true
@@ -101,10 +99,8 @@ services:
             - MARIADB_RANDOM_ROOT_PASSWORD=yes
             - MARIADB_DATABASE=${MARIADB_DATABASE}
             - MARIADB_USER=${MARIADB_USER}
-            - MARIADB_PASSWORD_FILE=/run/secrets/mariadb_password
+            - MARIADB_PASSWORD=${MARIADB_PASSWORD}
             - TZ=${TIMEZONE}
-        secrets:
-            - mariadb_password
         ports:
             - "127.0.0.1:3306:3306"
         restart: always
@@ -137,9 +133,7 @@ services:
             - cluster.routing.allocation.disk.threshold_enabled=false
             - index.blocks.read_only_allow_delete
             - xpack.security.enabled=true
-            - ELASTIC_PASSWORD_FILE=/run/secrets/elasticsearch_password
-        secrets:
-            - elasticsearch_password
+            - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
         ports:
             - "127.0.0.1:9200:9200"
             - "127.0.0.1:9300:9300"
@@ -167,7 +161,7 @@ services:
             --port 6380
             --save ""
             --loglevel warning
-            --aclfile /run/secrets/redis_password
+            --requirepass ${REDIS_PASSWORD}
             --maxmemory 1024mb
             --maxmemory-policy allkeys-lru
             --lazyfree-lazy-eviction yes
@@ -175,8 +169,6 @@ services:
             --lazyfree-lazy-server-del yes
             --replica-lazy-flush yes
             --lazyfree-lazy-user-del yes
-        secrets:
-            - redis_password
         ports:
             - "127.0.0.1:6380:6380"
         restart: always
@@ -200,7 +192,7 @@ services:
             --bind redis-session
             --port 6379
             --save 300 15
-            --aclfile /run/secrets/redis_password
+            --requirepass ${REDIS_PASSWORD}
             --maxmemory 1024mb
             --maxmemory-policy allkeys-lru
             --lazyfree-lazy-eviction yes
@@ -208,8 +200,6 @@ services:
             --lazyfree-lazy-server-del yes
             --replica-lazy-flush yes
             --lazyfree-lazy-user-del yes
-        secrets:
-            - redis_password
         ports:
             - "127.0.0.1:6379:6379"
         restart: always
@@ -233,9 +223,7 @@ services:
         hostname: rabbitmq
         environment:
             - RABBITMQ_DEFAULT_USER="magento"
-        secrets:
-            - source: rabbitmq_password
-              target: /etc/rabbitmq/conf.d/00-password.conf
+            - RABBITMQ_DEFAULT_PASS="${RABBITMQ_PASSWORD}"
         restart: always
         ports:
             - "127.0.0.1:5672:5672"
@@ -286,11 +274,13 @@ services:
         environment: &setphpenv
             - MARIADB_DATABASE=${MARIADB_DATABASE}
             - MARIADB_USER=${MARIADB_USER}
+            - MARIADB_PASSWORD="${MARIADB_PASSWORD}"
+            - REDIS_PASSWORD="${REDIS_PASSWORD}"
+            - ELASTICSEARCH_PASSWORD="${ELASTICSEARCH_PASSWORD}"
             - DOMAIN=${DOMAIN}
             - ADMIN_PATH=${ADMIN_PATH}
             - CRYPT_KEY=${CRYPT_KEY}
-        env_file: &setphpenvfile
-            - env.php.env
+            - RABBITMQ_PASSWORD="${RABBITMQ_PASSWORD}"
         volumes:
             - magento:${ROOT_PATH}:delegated
             - media:${APP_ROOT_PATH}/pub/media
@@ -313,7 +303,6 @@ services:
             args: *appsetargs
         container_name: ${BRAND}-php
         environment: *setphpenv
-        env_file: *setphpenvfile
         hostname: php
         restart: always
         depends_on:
@@ -442,6 +431,7 @@ services:
             context: ./cron
             args: *appsetargs
         container_name: ${BRAND}-cron
+        environment: *setphpenv
         depends_on:
             - magento
             - php
@@ -486,18 +476,3 @@ networks:
     default:
         name: ${BRAND}
 
-
-# # ---------------------------------------------------------------------------------------------------------------------#
-#   Secrects emulation
-# # ---------------------------------------------------------------------------------------------------------------------# 
-secrets:
-  mariadb_password:
-    file: mariadb/mariadb_password
-  redis_password:
-    file: redis/redis_password
-  elasticsearch_password:
-    file: elasticsearch/elasticsearch_password
-  rabbitmq_password:
-    file: rabbitmq/rabbitmq_password
-  portainer_password:
-    file: portainer/portainer_password
