@@ -228,17 +228,19 @@ services:
 #  RabbitMQ is an open source multi-protocol messaging broker
 # # ---------------------------------------------------------------------------------------------------------------------#                
     rabbitmq:
-        image: rabbitmq:3.8.34-alpine
+        image: rabbitmq:3.9.20-alpine
         container_name: ${BRAND}-rabbitmq
         hostname: rabbitmq
         environment:
             - RABBITMQ_DEFAULT_USER="magento"
-            - RABBITMQ_DEFAULT_PASS_FILE=/run/secrets/rabbitmq_password
         secrets:
-            - rabbitmq_password
+            - source: rabbitmq_password
+              target: /etc/rabbitmq/conf.d/00-password.conf
         restart: always
         ports:
             - "127.0.0.1:5672:5672"
+        volumes:
+            - rabbitmq:/var/lib/rabbitmq
         cpuset: "3"
         cpu_shares: 614
         mem_limit: 512m
@@ -470,6 +472,7 @@ volumes:
     phpmyadmincfg:
     elasticsearch:
     redis:
+    rabbitmq:
     certbot:
     certbotlib:
     nginx:
