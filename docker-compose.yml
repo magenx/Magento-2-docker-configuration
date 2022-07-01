@@ -276,7 +276,7 @@ services:
             - MARIADB_USER=${MARIADB_USER}
             - MARIADB_PASSWORD="${MARIADB_PASSWORD}"
             - REDIS_PASSWORD="${REDIS_PASSWORD}"
-            - ELASTICSEARCH_PASSWORD="${ELASTICSEARCH_PASSWORD}"
+            - ELASTIC_PASSWORD="${ELASTIC_PASSWORD}"
             - DOMAIN=${DOMAIN}
             - ADMIN_PATH=${ADMIN_PATH}
             - CRYPT_KEY=${CRYPT_KEY}
