@@ -150,6 +150,33 @@ services:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
+#  Kibana is an open source analytics and visualization platform designed to work with Elasticsearch
+# # ---------------------------------------------------------------------------------------------------------------------#
+    kibana:
+        image: kibana:7.17.4
+        container_name: ${BRAND}-kibana
+        hostname: kibana
+        environment:
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+            - ELASTICSEARCH_USERNAME=elastic
+            - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+        ports:
+            - 10525:5601
+        restart: always
+        depends_on:
+            - elasticsearch
+        volumes:
+            - kibanadata:/usr/share/kibana/data
+        cpuset: "1"
+        cpu_shares: 614
+        mem_limit: 1024mb
+        mem_reservation: 128m
+        oom_kill_disable: true
+        << : *ulimits
+        << : *logger  
+
+
+# # ---------------------------------------------------------------------------------------------------------------------#
 #  Redis is an open source key-value store that functions as a data structure server.
 # # ---------------------------------------------------------------------------------------------------------------------#
     redis-cache:
