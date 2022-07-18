@@ -488,6 +488,7 @@ volumes:
     phpmyadmin:
     phpmyadmincfg:
     elasticsearch:
+    kibanadata:
     redis:
     rabbitmq:
     certbot:
