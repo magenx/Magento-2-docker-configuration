@@ -78,8 +78,7 @@ services:
             - /etc/localtime:/etc/localtime:ro
             - /var/run/docker.sock:/var/run/docker.sock:ro
             - /opt/portainer-data:/data
-        command:
-            - "--admin-password=${PORTAINER_PASSWORD}"
+        command: --admin-password '${PORTAINER_PASSWORD}'
         ports:
             - "10535:9000"
         oom_kill_disable: true
