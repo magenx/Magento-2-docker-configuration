@@ -21,7 +21,7 @@ version: '3.9'
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Configure reusable arguments
 # # ---------------------------------------------------------------------------------------------------------------------#
-x-appsetargs: &appsetargs
+x-setappargs: &setappargs
     - BRAND=${BRAND}
     - DOMAIN=${DOMAIN}
     - PHP_USER=${PHP_USER}
@@ -296,7 +296,7 @@ services:
     magento:
         build:
             context: ./magento
-            args: *appsetargs
+            args: *setappargs
         container_name: ${BRAND}-magento
         environment: &setphpenv
             - MARIADB_DATABASE=${MARIADB_DATABASE}
@@ -327,7 +327,7 @@ services:
     php:
         build:
             context: ./php
-            args: *appsetargs
+            args: *setappargs
         container_name: ${BRAND}-php
         environment: *setphpenv
         hostname: php
@@ -358,7 +358,7 @@ services:
     nginx:
         build:
             context: ./nginx
-            args: *appsetargs
+            args: *setappargs
         container_name: ${BRAND}-nginx
         hostname: nginx
         restart: always
@@ -435,7 +435,7 @@ services:
     composer:
         build:
             context: ./composer
-            args: *appsetargs
+            args: *setappargs
         container_name: ${BRAND}-composer
         depends_on:
             - magento
@@ -456,7 +456,7 @@ services:
     cron:
         build:
             context: ./cron
-            args: *appsetargs
+            args: *setappargs
         container_name: ${BRAND}-cron
         environment: *setphpenv
         depends_on:
