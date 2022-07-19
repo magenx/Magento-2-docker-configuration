@@ -160,6 +160,7 @@ services:
             - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
             - ELASTICSEARCH_USERNAME=elastic
             - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+            - SERVER_PUBLICBASEURL=https://${DOMAIN}:10525
         ports:
             - 10525:5601
         restart: always
