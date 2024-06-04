@@ -112,28 +112,26 @@ services:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
-#  Elasticsearch is a powerful open source search and analytics engine
+#  Opensearch is a powerful open source search and analytics engine
 # # ---------------------------------------------------------------------------------------------------------------------#
-    elasticsearch:
+    opensearch:
         build:
-            context: ./elasticsearch
-        container_name: ${BRAND}-elasticsearch
-        hostname: elasticsearch
+            context: ./opensearch
+        container_name: ${BRAND}-opensearch
+        hostname: opensearch
         environment:
-            - cluster.name=magento
-            - node.name=magento-node1
-            - discovery.type=single-node
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-            - cluster.routing.allocation.disk.threshold_enabled=false
-            - index.blocks.read_only_allow_delete
-            - xpack.security.enabled=true
-            - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+            - cluster.name=${BRAND}-cluster
+            - node.name=${BRAND}-node1
+            - discovery.seed_hosts=${BRAND}-node1
+            - bootstrap.memory_lock=true
+            - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+            - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
         ports:
             - "127.0.0.1:9200:9200"
             - "127.0.0.1:9300:9300"
         restart: always
         volumes:
-            - elasticsearch:/usr/share/elasticsearch/data
+            - opensearch:/usr/share/opensearch/data
         cpuset: "0-2"
         cpu_shares: 1024
         mem_limit: 2048m
@@ -143,24 +141,24 @@ services:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
-#  Kibana is an open source analytics and visualization platform designed to work with Elasticsearch
+#  Kibana is an open source analytics and visualization platform designed to work with Opensearch
 # # ---------------------------------------------------------------------------------------------------------------------#
-    kibana:
-        image: kibana:7.17.4
-        container_name: ${BRAND}-kibana
-        hostname: kibana
+    opensearch-dashboards:
+        image: opensearch-dashboards:2.14.0
+        container_name: ${BRAND}-opensearch-dashboards
+        hostname: opensearch-dashboards
         environment:
-            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-            - ELASTICSEARCH_USERNAME=elastic
-            - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+            - OPENSEARCH_HOSTS=http://opensearch:9200
+            - OPENSEARCH_USERNAME=opensearch
+            - OPENSEARCH_PASSWORD=${OPENSEARCH_PASSWORD}
             - SERVER_PUBLICBASEURL=https://${DOMAIN}:10525
         ports:
             - 10525:5601
         restart: always
         depends_on:
-            - elasticsearch
+            - opensearch
         volumes:
-            - kibanadata:/usr/share/kibana/data
+            - opensearch:/usr/share/opensearch/data
         cpuset: "1"
         cpu_shares: 614
         mem_limit: 1024mb
@@ -236,7 +234,7 @@ services:
 #  RabbitMQ is an open source multi-protocol messaging broker
 # # ---------------------------------------------------------------------------------------------------------------------#                
     rabbitmq:
-        image: rabbitmq:3.9.20-alpine
+        image: rabbitmq:3.12.14-alpine
         container_name: ${BRAND}-rabbitmq
         hostname: rabbitmq
         environment:
@@ -292,7 +290,7 @@ services:
             - MARIADB_USER=${MARIADB_USER}
             - MARIADB_PASSWORD=${MARIADB_PASSWORD}
             - REDIS_PASSWORD=${REDIS_PASSWORD}
-            - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+            - OPENSEARCH_PASSWORD=${OPENSEARCH_PASSWORD}
             - DOMAIN=${DOMAIN}
             - ADMIN_PATH=${ADMIN_PATH}
             - CRYPT_KEY=${CRYPT_KEY}
@@ -355,7 +353,7 @@ services:
             - redis-cache
             - redis-session
             - rabbitmq
-            - elasticsearch
+            - opensearch
         ports:
             - "80:80"
             - "443:443"
@@ -468,8 +466,7 @@ volumes:
     mariadbcnf:
     phpmyadmin:
     phpmyadmincfg:
-    elasticsearch:
-    kibanadata:
+    opensearch:
     redis:
     rabbitmq:
     certbot:
