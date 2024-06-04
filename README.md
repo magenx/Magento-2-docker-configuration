@@ -8,21 +8,43 @@
 
 # :rocket: Deploy your project:
 > Disclaimer: By default, the latest versions of packages are configured, above those recommended by Magento 2
-- [x] Install Docker:
+- [x] Install Docker [ Debian ]:
 > you can use any linux host or Docker Desktop  
 > https://docs.docker.com/  
 > https://docs.docker.com/engine/install/debian/
+
+- [x] Create deployment directory:  
 ```
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    bash get-docker.sh
+  mkdir /opt/magento && cd /opt/magento
+```
+- [x] Clone repo:  
+> 
+```
+  git clone https://github.com/magenx/Magento-2-docker-configuration.git .
 ```
   
-- [x] Install docker compose v2:  
+- [x] Use init.sh script provided to install and configure docker environment:  
 ```
-  mkdir -p ~/.docker/cli-plugins/  
-  curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
-  -o ~/.docker/cli-plugins/docker-compose  
-  chmod +x ~/.docker/cli-plugins/docker-compose
+  bash init.sh
+```
+### or
+- [x] Manual commands:  
+```
+  apt-get update
+  apt-get install ca-certificates curl
+  install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+  chmod a+r /etc/apt/keyrings/docker.asc
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
+  apt-get update
+```
+  
+- [x] Install docker compose cli:  
+```
+   apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
   
 - [x] Add alias or use auto completion feature:  
@@ -30,17 +52,7 @@
   echo "alias doco='docker compose'" >> ~/.bash_profile
   . ~/.bash_profile
 ```
-  
-- [x] Create deployment directory:  
-```
-  mkdir magento && cd magento
-```
-- [x] Clone repo:  
-> 
-```
-  git clone https://github.com/magenx/Magento-2-docker-configuration.git .
-```
->   
+    
 - [x] To avoid copying default passwords and hacking through open ports - generate new passwords:  
 > https://docs.docker.com/compose/compose-file/compose-file-v3/#secrets  
 ```
@@ -53,10 +65,7 @@ When mariadb is started for the first time, a new database with the specified na
 <br />
   
 **[ ! ]** Check all data, adjust your settings, edit your variables  
-- [x] Run to pull and build images and start containers:
-> to enable [buildkit](https://docs.docker.com/develop/develop-images/build_enhancements/):  
->    ```echo '{ "features": { "buildkit": true } }' > /etc/docker/daemon.json```  
->   or ```export DOCKER_BUILDKIT=1```  
+- [x] Run to pull and build images and start containers:   
 ```
    doco build --no-cache php       
    doco up -d
@@ -89,7 +98,7 @@ When mariadb is started for the first time, a new database with the specified na
 - [x] Get random mariadb root password from log:
 ```
 doco logs mariadb 2>&1 | grep GENERATED
-magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT PASSWORD: m5.QyKl.PS8o<Yx|Jv(~DV&9cY-`i~XZ
+magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT PASSWORD: xxxxxxxx
 ```
 
 <br />
