@@ -1,4 +1,4 @@
-FROM mariadb:10.5.16-focal
+FROM mariadb:10.11.8
 
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
