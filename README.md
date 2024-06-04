@@ -141,12 +141,12 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
    --amqp-password='${RABBITMQ_PASSWORD}' \
    --amqp-virtualhost='/' \
    --consumers-wait-for-messages=0 \
-   --search-engine=elasticsearch7 \
-   --elasticsearch-host=elasticsearch \
-   --elasticsearch-port=9200 \
-   --elasticsearch-enable-auth=1 \
-   --elasticsearch-username=elastic \
-   --elasticsearch-password='${ELASTIC_PASSWORD}'
+   --search-engine=opensearch \
+   --opensearch-host=opensearch \
+   --opensearch-port=9200 \
+   --opensearch-enable-auth=1 \
+   --opensearch-username=indexer_${BRAND} \
+   --opensearch-password='${OPENSEARCH_PASSWORD}'
 ```
 
 <br />
@@ -159,7 +159,7 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
    Stopping magenx-nginx         ... done
    Stopping magenx-php           ... done
    Stopping magenx-magento       ... done
-   Stopping magenx-elasticsearch ... done
+   Stopping magenx-opensearch    ... done
    Stopping magenx-rabbitmq      ... done
    Stopping magenx-varnish       ... done
    Stopping magenx-certbot       ... done
@@ -172,15 +172,15 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
 <br />
 
 # :hammer_and_wrench: Stack components in use:  
-- [x] [MariaDB](https://hub.docker.com/_/mariadb) - MariaDB Server is a high performing open source relational database, forked from MySQL.
-- [x] [Nginx](https://hub.docker.com/_/nginx) - Official build of Nginx.
-- [x] [PHP](https://hub.docker.com/_/php) - PHP scripting language.
-- [x] [Varnish](https://hub.docker.com/_/varnish) - Varnish is an HTTP accelerator designed for content-heavy dynamic web sites as well as APIs.
-- [x] [ElasticSearch](https://hub.docker.com/_/elasticsearch) - Elasticsearch is a powerful open source search and analytics engine that makes data easy to explore.
-- [x] [Redis x2](https://hub.docker.com/_/redis) - Redis is an open source key-value store that functions as a data structure server.
-- [x] [RabbitMQ](https://hub.docker.com/_/rabbitmq) - RabbitMQ is an open source multi-protocol messaging broker.
-- [x] [NodeJS](https://hub.docker.com/_/node) - Node.js is a JavaScript-based platform for server-side and networking applications.
-- [x] [PHPMyAdmin](https://hub.docker.com/_/phpmyadmin) - phpMyAdmin - A web interface for MySQL and MariaDB.
+- [x] [MariaDB](https://hub.docker.com/r/mariadb) - MariaDB Server is a high performing open source relational database, forked from MySQL.
+- [x] [Nginx](https://hub.docker.com/r/nginx) - Official build of Nginx.
+- [x] [PHP](https://hub.docker.com/r/php) - PHP scripting language.
+- [x] [Varnish](https://hub.docker.com/r/varnish) - Varnish is an HTTP accelerator designed for content-heavy dynamic web sites as well as APIs.
+- [x] [OpenSearch](https://hub.docker.com/r/opensearchproject) - Opensearch is a powerful open source search and analytics engine that makes data easy to explore.
+- [x] [Redis x2](https://hub.docker.com/r/redis) - Redis is an open source key-value store that functions as a data structure server.
+- [x] [RabbitMQ](https://hub.docker.com/r/rabbitmq) - RabbitMQ is an open source multi-protocol messaging broker.
+- [x] [NodeJS](https://hub.docker.com/r/node) - Node.js is a JavaScript-based platform for server-side and networking applications.
+- [x] [PHPMyAdmin](https://hub.docker.com/r/phpmyadmin) - phpMyAdmin - A web interface for MySQL and MariaDB.
 - [x] [Certbot](https://hub.docker.com/r/certbot/certbot) - Official build of EFF's Certbot tool for obtaining TLS/SSL certificates from Let's Encrypt.
 - [x] [Composer]
 - [x] [Cron]
