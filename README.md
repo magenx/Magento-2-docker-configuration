@@ -8,21 +8,33 @@
 
 # :rocket: Deploy your project:
 > Disclaimer: By default, the latest versions of packages are configured, above those recommended by Magento 2
-- [x] Install Docker:
+- [x] Install Docker [ Debian ]:
 > you can use any linux host or Docker Desktop  
 > https://docs.docker.com/  
 > https://docs.docker.com/engine/install/debian/
+  
+- [x] Use init.sh script provided to install and configure docker environment:  
 ```
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    bash get-docker.sh
+  bash init.sh
 ```
   
-- [x] Install docker compose v2:  
+- [x] Manual commands:  
 ```
-  mkdir -p ~/.docker/cli-plugins/  
-  curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
-  -o ~/.docker/cli-plugins/docker-compose  
-  chmod +x ~/.docker/cli-plugins/docker-compose
+  apt-get update
+  apt-get install ca-certificates curl
+  install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+  chmod a+r /etc/apt/keyrings/docker.asc
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
+  apt-get update
+```
+  
+- [x] Install docker compose cli:  
+```
+   apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
   
 - [x] Add alias or use auto completion feature:  
