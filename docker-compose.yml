@@ -125,7 +125,7 @@ services:
             - discovery.seed_hosts=${BRAND}-node1
             - bootstrap.memory_lock=true
             - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
-            - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+            - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD}
         ports:
             - "127.0.0.1:9200:9200"
             - "127.0.0.1:9300:9300"
@@ -144,7 +144,7 @@ services:
 #  Kibana is an open source analytics and visualization platform designed to work with Opensearch
 # # ---------------------------------------------------------------------------------------------------------------------#
     opensearch-dashboards:
-        image: opensearch-dashboards:2.14.0
+        image: opensearchproject/opensearch-dashboards:2.14.0
         container_name: ${BRAND}-opensearch-dashboards
         hostname: opensearch-dashboards
         environment:
@@ -171,7 +171,7 @@ services:
 #  Redis is an open source key-value store that functions as a data structure server.
 # # ---------------------------------------------------------------------------------------------------------------------#
     redis-cache:
-        image: &redis_image redis:6.2.7-alpine
+        image: &redis_image redis:7.2.5-alpine
         container_name: ${BRAND}-redis-cache
         hostname: redis-cache
         command: >
