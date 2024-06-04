@@ -141,7 +141,7 @@ services:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
-#  Kibana is an open source analytics and visualization platform designed to work with Opensearch
+#  Opensearch-Dashboards is an open source analytics and visualization platform designed to work with Opensearch
 # # ---------------------------------------------------------------------------------------------------------------------#
     opensearch-dashboards:
         image: opensearchproject/opensearch-dashboards:2.14.0
@@ -278,6 +278,35 @@ services:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
+#  Configure container to run php and php-fpm
+# # ---------------------------------------------------------------------------------------------------------------------#    
+    php:
+        build:
+            context: ./php
+            args: *setappargs
+        container_name: ${BRAND}-php
+        environment: *setphpenv
+        hostname: php
+        restart: always
+        depends_on:
+            - magento
+        ports:
+            - "127.0.0.1:9000:9000"
+        volumes:
+            - magento:${ROOT_PATH}:ro
+            - media:${APP_ROOT_PATH}/pub/media:rw
+            - var:${APP_ROOT_PATH}/var:rw
+        user: ${PHP_USER}
+        working_dir: ${WEB_ROOT_PATH}
+        entrypoint: ["php-fpm81", "-F"]
+        cpuset: "0-3"
+        cpu_shares: 1024
+        mem_limit: 2024m
+        mem_reservation: 128m
+        << : [*ulimits, *cap_add, *logger]
+
+        
+# # ---------------------------------------------------------------------------------------------------------------------#
 #  Configure container for magento app
 # # ---------------------------------------------------------------------------------------------------------------------#    
     magento:
@@ -305,35 +334,6 @@ services:
         mem_limit: 2048m
         mem_reservation: 128m
         << : [*ulimits, *logger]
-
-
-# # ---------------------------------------------------------------------------------------------------------------------#
-#  Configure container to run php and php-fpm
-# # ---------------------------------------------------------------------------------------------------------------------#    
-    php:
-        build:
-            context: ./php
-            args: *setappargs
-        container_name: ${BRAND}-php
-        environment: *setphpenv
-        hostname: php
-        restart: always
-        depends_on:
-            - magento
-        ports:
-            - "127.0.0.1:9000:9000"
-        volumes:
-            - magento:${ROOT_PATH}:ro
-            - media:${APP_ROOT_PATH}/pub/media:rw
-            - var:${APP_ROOT_PATH}/var:rw
-        user: ${PHP_USER}
-        working_dir: ${WEB_ROOT_PATH}
-        entrypoint: ["php-fpm81", "-F"]
-        cpuset: "0-3"
-        cpu_shares: 1024
-        mem_limit: 2024m
-        mem_reservation: 128m
-        << : [*ulimits, *cap_add, *logger]
                 
                 
 # # ---------------------------------------------------------------------------------------------------------------------#
