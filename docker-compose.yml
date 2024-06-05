@@ -285,7 +285,16 @@ services:
             context: ./php
             args: *setappargs
         container_name: ${BRAND}-php
-        environment: *setphpenv
+        environment: &setphpenv
+            - MARIADB_DATABASE=${MARIADB_DATABASE}
+            - MARIADB_USER=${MARIADB_USER}
+            - MARIADB_PASSWORD=${MARIADB_PASSWORD}
+            - REDIS_PASSWORD=${REDIS_PASSWORD}
+            - OPENSEARCH_PASSWORD=${OPENSEARCH_PASSWORD}
+            - DOMAIN=${DOMAIN}
+            - ADMIN_PATH=${ADMIN_PATH}
+            - CRYPT_KEY=${CRYPT_KEY}
+            - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
         hostname: php
         restart: always
         depends_on:
@@ -298,7 +307,7 @@ services:
             - var:${APP_ROOT_PATH}/var:rw
         user: ${PHP_USER}
         working_dir: ${WEB_ROOT_PATH}
-        entrypoint: ["php-fpm81", "-F"]
+        entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
         cpuset: "0-3"
         cpu_shares: 1024
         mem_limit: 2024m
@@ -314,16 +323,7 @@ services:
             context: ./magento
             args: *setappargs
         container_name: ${BRAND}-magento
-        environment: &setphpenv
-            - MARIADB_DATABASE=${MARIADB_DATABASE}
-            - MARIADB_USER=${MARIADB_USER}
-            - MARIADB_PASSWORD=${MARIADB_PASSWORD}
-            - REDIS_PASSWORD=${REDIS_PASSWORD}
-            - OPENSEARCH_PASSWORD=${OPENSEARCH_PASSWORD}
-            - DOMAIN=${DOMAIN}
-            - ADMIN_PATH=${ADMIN_PATH}
-            - CRYPT_KEY=${CRYPT_KEY}
-            - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+        environment: *setphpenv
         volumes:
             - magento:${ROOT_PATH}:delegated
             - media:${APP_ROOT_PATH}/pub/media
