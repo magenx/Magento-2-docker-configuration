@@ -181,6 +181,7 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
 <br />
 
 # :hammer_and_wrench: Stack components in use:  
+- [x] [Portainer](https://hub.docker.com/r/portainer/portainer-ce) -  Portainer provides seamless management of Docker containers
 - [x] [MariaDB](https://hub.docker.com/r/mariadb) - MariaDB Server is a high performing open source relational database, forked from MySQL.
 - [x] [Nginx](https://hub.docker.com/r/nginx) - Official build of Nginx.
 - [x] [PHP](https://hub.docker.com/r/php) - PHP scripting language.
