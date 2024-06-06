@@ -12,26 +12,17 @@
 > you can use any linux host or Docker Desktop  
 > https://docs.docker.com/  
 > https://docs.docker.com/engine/install/debian/
-
-- [x] Create deployment directory:  
-```
-  mkdir /opt/magento && cd /opt/magento
-```
-- [x] Clone repo:  
-> 
-```
-  git clone https://github.com/magenx/Magento-2-docker-configuration.git .
-```
   
 - [x] Use init.sh script provided to install and configure docker environment:  
 ```
-  bash init.sh
+   curl -Lo init.sh https://raw.githubusercontent.com/magenx/Magento-2-docker-configuration/main/init.sh && bash init.sh
 ```
+  
 ### or
 - [x] Manual commands:  
 ```
-  apt-get update
-  apt-get install ca-certificates curl
+  apt update && apt upgrade -y
+  apt-get -y install ca-certificates software-properties-common screen ipset vim strace rsyslog git apache2-utils
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
   chmod a+r /etc/apt/keyrings/docker.asc
@@ -44,7 +35,7 @@ echo \
   
 - [x] Install docker compose cli:  
 ```
-   apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+   apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
   
 - [x] Add alias or use auto completion feature:  
@@ -52,7 +43,18 @@ echo \
   echo "alias doco='docker compose'" >> ~/.bash_profile
   . ~/.bash_profile
 ```
-    
+  
+- [x] Create deployment directory:  
+```
+  mkdir /opt/magento && cd /opt/magento
+```
+  
+- [x] Clone repo:  
+> 
+```
+  git clone https://github.com/magenx/Magento-2-docker-configuration.git .
+```
+   
 - [x] To avoid copying default passwords and hacking through open ports - generate new passwords:  
 > https://docs.docker.com/compose/compose-file/compose-file-v3/#secrets  
 ```
@@ -108,54 +110,7 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
 ```
    doco run --rm composer update
    doco run --rm magento module:status --enabled
-   doco run --rm magento module:disable Magento_TwoFactorAuth
-```
-  
-<br />
-
-- [x] Source variables and issue magento installation command for example:  
-```
-    doco run --rm magento setup:install --base-url=http://${DOMAIN}/ \
-   --db-host=mariadb \
-   --db-name=${MARIADB_NAME} \
-   --db-user=${MARIADB_USER} \
-   --db-password='${MARIADB_PASSWORD}' \
-   --admin-firstname=${ADMIN_FIRSTNAME} \
-   --admin-lastname=${ADMIN_LASTNAME} \
-   --admin-email=${ADMIN_EMAIL} \
-   --admin-user=${ADMIN_LOGIN} \
-   --admin-password='${ADMIN_PASSWORD}' \
-   --language=${LOCALE} \
-   --currency=${CURRENCY} \
-   --timezone=${TIMEZONE} \
-   --cleanup-database \
-   --cache-backend=redis \
-   --cache-backend-redis-server=redis-cache \
-   --cache-backend-redis-port=6380 \
-   --cache-backend-redis-db=0 \
-   --cache-backend-redis-compress-data=1 \
-   --cache-backend-redis-compression-lib=gzip \
-   --cache-backend-redis-password='${REDIS_PASSWORD}' \
-   --session-save=redis \
-   --session-save-redis-host=redis-session \
-   --session-save-redis-port=6379 \
-   --session-save-redis-log-level=3 \
-   --session-save-redis-db=0 \
-   --session-save-redis-compression-lib=gzip \
-   --session-save-redis-password='${REDIS_PASSWORD}' \
-   --use-rewrites=1 \
-   --amqp-host=rabbitmq \
-   --amqp-port=5672 \
-   --amqp-user=magento \
-   --amqp-password='${RABBITMQ_PASSWORD}' \
-   --amqp-virtualhost='/' \
-   --consumers-wait-for-messages=0 \
-   --search-engine=opensearch \
-   --opensearch-host=opensearch \
-   --opensearch-port=9200 \
-   --opensearch-enable-auth=1 \
-   --opensearch-username=indexer_${BRAND} \
-   --opensearch-password='${OPENSEARCH_PASSWORD}'
+   doco run --rm magento module:disable {module name}
 ```
 
 <br />
