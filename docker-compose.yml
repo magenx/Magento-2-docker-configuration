@@ -238,7 +238,7 @@ services:
         container_name: ${BRAND}-rabbitmq
         hostname: rabbitmq
         environment:
-            - RABBITMQ_DEFAULT_USER=magento
+            - RABBITMQ_DEFAULT_USER=rabbitmq_${BRAND}
             - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
         restart: always
         ports:
