@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:labs
-FROM node:16.13.0-alpine
+FROM node:18.20.3-alpine
 
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
