@@ -12,26 +12,17 @@
 > you can use any linux host or Docker Desktop  
 > https://docs.docker.com/  
 > https://docs.docker.com/engine/install/debian/
-
-- [x] Create deployment directory:  
-```
-  mkdir /opt/magento && cd /opt/magento
-```
-- [x] Clone repo:  
-> 
-```
-  git clone https://github.com/magenx/Magento-2-docker-configuration.git .
-```
   
 - [x] Use init.sh script provided to install and configure docker environment:  
 ```
-  bash init.sh
+   curl -Lo init.sh https://raw.githubusercontent.com/magenx/Magento-2-docker-configuration/main/init.sh && bash init.sh
 ```
+  
 ### or
 - [x] Manual commands:  
 ```
-  apt-get update
-  apt-get install ca-certificates curl
+  apt update && apt upgrade -y
+  apt-get -y install ca-certificates software-properties-common screen ipset vim strace rsyslog git apache2-utils
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
   chmod a+r /etc/apt/keyrings/docker.asc
@@ -44,7 +35,7 @@ echo \
   
 - [x] Install docker compose cli:  
 ```
-   apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+   apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
   
 - [x] Add alias or use auto completion feature:  
@@ -52,7 +43,18 @@ echo \
   echo "alias doco='docker compose'" >> ~/.bash_profile
   . ~/.bash_profile
 ```
-    
+  
+- [x] Create deployment directory:  
+```
+  mkdir /opt/magento && cd /opt/magento
+```
+  
+- [x] Clone repo:  
+> 
+```
+  git clone https://github.com/magenx/Magento-2-docker-configuration.git .
+```
+   
 - [x] To avoid copying default passwords and hacking through open ports - generate new passwords:  
 > https://docs.docker.com/compose/compose-file/compose-file-v3/#secrets  
 ```
