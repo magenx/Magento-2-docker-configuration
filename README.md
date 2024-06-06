@@ -60,8 +60,8 @@ echo \
 ```
 <br />
 
-When mariadb is started for the first time, a new database with the specified name will be created and initialized with the provided configuration variables. Furthermore, it will execute files with extensions .sh, .sql, .sql.gz, .sql.xz and .sql.zst that are found in ./mariadb/
-
+When mariadb is started for the first time, a new database with the specified name will be created and initialized with the provided configuration variables. Furthermore, it will execute files with extensions .sh, .sql, .sql.gz, .sql.xz and .sql.zst that are found in ./mariadb/  
+**magento** container using files from this repository - https://github.com/magenx/Magento-2-docker-demo , with custom env.php
 <br />
   
 **[ ! ]** Check all data, adjust your settings, edit your variables  
