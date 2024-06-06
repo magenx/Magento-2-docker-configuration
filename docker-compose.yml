@@ -234,7 +234,7 @@ services:
 #  RabbitMQ is an open source multi-protocol messaging broker
 # # ---------------------------------------------------------------------------------------------------------------------#                
     rabbitmq:
-        image: rabbitmq:3.12.14-alpine
+        image: rabbitmq:3.13.3-alpine
         container_name: ${BRAND}-rabbitmq
         hostname: rabbitmq
         environment:
