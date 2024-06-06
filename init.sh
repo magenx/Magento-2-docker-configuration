@@ -28,3 +28,5 @@ vim .env
 
 echo "generating random passwords ..."
 bash passgen.sh
+
+cd /opt/magento

@@ -15,7 +15,7 @@
   
 - [x] Use init.sh script provided to install and configure docker environment:  
 ```
-   curl -Lo init.sh https://raw.githubusercontent.com/magenx/Magento-2-docker-configuration/main/init.sh && bash init.sh
+   curl -Lo init.sh https://raw.githubusercontent.com/magenx/Magento-2-docker-configuration/main/init.sh && . init.sh
 ```
   
 ### or
