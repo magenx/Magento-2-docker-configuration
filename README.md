@@ -109,6 +109,7 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
 > magento entrypoint is n98-magerun2 script, looks like providing more commands and options  
 ```
    doco run --rm composer update
+   doco run --rm php -m
    doco run --rm magento module:status --enabled
    doco run --rm magento module:disable {module name}
 ```
