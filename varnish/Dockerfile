@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:labs
-FROM varnish:7.0.2-alpine
+FROM varnish:7.5.0-alpine
 
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
