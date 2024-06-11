@@ -6,6 +6,8 @@ LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG TIMEZONE
 
+USER root
+
 RUN <<EOF
     apk update
     apk add --update --no-cache uuidgen
@@ -36,4 +38,3 @@ RUN <<EOF cat > /usr/local/bin/docker-varnish-entrypoint
             -p http_resp_hdr_len=65536 \\
             -p timeout_linger=100
 EOF
-
