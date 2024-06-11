@@ -57,7 +57,3 @@ RUN <<EOF
     bin/magento setup:static-content:deploy -n -f
     mv app/etc/env.php.build app/etc/env.php
 EOF
-
-ENTRYPOINT ["n98-magerun2", "-vv"]
-
-USER ${BRAND}
