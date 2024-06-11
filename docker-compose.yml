@@ -328,7 +328,9 @@ services:
             - magento:${ROOT_PATH}:delegated
             - media:${APP_ROOT_PATH}/pub/media
             - var:${APP_ROOT_PATH}/var
+        user: ${BRAND}
         working_dir: ${APP_ROOT_PATH}
+        entrypoint: ["n98-magerun2", "-vv"]
         cpuset: "0-3"
         cpu_shares: 614
         mem_limit: 2048m
@@ -422,7 +424,9 @@ services:
             - magento
         volumes:
             - magento:${ROOT_PATH}
+        user: ${BRAND}
         working_dir: ${APP_ROOT_PATH}
+        entrypoint: ["composer"]
         cpuset: "0-3"
         cpu_shares: 1024
         mem_limit: 1024m
@@ -446,7 +450,9 @@ services:
             - mariadb
         volumes:
             - magento:${ROOT_PATH}
+        user: ${PHP_USER}
         working_dir: ${APP_ROOT_PATH}
+        command: ["crond", "-f"]
         cpuset: "0-3"
         cpu_shares: 1024
         mem_limit: 2048m
