@@ -5,10 +5,10 @@ FROM ${BRAND}-php
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
-ARG APP_GITHUB_REPO="https://github.com/magenx/Magento-2-docker-demo"
+ARG APP_GITHUB_REPO
 
-ARG COMPOSER_USER="8c681734f22763b50ea0c29dff9e7af2"
-ARG COMPOSER_PASSWORD="02dfee497e669b5db1fe1c8d481d6974"
+ARG COMPOSER_USER
+ARG COMPOSER_PASSWORD
 
 ARG BRAND
 ARG PHP_USER
