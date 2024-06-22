@@ -10,8 +10,8 @@ phar redis simplexml soap sockets sodium sqlite3 tokenizer xmlreader xmlwriter x
 
 ARG PHP_VERSION
 
-ARG PHP_FPM_POOL="/etc/${PHP_VERSION}/php-fpm.d/www.conf"
-ARG PHP_INI_OVERRIDES="/etc/${PHP_VERSION}/conf.d"
+ARG PHP_FPM_POOL="/etc/php${PHP_VERSION}/php-fpm.d/www.conf"
+ARG PHP_INI_OVERRIDES="/etc/php${PHP_VERSION}/conf.d"
 
 ARG TIMEZONE
 
@@ -34,7 +34,7 @@ SHELL ["/bin/bash","-c"]
 
 RUN <<EOF
     _PHP_PACKAGES+=(${PHP_PACKAGES})
-    apk add --update --no-cache ${PHP_VERSION} ${_PHP_PACKAGES[@]/#/${PHP_VERSION}-}
+    apk add --update --no-cache php${PHP_VERSION} ${_PHP_PACKAGES[@]/#/php${PHP_VERSION}-}
 EOF
 
 RUN <<EOF cat > ${PHP_INI_OVERRIDES}/zz-${BRAND}-overridex.ini
@@ -56,11 +56,11 @@ opcache.fast_shutdown = 1
 opcache.enable_file_override = 0
 opcache.optimization_level = 0xffffffff
 opcache.inherited_hack = 1
-opcache.blacklist_filename=/var/log/${PHP_VERSION}/opcache-default.blacklist
+opcache.blacklist_filename=/var/log/php${PHP_VERSION}/opcache-default.blacklist
 opcache.max_file_size = 0
 opcache.consistency_checks = 0
 opcache.force_restart_timeout = 60
-opcache.error_log = "/var/log/${PHP_VERSION}/opcache.log"
+opcache.error_log = "/var/log/php${PHP_VERSION}/opcache.log"
 opcache.log_verbosity_level = 1
 opcache.preferred_memory_model = ""
 opcache.protect_memory = 0
@@ -152,11 +152,11 @@ RUN <<EOF
     adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER}
     addgroup -S -g 1000 ${BRAND}
     adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND}
-    chown -R ${PHP_USER} /var/log/${PHP_VERSION}
+    chown -R ${PHP_USER} /var/log/php${PHP_VERSION}
 EOF
 
 RUN <<EOF
     ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
     echo ${TIMEZONE} > /etc/timezone
-    ln -s /usr/bin/${PHP_VERSION} /usr/local/bin/php
+    ln -s /usr/bin/php${PHP_VERSION} /usr/local/bin/php
 EOF
