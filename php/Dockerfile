@@ -1,5 +1,6 @@
 # syntax = docker/dockerfile:labs
-FROM alpine:3.20.0
+ARG ALPINE_VERSION
+FROM alpine:${ALPINE_VERSION}
 
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
