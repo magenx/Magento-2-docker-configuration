@@ -25,7 +25,7 @@ x-setappargs: &setappargs
     ROOT_PATH:
     APP_ROOT_PATH:
     WEB_ROOT_PATH:
-    TIMEZONE:
+    TZ:
     PHP_VERSION:
     
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -345,6 +345,7 @@ services:
             context: ./magento
             args:
               <<: *setappargs
+              APP_GITHUB_REPO:
         container_name: ${BRAND}-magento
         environment: *setphpenv
         volumes:
@@ -369,6 +370,7 @@ services:
             context: ./nginx
             args:
               <<: *setappargs
+              NGINX_GITHUB_REPO:
         container_name: ${BRAND}-nginx
         hostname: nginx
         restart: always
