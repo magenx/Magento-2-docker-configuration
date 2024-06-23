@@ -349,6 +349,7 @@ services:
             args:
               <<: *setappargs
               APP_GITHUB_REPO:
+              INSTALL_MAGENTO:
         container_name: ${BRAND}-magento
         environment: *setphpenv
         volumes:
