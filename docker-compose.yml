@@ -93,6 +93,8 @@ services:
         container_name: ${BRAND}-mariadb
         hostname: mariadb
         environment:
+            - MARIADB_AUTO_UPGRADE
+            - MARIADB_DISABLE_UPGRADE_BACKUP
             - MARIADB_RANDOM_ROOT_PASSWORD
             - MARIADB_DATABASE
             - MARIADB_USER
