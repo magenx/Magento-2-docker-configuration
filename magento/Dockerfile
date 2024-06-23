@@ -46,7 +46,7 @@ EOF
 USER ${BRAND}:${PHP_USER}
 
 RUN <<EOF
-    if [ "${INSTALL_MAGENTO}" = "true" ]; then
+    if [ "${INSTALL_MAGENTO}" = "yes" ]; then
     composer -n -q config -g http-basic.repo.magento.com ${COMPOSER_USER} ${COMPOSER_PASSWORD}
     cd ${APP_ROOT_PATH}
     git init -b ${APP_GITHUB_BRANCH}
