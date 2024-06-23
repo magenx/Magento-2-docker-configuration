@@ -155,7 +155,7 @@ services:
 #  Opensearch-Dashboards is an open source analytics and visualization platform designed to work with Opensearch
 # # ---------------------------------------------------------------------------------------------------------------------#
     opensearch-dashboards:
-        image: opensearchproject/opensearch-dashboards:2.14.0
+        image: opensearchproject/opensearch-dashboards:${OPENSEARCH_VERSION}
         container_name: ${BRAND}-opensearch-dashboards
         hostname: opensearch-dashboards
         environment:
@@ -167,7 +167,8 @@ services:
             - 10525:5601
         restart: always
         depends_on:
-            - opensearch
+            opensearch:
+                condition: service_healthy
         volumes:
             - opensearch:/usr/share/opensearch/data
         cpuset: "1"
@@ -182,7 +183,7 @@ services:
 #  Redis is an open source key-value store that functions as a data structure server.
 # # ---------------------------------------------------------------------------------------------------------------------#
     redis-cache:
-        image: &redis_image redis:7.2.5-alpine
+        image: &redis_image redis:${REDIS_VERSION}-alpine
         container_name: ${BRAND}-redis-cache
         hostname: redis-cache
         command: >
@@ -245,7 +246,7 @@ services:
 #  RabbitMQ is an open source multi-protocol messaging broker
 # # ---------------------------------------------------------------------------------------------------------------------#                
     rabbitmq:
-        image: rabbitmq:3.13.3-alpine
+        image: rabbitmq:${RABBITMQ_VERSION}-alpine
         container_name: ${BRAND}-rabbitmq
         hostname: rabbitmq
         environment:
