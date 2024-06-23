@@ -19,14 +19,14 @@
 #  Configure reusable arguments
 # # ---------------------------------------------------------------------------------------------------------------------#
 x-setappargs: &setappargs
-    - BRAND=${BRAND}
-    - DOMAIN=${DOMAIN}
-    - PHP_USER=${PHP_USER}
-    - ROOT_PATH=${ROOT_PATH}
-    - APP_ROOT_PATH=${APP_ROOT_PATH}
-    - WEB_ROOT_PATH=${WEB_ROOT_PATH}
-    - TIMEZONE=${TIMEZONE}
-    - PHP_VERSION=${PHP_VERSION}
+    BRAND:
+    DOMAIN:
+    PHP_USER:
+    ROOT_PATH:
+    APP_ROOT_PATH:
+    WEB_ROOT_PATH:
+    TIMEZONE:
+    PHP_VERSION:
     
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Configure logger driver
@@ -88,14 +88,16 @@ services:
     mariadb:
         build:
             context: ./mariadb
+            args:
+              MARIADB_VERSION:
         container_name: ${BRAND}-mariadb
         hostname: mariadb
         environment:
-            - MARIADB_RANDOM_ROOT_PASSWORD=yes
-            - MARIADB_DATABASE=${MARIADB_DATABASE}
-            - MARIADB_USER=${MARIADB_USER}
-            - MARIADB_PASSWORD=${MARIADB_PASSWORD}
-            - TZ=${TIMEZONE}
+            - MARIADB_RANDOM_ROOT_PASSWORD
+            - MARIADB_DATABASE
+            - MARIADB_USER
+            - MARIADB_PASSWORD
+            - TZ
         ports:
             - "127.0.0.1:3306:3306"
         restart: always
@@ -123,6 +125,8 @@ services:
     opensearch:
         build:
             context: ./opensearch
+            args:
+              OPENSEARCH_VERSION:
         container_name: ${BRAND}-opensearch
         hostname: opensearch
         environment:
@@ -271,6 +275,8 @@ services:
     varnish:
         build:
             context: ./varnish
+            args:
+              VARNISH_VERSION:
         container_name: ${BRAND}-varnish
         hostname: varnish
         restart: always
@@ -296,18 +302,20 @@ services:
     php:
         build:
             context: ./php
-            args: *setappargs
+            args:
+              <<: *setappargs
+              ALPINE_VERSION:
         container_name: ${BRAND}-php
         environment: &setphpenv
-            - MARIADB_DATABASE=${MARIADB_DATABASE}
-            - MARIADB_USER=${MARIADB_USER}
-            - MARIADB_PASSWORD=${MARIADB_PASSWORD}
-            - REDIS_PASSWORD=${REDIS_PASSWORD}
-            - OPENSEARCH_PASSWORD=${OPENSEARCH_PASSWORD}
-            - DOMAIN=${DOMAIN}
-            - ADMIN_PATH=${ADMIN_PATH}
-            - CRYPT_KEY=${CRYPT_KEY}
-            - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+            - MARIADB_DATABASE
+            - MARIADB_USER
+            - MARIADB_PASSWORD
+            - REDIS_PASSWORD
+            - OPENSEARCH_PASSWORD
+            - DOMAIN
+            - ADMIN_PATH
+            - CRYPT_KEY
+            - RABBITMQ_PASSWORD
         hostname: php
         restart: always
         depends_on:
@@ -335,7 +343,8 @@ services:
     magento:
         build:
             context: ./magento
-            args: *setappargs
+            args:
+              <<: *setappargs
         container_name: ${BRAND}-magento
         environment: *setphpenv
         volumes:
@@ -358,7 +367,8 @@ services:
     nginx:
         build:
             context: ./nginx
-            args: *setappargs
+            args:
+              <<: *setappargs
         container_name: ${BRAND}-nginx
         hostname: nginx
         restart: always
@@ -396,6 +406,7 @@ services:
         environment:
             - PMA_HOST=mariadb
             - PMA_PORT=3306
+            - TZ
         restart: always
         depends_on:
             mariadb:
@@ -431,10 +442,9 @@ services:
     composer:
         build:
             context: ./composer
-            args: *setappargs
+            args:
+              <<: *setappargs
         container_name: ${BRAND}-composer
-        depends_on:
-            - magento
         volumes:
             - magento:${ROOT_PATH}
         user: ${BRAND}
@@ -453,14 +463,13 @@ services:
     cron:
         build:
             context: ./cron
-            args: *setappargs
+            args:
+              <<: *setappargs
         container_name: ${BRAND}-cron
         environment: *setphpenv
         depends_on:
-            - magento
-            - php
-            - nginx
-            - mariadb
+            mariadb:
+                condition: service_healthy
         volumes:
             - magento:${ROOT_PATH}
         user: ${PHP_USER}
