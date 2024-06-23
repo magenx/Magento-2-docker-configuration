@@ -5,14 +5,14 @@ FROM varnish:${VARNISH_VERSION}-alpine
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
-ARG TIMEZONE
+ARG TZ
 
 USER root
 
 RUN <<EOF
     apk update
     apk add --update --no-cache uuidgen
-    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
+    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
     uuidgen > /etc/varnish/secret
 EOF
 
