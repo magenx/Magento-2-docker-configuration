@@ -14,7 +14,7 @@ ARG PHP_VERSION
 ARG PHP_FPM_POOL="/etc/php${PHP_VERSION}/php-fpm.d/www.conf"
 ARG PHP_INI_OVERRIDES="/etc/php${PHP_VERSION}/conf.d"
 
-ARG TIMEZONE
+ARG TZ
 
 ARG BRAND
 ARG PHP_USER
@@ -80,7 +80,7 @@ max_input_vars = 50000
 session.gc_maxlifetime = 28800
 mysql.allow_persistent = On
 mysqli.allow_persistent = On
-date.timezone = "${TIMEZONE}"
+date.timezone = "${TZ}"
 EOF
 
 RUN <<EOF cat > ${PHP_FPM_POOL}
@@ -117,7 +117,7 @@ php_admin_value[realpath_cache_size] = 4096k
 php_admin_value[realpath_cache_ttl] = 86400
 php_admin_value[session.gc_maxlifetime] = 28800
 php_admin_value[error_log] = "${APP_ROOT_PATH}/var/log/php-fpm-error.log"
-php_admin_value[date.timezone] = "${TIMEZONE}"
+php_admin_value[date.timezone] = "${TZ}"
 php_admin_value[upload_tmp_dir] = "${APP_ROOT_PATH}/var/tmp"
 php_admin_value[sys_temp_dir] = "${APP_ROOT_PATH}/var/tmp"
 ;;
@@ -157,7 +157,7 @@ RUN <<EOF
 EOF
 
 RUN <<EOF
-    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
-    echo ${TIMEZONE} > /etc/timezone
+    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
+    echo ${TZ} > /etc/timezone
     ln -s /usr/bin/php${PHP_VERSION} /usr/local/bin/php
 EOF
