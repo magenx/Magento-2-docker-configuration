@@ -109,9 +109,10 @@ services:
         mem_reservation: 512m
         oom_kill_disable: true
         healthcheck:
-            test: 'mysqladmin ping -h mariadb'
-            interval: 30s
-            timeout: 30s
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized", "--innodb_buffer_pool_loaded"]
+            start_period: 10s
+            interval: 10s
+            timeout: 5s
             retries: 3
         << : [*ulimits, *logger]
 
@@ -142,6 +143,11 @@ services:
         mem_limit: 2048m
         mem_reservation: 512m
         oom_kill_disable: true
+        healthcheck:
+            test: ["CMD-SHELL", "curl -s -f http://opensearch:9200/_cluster/health || exit 1"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
         << : [*ulimits, *logger]
 
 
