@@ -334,8 +334,8 @@ services:
         entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
         cpuset: "0-3"
         cpu_shares: 1024
-        mem_limit: 2024m
-        mem_reservation: 128m
+        mem_limit: 2048m
+        mem_reservation: 512m
         << : [*ulimits, *cap_add, *logger]
 
         
@@ -359,7 +359,7 @@ services:
         entrypoint: ["n98-magerun2", "-vv"]
         cpuset: "0-3"
         cpu_shares: 614
-        mem_limit: 2048m
+        mem_limit: 512m
         mem_reservation: 128m
         << : [*ulimits, *logger]
                 
@@ -408,8 +408,14 @@ services:
         image: phpmyadmin:fpm-alpine
         container_name: ${BRAND}-phpmyadmin
         environment:
-            - PMA_HOST=mariadb
-            - PMA_PORT=3306
+            - PMA_HOST
+            - PMA_PORT
+            - MAX_EXECUTION_TIME
+            - MEMORY_LIMIT
+            - UPLOAD_LIMIT
+            - PMA_PMADB
+            - PMA_CONTROLUSER
+            - PMA_CONTROLPASS
             - TZ
         restart: always
         depends_on:
@@ -423,7 +429,7 @@ services:
         cpuset: "1"
         cpu_shares: 614
         mem_limit: 512m
-        mem_reservation: 248m
+        mem_reservation: 512m
         << : [*ulimits, *logger]
             
             
