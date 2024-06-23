@@ -151,6 +151,7 @@ services:
         oom_kill_disable: true
         healthcheck:
             test: ["CMD-SHELL", "curl -s -f http://opensearch:9200/_cluster/health || exit 1"]
+            start_period: 30s
             interval: 30s
             timeout: 10s
             retries: 5
@@ -180,7 +181,7 @@ services:
         cpuset: "1"
         cpu_shares: 614
         mem_limit: 1024mb
-        mem_reservation: 128m
+        mem_reservation: 512m
         oom_kill_disable: true
         << : [*ulimits, *logger]
 
