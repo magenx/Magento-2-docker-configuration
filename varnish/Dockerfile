@@ -6,6 +6,7 @@ LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG TZ
+ARG VARNISH_CACHE_SIZE
 
 USER root
 
@@ -26,7 +27,7 @@ RUN <<EOF cat > /usr/local/bin/docker-varnish-entrypoint
             -T varnish:6082 \\
             -f /etc/varnish/default.vcl \\
             -S /etc/varnish/secret \\
-            -s malloc,1G \\
+            -s malloc,${VARNISH_CACHE_SIZE} \\
             -p thread_pool_min=200 \\
             -p thread_pool_max=4000 \\
             -p thread_pool_add_delay=2 \\
