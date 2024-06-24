@@ -134,7 +134,9 @@ services:
         environment:
             - cluster.name=${BRAND}-cluster
             - node.name=${BRAND}-node1
-            - discovery.seed_hosts=${BRAND}-node1
+            - node.attr.rack=${BRAND}-rack1
+            - node.max_local_storage_nodes=1
+            - discovery.type=single-node
             - bootstrap.memory_lock=true
             - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
             - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD}
@@ -169,9 +171,9 @@ services:
             - OPENSEARCH_HOSTS=http://opensearch:9200
             - OPENSEARCH_USERNAME=opensearch
             - OPENSEARCH_PASSWORD=${OPENSEARCH_PASSWORD}
-            - SERVER_PUBLICBASEURL=https://${DOMAIN}:10525
+            - SERVER_PUBLICBASEURL=https://${DOMAIN}:${OPENSEARCH_DASHBOARDS_PORT}
         ports:
-            - 10525:5601
+            - ${OPENSEARCH_DASHBOARDS_PORT}:5601
         restart: always
         depends_on:
             opensearch:
@@ -199,7 +201,7 @@ services:
             --save ""
             --loglevel warning
             --requirepass ${REDIS_PASSWORD}
-            --maxmemory 1024mb
+            --maxmemory ${REDIS_CACHE_MEMORY}
             --maxmemory-policy allkeys-lru
             --lazyfree-lazy-eviction yes
             --lazyfree-lazy-expire yes
@@ -229,7 +231,7 @@ services:
             --port 6379
             --save 300 15
             --requirepass ${REDIS_PASSWORD}
-            --maxmemory 1024mb
+            --maxmemory ${REDIS_SESSION_MEMORY}
             --maxmemory-policy allkeys-lru
             --lazyfree-lazy-eviction yes
             --lazyfree-lazy-expire yes
