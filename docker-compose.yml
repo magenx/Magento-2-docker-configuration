@@ -19,14 +19,14 @@
 #  Configure reusable arguments
 # # ---------------------------------------------------------------------------------------------------------------------#
 x-setappargs: &setappargs
-    - BRAND=${BRAND}
-    - DOMAIN=${DOMAIN}
-    - PHP_USER=${PHP_USER}
-    - ROOT_PATH=${ROOT_PATH}
-    - APP_ROOT_PATH=${APP_ROOT_PATH}
-    - WEB_ROOT_PATH=${WEB_ROOT_PATH}
-    - TIMEZONE=${TIMEZONE}
-    - PHP_VERSION=${PHP_VERSION}
+    BRAND:
+    DOMAIN:
+    PHP_USER:
+    ROOT_PATH:
+    APP_ROOT_PATH:
+    WEB_ROOT_PATH:
+    TZ:
+    PHP_VERSION:
     
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Configure logger driver
@@ -88,14 +88,18 @@ services:
     mariadb:
         build:
             context: ./mariadb
+            args:
+              MARIADB_VERSION:
         container_name: ${BRAND}-mariadb
         hostname: mariadb
         environment:
-            - MARIADB_RANDOM_ROOT_PASSWORD=yes
-            - MARIADB_DATABASE=${MARIADB_DATABASE}
-            - MARIADB_USER=${MARIADB_USER}
-            - MARIADB_PASSWORD=${MARIADB_PASSWORD}
-            - TZ=${TIMEZONE}
+            - MARIADB_AUTO_UPGRADE
+            - MARIADB_DISABLE_UPGRADE_BACKUP
+            - MARIADB_RANDOM_ROOT_PASSWORD
+            - MARIADB_DATABASE
+            - MARIADB_USER
+            - MARIADB_PASSWORD
+            - TZ
         ports:
             - "127.0.0.1:3306:3306"
         restart: always
@@ -108,6 +112,12 @@ services:
         mem_limit: 2048m
         mem_reservation: 512m
         oom_kill_disable: true
+        healthcheck:
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized", "--innodb_buffer_pool_loaded"]
+            start_period: 10s
+            interval: 10s
+            timeout: 5s
+            retries: 3
         << : [*ulimits, *logger]
 
 
@@ -117,13 +127,20 @@ services:
     opensearch:
         build:
             context: ./opensearch
+            args:
+              OPENSEARCH_VERSION:
         container_name: ${BRAND}-opensearch
         hostname: opensearch
         environment:
             - cluster.name=${BRAND}-cluster
             - node.name=${BRAND}-node1
-            - discovery.seed_hosts=${BRAND}-node1
+            - node.attr.rack=${BRAND}-rack1
+            - discovery.type=single-node
             - bootstrap.memory_lock=true
+            - plugins.security.ssl.transport.enforce_hostname_verification=false
+            - plugins.security.ssl.http.enabled=false
+            - plugins.security.allow_unsafe_democertificates=true
+            - plugins.security.allow_default_init_securityindex=true
             - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
             - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD}
         ports:
@@ -137,6 +154,12 @@ services:
         mem_limit: 2048m
         mem_reservation: 512m
         oom_kill_disable: true
+        healthcheck:
+            test: ["CMD-SHELL", "curl -XGET -u "admin:${OPENSEARCH_PASSWORD}" "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=15s" || exit 1"]
+            start_period: 15s
+            interval: 15s
+            timeout: 5s
+            retries: 3
         << : [*ulimits, *logger]
 
 
@@ -144,25 +167,26 @@ services:
 #  Opensearch-Dashboards is an open source analytics and visualization platform designed to work with Opensearch
 # # ---------------------------------------------------------------------------------------------------------------------#
     opensearch-dashboards:
-        image: opensearchproject/opensearch-dashboards:2.14.0
+        image: opensearchproject/opensearch-dashboards:${OPENSEARCH_VERSION}
         container_name: ${BRAND}-opensearch-dashboards
         hostname: opensearch-dashboards
         environment:
             - OPENSEARCH_HOSTS=http://opensearch:9200
             - OPENSEARCH_USERNAME=opensearch
             - OPENSEARCH_PASSWORD=${OPENSEARCH_PASSWORD}
-            - SERVER_PUBLICBASEURL=https://${DOMAIN}:10525
+            - SERVER_PUBLICBASEURL=https://${DOMAIN}:${OPENSEARCH_DASHBOARDS_PORT}
         ports:
-            - 10525:5601
+            - ${OPENSEARCH_DASHBOARDS_PORT}:5601
         restart: always
         depends_on:
-            - opensearch
+            opensearch:
+                condition: service_healthy
         volumes:
             - opensearch:/usr/share/opensearch/data
         cpuset: "1"
         cpu_shares: 614
         mem_limit: 1024mb
-        mem_reservation: 128m
+        mem_reservation: 512m
         oom_kill_disable: true
         << : [*ulimits, *logger]
 
@@ -171,7 +195,7 @@ services:
 #  Redis is an open source key-value store that functions as a data structure server.
 # # ---------------------------------------------------------------------------------------------------------------------#
     redis-cache:
-        image: &redis_image redis:7.2.5-alpine
+        image: &redis_image redis:${REDIS_VERSION}-alpine
         container_name: ${BRAND}-redis-cache
         hostname: redis-cache
         command: >
@@ -180,7 +204,7 @@ services:
             --save ""
             --loglevel warning
             --requirepass ${REDIS_PASSWORD}
-            --maxmemory 1024mb
+            --maxmemory ${REDIS_CACHE_MEMORY}
             --maxmemory-policy allkeys-lru
             --lazyfree-lazy-eviction yes
             --lazyfree-lazy-expire yes
@@ -210,7 +234,7 @@ services:
             --port 6379
             --save 300 15
             --requirepass ${REDIS_PASSWORD}
-            --maxmemory 1024mb
+            --maxmemory ${REDIS_SESSION_MEMORY}
             --maxmemory-policy allkeys-lru
             --lazyfree-lazy-eviction yes
             --lazyfree-lazy-expire yes
@@ -234,7 +258,7 @@ services:
 #  RabbitMQ is an open source multi-protocol messaging broker
 # # ---------------------------------------------------------------------------------------------------------------------#                
     rabbitmq:
-        image: rabbitmq:3.13.3-alpine
+        image: rabbitmq:${RABBITMQ_VERSION}-alpine
         container_name: ${BRAND}-rabbitmq
         hostname: rabbitmq
         environment:
@@ -259,6 +283,10 @@ services:
     varnish:
         build:
             context: ./varnish
+            args:
+              VARNISH_VERSION:
+              VARNISH_CACHE_SIZE:
+              TZ:
         container_name: ${BRAND}-varnish
         hostname: varnish
         restart: always
@@ -284,22 +312,25 @@ services:
     php:
         build:
             context: ./php
-            args: *setappargs
+            args:
+              <<: *setappargs
+              ALPINE_VERSION:
         container_name: ${BRAND}-php
         environment: &setphpenv
-            - MARIADB_DATABASE=${MARIADB_DATABASE}
-            - MARIADB_USER=${MARIADB_USER}
-            - MARIADB_PASSWORD=${MARIADB_PASSWORD}
-            - REDIS_PASSWORD=${REDIS_PASSWORD}
-            - OPENSEARCH_PASSWORD=${OPENSEARCH_PASSWORD}
-            - DOMAIN=${DOMAIN}
-            - ADMIN_PATH=${ADMIN_PATH}
-            - CRYPT_KEY=${CRYPT_KEY}
-            - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+            - MARIADB_DATABASE
+            - MARIADB_USER
+            - MARIADB_PASSWORD
+            - REDIS_PASSWORD
+            - OPENSEARCH_PASSWORD
+            - DOMAIN
+            - ADMIN_PATH
+            - CRYPT_KEY
+            - RABBITMQ_PASSWORD
         hostname: php
         restart: always
         depends_on:
-            - magento
+            mariadb:
+                condition: service_healthy
         ports:
             - "127.0.0.1:9000:9000"
         volumes:
@@ -308,11 +339,11 @@ services:
             - var:${APP_ROOT_PATH}/var:rw
         user: ${PHP_USER}
         working_dir: ${WEB_ROOT_PATH}
-        entrypoint: ["php-fpm83", "-F"]
+        entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
         cpuset: "0-3"
         cpu_shares: 1024
-        mem_limit: 2024m
-        mem_reservation: 128m
+        mem_limit: 2048m
+        mem_reservation: 512m
         << : [*ulimits, *cap_add, *logger]
 
         
@@ -322,7 +353,10 @@ services:
     magento:
         build:
             context: ./magento
-            args: *setappargs
+            args:
+              <<: *setappargs
+              APP_GITHUB_REPO:
+              INSTALL_MAGENTO:
         container_name: ${BRAND}-magento
         environment: *setphpenv
         volumes:
@@ -334,7 +368,7 @@ services:
         entrypoint: ["n98-magerun2", "-vv"]
         cpuset: "0-3"
         cpu_shares: 614
-        mem_limit: 2048m
+        mem_limit: 512m
         mem_reservation: 128m
         << : [*ulimits, *logger]
                 
@@ -345,18 +379,17 @@ services:
     nginx:
         build:
             context: ./nginx
-            args: *setappargs
+            args:
+              <<: *setappargs
+              NGINX_GITHUB_REPO:
         container_name: ${BRAND}-nginx
         hostname: nginx
         restart: always
         depends_on:
-            - magento
-            - mariadb
-            - php
-            - redis-cache
-            - redis-session
-            - rabbitmq
-            - opensearch
+            mariadb:
+                condition: service_healthy
+            php:
+                condition: service_started
         ports:
             - "80:80"
             - "443:443"
@@ -384,19 +417,28 @@ services:
         image: phpmyadmin:fpm-alpine
         container_name: ${BRAND}-phpmyadmin
         environment:
-            - PMA_HOST=mariadb
-            - PMA_PORT=3306
+            - PMA_HOST
+            - PMA_PORT
+            - MAX_EXECUTION_TIME
+            - MEMORY_LIMIT
+            - UPLOAD_LIMIT
+            - PMA_PMADB
+            - PMA_CONTROLUSER
+            - PMA_CONTROLPASS
+            - TZ
         restart: always
         depends_on:
-            - mariadb
-            - nginx
+            mariadb:
+                condition: service_healthy
+            nginx:
+                condition: service_started
         volumes:
             - phpmyadmin:/var/www/html
             - phpmyadmincfg:/etc/phpmyadmin
         cpuset: "1"
         cpu_shares: 614
         mem_limit: 512m
-        mem_reservation: 248m
+        mem_reservation: 512m
         << : [*ulimits, *logger]
             
             
@@ -419,10 +461,19 @@ services:
     composer:
         build:
             context: ./composer
-            args: *setappargs
+            args:
+              <<: *setappargs
         container_name: ${BRAND}-composer
-        depends_on:
-            - magento
+        environment:
+            COMPOSER_AUTH: |
+              {
+                "http-basic": {
+                  "repo.magento.com": {
+                    "username": "${COMPOSER_USER}",
+                    "password": "${COMPOSER_PASSWORD}"
+                  }
+                }
+              }
         volumes:
             - magento:${ROOT_PATH}
         user: ${BRAND}
@@ -441,14 +492,13 @@ services:
     cron:
         build:
             context: ./cron
-            args: *setappargs
+            args:
+              <<: *setappargs
         container_name: ${BRAND}-cron
         environment: *setphpenv
         depends_on:
-            - magento
-            - php
-            - nginx
-            - mariadb
+            mariadb:
+                condition: service_healthy
         volumes:
             - magento:${ROOT_PATH}
         user: ${PHP_USER}

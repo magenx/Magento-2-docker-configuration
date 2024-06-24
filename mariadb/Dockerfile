@@ -1,4 +1,5 @@
-FROM mariadb:10.11.8
+ARG MARIADB_VERSION
+FROM mariadb:${MARIADB_VERSION}
 
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"

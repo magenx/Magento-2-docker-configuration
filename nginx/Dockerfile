@@ -4,7 +4,7 @@ FROM nginx:mainline-alpine-perl
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
-ARG NGINX_GITHUB_REPO="https://github.com/magenx/Magento-2-docker-nginx-config"
+ARG NGINX_GITHUB_REPO
 
 ARG BRAND
 ARG PHP_USER
@@ -12,7 +12,7 @@ ARG DOMAIN
 ARG ROOT_PATH
 ARG APP_ROOT_PATH
 ARG WEB_ROOT_PATH
-ARG TIMEZONE
+ARG TZ
 
 RUN <<EOF
     mkdir -p ${APP_ROOT_PATH}
@@ -41,5 +41,5 @@ RUN <<EOF
     -subj "/CN=default_server" -days 3650 -subj "/C=US/ST=Oregon/L=Portland/O=default_server/OU=Org/CN=default_server"
 EOF
 
-RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
+RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
 

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export DEBIAN_FRONTEND=noninteractive 
 apt update && apt upgrade -y
 apt-get -y install ca-certificates software-properties-common screen ipset vim strace rsyslog git apache2-utils
 

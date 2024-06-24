@@ -5,10 +5,12 @@ FROM ${BRAND}-php
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
-ARG APP_GITHUB_REPO="https://github.com/magenx/Magento-2-docker-demo"
+ARG INSTALL_MAGENTO
+ARG APP_GITHUB_REPO
+ARG APP_GITHUB_BRANCH
 
-ARG COMPOSER_USER="8c681734f22763b50ea0c29dff9e7af2"
-ARG COMPOSER_PASSWORD="02dfee497e669b5db1fe1c8d481d6974"
+ARG COMPOSER_USER
+ARG COMPOSER_PASSWORD
 
 ARG BRAND
 ARG PHP_USER
@@ -45,15 +47,18 @@ EOF
 USER ${BRAND}:${PHP_USER}
 
 RUN <<EOF
+    if [ "${INSTALL_MAGENTO}" = "yes" ]; then
     composer -n -q config -g http-basic.repo.magento.com ${COMPOSER_USER} ${COMPOSER_PASSWORD}
     cd ${APP_ROOT_PATH}
-    git init
+    git init -b ${APP_GITHUB_BRANCH}
     git remote add origin ${APP_GITHUB_REPO}
     git fetch origin
-    git reset --hard origin/main
+    git reset --hard origin/${APP_GITHUB_BRANCH}
     composer -n install --prefer-dist --no-dev --no-cache --no-ansi
-    ${PHP_VERSION} -d memory_limit=-1 bin/magento setup:di:compile -n
-    composer -n dump-autoload --no-dev --optimize --apcu
-    bin/magento setup:static-content:deploy -n -f
+    ## php -d memory_limit=-1 bin/magento setup:di:compile -n
+    ## composer -n dump-autoload --no-dev --optimize --apcu
+    ## bin/magento setup:static-content:deploy -n -f
     mv app/etc/env.php.build app/etc/env.php
+    fi
 EOF
+      
