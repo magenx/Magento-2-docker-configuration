@@ -135,9 +135,12 @@ services:
             - cluster.name=${BRAND}-cluster
             - node.name=${BRAND}-node1
             - node.attr.rack=${BRAND}-rack1
-            - node.max_local_storage_nodes=1
             - discovery.type=single-node
             - bootstrap.memory_lock=true
+            - plugins.security.ssl.transport.enforce_hostname_verification=false
+            - plugins.security.ssl.http.enabled=false
+            - plugins.security.allow_unsafe_democertificates=true
+            - plugins.security.allow_default_init_securityindex=true
             - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
             - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD}
         ports:
@@ -152,7 +155,7 @@ services:
         mem_reservation: 512m
         oom_kill_disable: true
         healthcheck:
-            test: ["CMD-SHELL", "curl -s -f http://opensearch:9200/_cluster/health || exit 1"]
+            test: ["CMD-SHELL", "curl -XGET -u "admin:${OPENSEARCH_PASSWORD}" "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=15s" || exit 1"]
             start_period: 15s
             interval: 15s
             timeout: 5s
