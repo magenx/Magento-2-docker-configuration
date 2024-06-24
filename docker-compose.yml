@@ -464,6 +464,16 @@ services:
             args:
               <<: *setappargs
         container_name: ${BRAND}-composer
+        environment:
+            COMPOSER_AUTH: |
+              {
+                "http-basic": {
+                  "repo.magento.com": {
+                    "username": "${COMPOSER_USER}",
+                    "password": "${COMPOSER_PASSWORD}"
+                  }
+                }
+              }
         volumes:
             - magento:${ROOT_PATH}
         user: ${BRAND}
