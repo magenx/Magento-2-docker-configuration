@@ -7,6 +7,7 @@ LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG INSTALL_MAGENTO
 ARG APP_GITHUB_REPO
+ARG APP_GITHUB_BRANCH
 
 ARG COMPOSER_USER
 ARG COMPOSER_PASSWORD
