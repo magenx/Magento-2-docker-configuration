@@ -282,6 +282,8 @@ services:
             context: ./varnish
             args:
               VARNISH_VERSION:
+              VARNISH_CACHE_SIZE:
+              TZ:
         container_name: ${BRAND}-varnish
         hostname: varnish
         restart: always
