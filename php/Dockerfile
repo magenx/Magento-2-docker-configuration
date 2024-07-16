@@ -7,7 +7,7 @@ LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG PHP_PACKAGES="apcu bcmath bz2 calendar ctype curl dom fileinfo fpm gd gettext gmp iconv \
 intl json mbstring mysqli odbc opcache openssl pdo pdo_dblib pdo_mysql pdo_odbc pdo_sqlite pear \
-phar redis simplexml soap sockets sodium sqlite3 tokenizer xmlreader xmlwriter xsl zip pecl-lzf pecl-ssh2 pecl-msgpack sysvmsg sysvsem sysvshm"
+phar redis simplexml soap sockets sodium sqlite3 tokenizer xmlreader xmlwriter xsl zip pecl-lzf pecl-ssh2 pecl-msgpack pecl-xdebug sysvmsg sysvsem sysvshm"
 
 ARG PHP_VERSION
 
