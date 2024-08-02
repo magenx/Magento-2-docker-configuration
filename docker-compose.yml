@@ -155,7 +155,7 @@ services:
         mem_reservation: 512m
         oom_kill_disable: true
         healthcheck:
-            test: ["CMD-SHELL", "curl -XGET -u "admin:${OPENSEARCH_PASSWORD}" "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=15s" || exit 1"]
+            test: ["CMD-SHELL", "curl -XGET -u admin:${OPENSEARCH_PASSWORD} 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=15s' || exit 1"]
             start_period: 15s
             interval: 15s
             timeout: 5s
