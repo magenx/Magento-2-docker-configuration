@@ -19,8 +19,8 @@ ARG TZ
 ARG BRAND
 ARG PHP_USER
 ARG ROOT_PATH
-ARG APP_ROOT_PATH
-ARG WEB_ROOT_PATH
+ARG MAGENTO_ROOT_PATH
+ARG MAGENTO_PUBLIC_PATH
 
 RUN <<EOF
     apk update
@@ -116,10 +116,10 @@ php_admin_value[upload_max_filesize] = 64M
 php_admin_value[realpath_cache_size] = 4096k
 php_admin_value[realpath_cache_ttl] = 86400
 php_admin_value[session.gc_maxlifetime] = 28800
-php_admin_value[error_log] = "${APP_ROOT_PATH}/var/log/php-fpm-error.log"
+php_admin_value[error_log] = "${MAGENTO_ROOT_PATH}/var/log/php-fpm-error.log"
 php_admin_value[date.timezone] = "${TZ}"
-php_admin_value[upload_tmp_dir] = "${APP_ROOT_PATH}/var/tmp"
-php_admin_value[sys_temp_dir] = "${APP_ROOT_PATH}/var/tmp"
+php_admin_value[upload_tmp_dir] = "${MAGENTO_ROOT_PATH}/var/tmp"
+php_admin_value[sys_temp_dir] = "${MAGENTO_ROOT_PATH}/var/tmp"
 ;;
 ;; [opcache] settings
 php_admin_flag[opcache.enable] = On
