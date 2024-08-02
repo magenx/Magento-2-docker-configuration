@@ -23,8 +23,8 @@ x-setappargs: &setappargs
     DOMAIN:
     PHP_USER:
     ROOT_PATH:
-    APP_ROOT_PATH:
-    WEB_ROOT_PATH:
+    MAGENTO_ROOT_PATH:
+    MAGENTO_PUB_PATH:
     TZ:
     PHP_VERSION:
     
@@ -335,10 +335,10 @@ services:
             - "127.0.0.1:9000:9000"
         volumes:
             - magento:${ROOT_PATH}:ro
-            - media:${APP_ROOT_PATH}/pub/media:rw
-            - var:${APP_ROOT_PATH}/var:rw
+            - media:${MAGENTO_PUB_PATH}/media:rw
+            - var:${MAGENTO_ROOT_PATH}/var:rw
         user: ${PHP_USER}
-        working_dir: ${WEB_ROOT_PATH}
+        working_dir: ${MAGENTO_PUB_PATH}
         entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
         cpuset: "0-3"
         cpu_shares: 1024
@@ -355,16 +355,17 @@ services:
             context: ./magento
             args:
               <<: *setappargs
-              APP_GITHUB_REPO:
+              MAGENTO_GITHUB_REPO:
+              MAGENTO_GITHUB_BRANCH:
               INSTALL_MAGENTO:
         container_name: ${BRAND}-magento
         environment: *setphpenv
         volumes:
             - magento:${ROOT_PATH}:delegated
-            - media:${APP_ROOT_PATH}/pub/media
-            - var:${APP_ROOT_PATH}/var
+            - media:${MAGENTO_PUB_PATH}/media
+            - var:${MAGENTO_ROOT_PATH}/var
         user: ${BRAND}
-        working_dir: ${APP_ROOT_PATH}
+        working_dir: ${MAGENTO_ROOT_PATH}
         entrypoint: ["n98-magerun2", "-vv"]
         cpuset: "0-3"
         cpu_shares: 614
@@ -401,7 +402,7 @@ services:
             - certbot:/etc/letsencrypt:ro
             - phpmyadmin:/var/www/html:ro
             - phpmyadmincfg:/etc/phpmyadmin:ro
-        working_dir: ${WEB_ROOT_PATH}
+        working_dir: ${MAGENTO_PUB_PATH}
         cpuset: "1"
         cpu_shares: 614
         mem_limit: 512m
@@ -477,7 +478,7 @@ services:
         volumes:
             - magento:${ROOT_PATH}
         user: ${BRAND}
-        working_dir: ${APP_ROOT_PATH}
+        working_dir: ${MAGENTO_ROOT_PATH}
         entrypoint: ["composer"]
         cpuset: "0-3"
         cpu_shares: 1024
@@ -502,7 +503,7 @@ services:
         volumes:
             - magento:${ROOT_PATH}
         user: ${PHP_USER}
-        working_dir: ${APP_ROOT_PATH}
+        working_dir: ${MAGENTO_ROOT_PATH}
         command: ["crond", "-f"]
         cpuset: "0-3"
         cpu_shares: 1024
