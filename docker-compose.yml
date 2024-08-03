@@ -23,11 +23,12 @@ x-setappargs: &setappargs
     DOMAIN:
     PHP_USER:
     ROOT_PATH:
+    ADMIN_PATH:
     MAGENTO_ROOT_PATH:
     MAGENTO_PUB_PATH:
-    TZ:
     PHP_VERSION:
-    
+    TZ:
+
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Configure logger driver
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -383,6 +384,8 @@ services:
             args:
               <<: *setappargs
               NGINX_GITHUB_REPO:
+              MAGENX_NGINX_GITHUB_REPO:
+              MAGENX_NGINX_GITHUB_REPO_API:
         container_name: ${BRAND}-nginx
         hostname: nginx
         restart: always
