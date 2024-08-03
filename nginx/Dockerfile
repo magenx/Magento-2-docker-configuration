@@ -4,12 +4,14 @@ FROM nginx:mainline-alpine-perl
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
-ARG NGINX_GITHUB_REPO
+ARG MAGENX_NGINX_GITHUB_REPO
+ARG MAGENX_NGINX_GITHUB_REPO_API
 
 ARG BRAND
 ARG PHP_USER
 ARG DOMAIN
 ARG ROOT_PATH
+ARG ADMIN_PATH
 ARG MAGENTO_ROOT_PATH
 ARG MAGENTO_PUB_PATH
 ARG TZ
@@ -23,19 +25,36 @@ RUN <<EOF
 EOF
 
 RUN <<EOF
-    apk add --no-cache openssl git
+    apk add --no-cache curl
     cd /etc/nginx
-    git init
-    git remote add origin ${NGINX_GITHUB_REPO}
-    git fetch origin
-    git reset --hard origin/main
-    sed -i "s/example.com/${DOMAIN}/g" /etc/nginx/sites-available/magento2.conf
-    sed -i "s,/var/www/html,${MAGENTO_ROOT_PATH},g" /etc/nginx/conf_m2/maps.conf
-    sed -i "s/PROFILER_PLACEHOLDER/$(openssl rand -hex 4)/" /etc/nginx/conf_m2/maps.conf
-    sed -i "s/PHPMYADMIN_PLACEHOLDER/mysql_$(openssl rand -hex 2)/g" /etc/nginx/conf_m2/phpmyadmin.conf
-    sed -i "s,user  nginx,user  ${BRAND},g" /etc/nginx/nginx.conf
-    ln -s /etc/nginx/sites-available/magento2.conf /etc/nginx/sites-enabled/magento2.conf
+    curl -o /etc/nginx/fastcgi_params  ${MAGENX_NGINX_GITHUB_REPO}magento2/fastcgi_params
+    curl -o /etc/nginx/nginx.conf  ${MAGENX_NGINX_GITHUB_REPO}magento2/nginx.conf
+    mkdir -p /etc/nginx/sites-enabled
+    mkdir -p /etc/nginx/sites-available && cd $_
+    curl ${MAGENX_NGINX_GITHUB_REPO_API}/sites-available 2>&1 | awk -F'"' '/download_url/ {print $4 ; system("curl -O "$4)}' >/dev/null
     ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
+    mkdir -p /etc/nginx/conf_m2 && cd /etc/nginx/conf_m2/
+    curl ${MAGENX_NGINX_GITHUB_REPO_API}/conf_m2 2>&1 | awk -F'"' '/download_url/ {print $4 ; system("curl -O "$4)}' >/dev/null
+
+
+    sed -i "s/PROFILER_PLACEHOLDER/${PROFILER_PLACEHOLDER}/" /etc/nginx/conf_m2/maps.conf
+
+    sed -i "s/PHPMYADMIN_PLACEHOLDER/mysql_${PHPMYADMIN_FOLDER}/g" /etc/nginx/conf_m2/phpmyadmin.conf
+    sed -i "5i \\
+           auth_basic \$authentication; \\
+           auth_basic_user_file .mysql;"  /etc/nginx/conf_m2/phpmyadmin.conf
+	 	   
+    sed -i "s|127.0.0.1:9000|phpmyadmin:9000|"  /etc/nginx/conf_m2/phpmyadmin.conf
+
+    cp /etc/nginx/sites-available/magento2.conf  /etc/nginx/sites-available/${DOMAIN}.conf
+    ln -s /etc/nginx/sites-available/${DOMAIN}.conf /etc/nginx/sites-enabled/${DOMAIN}.conf
+    sed -i "s/example.com/${DOMAIN}/g" /etc/nginx/sites-available/${DOMAIN}.conf
+    sed -i "s/ADMIN_PLACEHOLDER/${ADMIN_PATH}/" /etc/nginx/conf_m2/extra_protect.conf
+
+
+    sed -i "s/example.com/${DOMAIN}/g" /etc/nginx/nginx.conf
+    sed -i "s,default.*production*php-fpm,default unix:/var/run/php/${DOMAIN}.sock; # php-fpm,"  /etc/nginx/conf_m2/maps.conf
+    sed -i "s,default.*production*folder,default ${MAGENTO_ROOT_PATH}; # magento folder," /etc/nginx/conf_m2/maps.conf
     openssl dhparam -dsaparam -out /etc/ssl/certs/dhparams.pem 4096
     openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout /etc/ssl/certs/default_server.key -out /etc/ssl/certs/default_server.crt \
     -subj "/CN=default_server" -days 3650 -subj "/C=US/ST=Oregon/L=Portland/O=default_server/OU=Org/CN=default_server"
