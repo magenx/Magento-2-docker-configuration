@@ -8,8 +8,6 @@ LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 ARG BRAND
 ARG PHP_USER
 ARG ROOT_PATH
-ARG APP_ROOT_PATH
-ARG WEB_ROOT_PATH
 
 #RUN addgroup -S -g 1001 ${PHP_USER} && \
 #    adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER} && \
