@@ -10,12 +10,12 @@ ARG BRAND
 ARG PHP_USER
 ARG DOMAIN
 ARG ROOT_PATH
-ARG APP_ROOT_PATH
-ARG WEB_ROOT_PATH
+ARG MAGENTO_ROOT_PATH
+ARG MAGENTO_PUB_PATH
 ARG TZ
 
 RUN <<EOF
-    mkdir -p ${APP_ROOT_PATH}
+    mkdir -p ${MAGENTO_ROOT_PATH}
     addgroup -S -g 1001 ${PHP_USER}
     adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER}
     addgroup -S -g 1000 ${BRAND}
@@ -30,7 +30,7 @@ RUN <<EOF
     git fetch origin
     git reset --hard origin/main
     sed -i "s/example.com/${DOMAIN}/g" /etc/nginx/sites-available/magento2.conf
-    sed -i "s,/var/www/html,${APP_ROOT_PATH},g" /etc/nginx/conf_m2/maps.conf
+    sed -i "s,/var/www/html,${MAGENTO_ROOT_PATH},g" /etc/nginx/conf_m2/maps.conf
     sed -i "s/PROFILER_PLACEHOLDER/$(openssl rand -hex 4)/" /etc/nginx/conf_m2/maps.conf
     sed -i "s/PHPMYADMIN_PLACEHOLDER/mysql_$(openssl rand -hex 2)/g" /etc/nginx/conf_m2/phpmyadmin.conf
     sed -i "s,user  nginx,user  ${BRAND},g" /etc/nginx/nginx.conf
