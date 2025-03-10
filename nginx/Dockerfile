@@ -25,16 +25,16 @@ RUN <<EOF
 EOF
 
 RUN <<EOF
-    apk add --no-cache curl
+    apk add --no-cache curl openssl
     cd /etc/nginx
-    curl -o /etc/nginx/fastcgi_params  ${MAGENX_NGINX_GITHUB_REPO}magento2/fastcgi_params
-    curl -o /etc/nginx/nginx.conf  ${MAGENX_NGINX_GITHUB_REPO}magento2/nginx.conf
+    curl -sSo /etc/nginx/fastcgi_params  ${MAGENX_NGINX_GITHUB_REPO}magento2/fastcgi_params
+    curl -sSo /etc/nginx/nginx.conf  ${MAGENX_NGINX_GITHUB_REPO}magento2/nginx.conf
     mkdir -p /etc/nginx/sites-enabled
-    mkdir -p /etc/nginx/sites-available && cd $_
-    curl ${MAGENX_NGINX_GITHUB_REPO_API}/sites-available 2>&1 | awk -F'"' '/download_url/ {print $4 ; system("curl -O "$4)}' >/dev/null
+    mkdir -p /etc/nginx/sites-available && cd /etc/nginx/sites-available/
+    curl -sS "${MAGENX_NGINX_GITHUB_REPO_API}/sites-available" 2>&1 | awk -F'"' '/download_url/ {print $4 ; system("curl -sSO "$4)}'
     ln -s /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
     mkdir -p /etc/nginx/conf_m2 && cd /etc/nginx/conf_m2/
-    curl ${MAGENX_NGINX_GITHUB_REPO_API}/conf_m2 2>&1 | awk -F'"' '/download_url/ {print $4 ; system("curl -O "$4)}' >/dev/null
+    curl -sS "${MAGENX_NGINX_GITHUB_REPO_API}/conf_m2" 2>&1 | awk -F'"' '/download_url/ {print $4 ; system("curl -sSO "$4)}'
 
 
     sed -i "s/PROFILER_PLACEHOLDER/${PROFILER_PLACEHOLDER}/" /etc/nginx/conf_m2/maps.conf
@@ -61,4 +61,3 @@ RUN <<EOF
 EOF
 
 RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
-
