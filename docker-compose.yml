@@ -297,8 +297,6 @@ services:
         ports:
             - "127.0.0.1:8081:8081"
             - "127.0.0.1:6082:6082" 
-        volumes:
-            - varnish:/etc/varnish
         user: varnish
         cpuset: "0"
         cpu_shares: 614
@@ -401,7 +399,6 @@ services:
         volumes:
             - magento:${ROOT_PATH}:ro
             - ssl:/etc/ssl
-            - nginx:/etc/nginx
             - certbot:/etc/letsencrypt:ro
             - phpmyadmin:/var/www/html:ro
             - phpmyadmincfg:/etc/phpmyadmin:ro
@@ -532,8 +529,6 @@ volumes:
     rabbitmq:
     certbot:
     certbotlib:
-    nginx:
-    varnish:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
