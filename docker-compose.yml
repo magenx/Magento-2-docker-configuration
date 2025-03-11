@@ -108,7 +108,6 @@ services:
             - mariadb:/var/lib/mysql
             - mariadbcnf:/etc/mysql
             - ./mariadb/init.sql.gz:/docker-entrypoint-initdb.d/init.sql.gz:ro
-        cpuset: "0-3"
         cpu_shares: 1024
         mem_limit: 2048m
         mem_reservation: 512m
@@ -150,7 +149,6 @@ services:
         restart: always
         volumes:
             - opensearch:/usr/share/opensearch/data
-        cpuset: "0-2"
         cpu_shares: 1024
         mem_limit: 2048m
         mem_reservation: 512m
@@ -184,7 +182,6 @@ services:
                 condition: service_healthy
         volumes:
             - opensearch:/usr/share/opensearch/data
-        cpuset: "1"
         cpu_shares: 614
         mem_limit: 1024mb
         mem_reservation: 512m
@@ -215,7 +212,6 @@ services:
         ports:
             - "127.0.0.1:6380:6380"
         restart: always
-        cpuset: "1"
         cpu_shares: 614
         mem_limit: 1024mb
         mem_reservation: 128m
@@ -247,7 +243,6 @@ services:
         restart: always
         volumes:
             - redis:/data
-        cpuset: "2"
         cpu_shares: 614
         mem_limit: 1024mb
         mem_reservation: 128m
@@ -270,7 +265,6 @@ services:
             - "127.0.0.1:5672:5672"
         volumes:
             - rabbitmq:/var/lib/rabbitmq
-        cpuset: "3"
         cpu_shares: 614
         mem_limit: 512m
         mem_reservation: 128m
@@ -298,7 +292,6 @@ services:
             - "127.0.0.1:8081:8081"
             - "127.0.0.1:6082:6082" 
         user: varnish
-        cpuset: "0"
         cpu_shares: 614
         mem_limit: 1024m
         mem_reservation: 128m
@@ -339,7 +332,6 @@ services:
         user: ${PHP_USER}
         working_dir: ${MAGENTO_PUB_PATH}
         entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
-        cpuset: "0-3"
         cpu_shares: 1024
         mem_limit: 2048m
         mem_reservation: 512m
@@ -366,7 +358,6 @@ services:
         user: ${BRAND}
         working_dir: ${MAGENTO_ROOT_PATH}
         entrypoint: ["n98-magerun2", "-vv"]
-        cpuset: "0-3"
         cpu_shares: 614
         mem_limit: 512m
         mem_reservation: 128m
@@ -403,7 +394,6 @@ services:
             - phpmyadmin:/var/www/html:ro
             - phpmyadmincfg:/etc/phpmyadmin:ro
         working_dir: ${MAGENTO_PUB_PATH}
-        cpuset: "1"
         cpu_shares: 614
         mem_limit: 512m
         mem_reservation: 128m
@@ -436,7 +426,6 @@ services:
         volumes:
             - phpmyadmin:/var/www/html
             - phpmyadmincfg:/etc/phpmyadmin
-        cpuset: "1"
         cpu_shares: 614
         mem_limit: 512m
         mem_reservation: 512m
@@ -480,7 +469,6 @@ services:
         user: ${BRAND}
         working_dir: ${MAGENTO_ROOT_PATH}
         entrypoint: ["composer"]
-        cpuset: "0-3"
         cpu_shares: 1024
         mem_limit: 1024m
         mem_reservation: 512m
@@ -505,7 +493,6 @@ services:
         user: ${PHP_USER}
         working_dir: ${MAGENTO_ROOT_PATH}
         command: ["crond", "-f"]
-        cpuset: "0-3"
         cpu_shares: 1024
         mem_limit: 2048m
         mem_reservation: 512m
