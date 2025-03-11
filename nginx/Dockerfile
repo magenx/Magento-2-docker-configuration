@@ -55,6 +55,7 @@ RUN <<EOF
     sed -i "s/example.com/${DOMAIN}/g" /etc/nginx/nginx.conf
     sed -i "s,default.*production*php-fpm,default php:9000; # php-fpm,"  /etc/nginx/conf_m2/maps.conf
     sed -i "s,default.*production*folder,default ${MAGENTO_ROOT_PATH}; # magento folder," /etc/nginx/conf_m2/maps.conf
+    sed -i "s/127.0.0.1/varnish/g" /etc/nginx/conf_m2/varnish_proxy.conf
     openssl dhparam -dsaparam -out /etc/ssl/certs/dhparams.pem 4096
     openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout /etc/ssl/certs/default_server.key -out /etc/ssl/certs/default_server.crt \
     -subj "/CN=default_server" -days 3650 -subj "/C=US/ST=Oregon/L=Portland/O=default_server/OU=Org/CN=default_server"
