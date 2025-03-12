@@ -48,13 +48,14 @@ RUN <<EOF
 
     cp /etc/nginx/sites-available/magento2.conf  /etc/nginx/sites-available/${DOMAIN}.conf
     ln -s /etc/nginx/sites-available/${DOMAIN}.conf /etc/nginx/sites-enabled/${DOMAIN}.conf
+    sed -i "s/127.0.0.1:8080/nginx:8080/" /etc/nginx/sites-available/${DOMAIN}.conf
     sed -i "s/example.com/${DOMAIN}/g" /etc/nginx/sites-available/${DOMAIN}.conf
     sed -i "s/ADMIN_PLACEHOLDER/${ADMIN_PATH}/" /etc/nginx/conf_m2/extra_protect.conf
 
-
+    sed -i "s/#resolver 8.8.8.8 8.8.4.4 valid=3600s;/resolver 127.0.0.11 valid=30s;/"  /etc/nginx/nginx.conf
     sed -i "s/example.com/${DOMAIN}/g" /etc/nginx/nginx.conf
-    sed -i "s,default.*production*php-fpm,default php:9000; # php-fpm,"  /etc/nginx/conf_m2/maps.conf
-    sed -i "s,default.*production*folder,default ${MAGENTO_ROOT_PATH}; # magento folder," /etc/nginx/conf_m2/maps.conf
+    sed -i "s/127.0.0.1:9000/php:9000/"  /etc/nginx/conf_m2/maps.conf
+    sed -i "s,/var/www/html,${MAGENTO_ROOT_PATH}," /etc/nginx/conf_m2/maps.conf
     sed -i "s/127.0.0.1/varnish/g" /etc/nginx/conf_m2/varnish_proxy.conf
     openssl dhparam -dsaparam -out /etc/ssl/certs/dhparams.pem 4096
     openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout /etc/ssl/certs/default_server.key -out /etc/ssl/certs/default_server.crt \
