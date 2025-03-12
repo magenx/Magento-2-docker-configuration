@@ -171,7 +171,7 @@ services:
         hostname: opensearch-dashboards
         environment:
             - OPENSEARCH_HOSTS=http://opensearch:9200
-            - OPENSEARCH_USERNAME=opensearch
+            - OPENSEARCH_USERNAME=admin
             - OPENSEARCH_PASSWORD=${OPENSEARCH_PASSWORD}
             - SERVER_PUBLICBASEURL=https://${DOMAIN}:${OPENSEARCH_DASHBOARDS_PORT}
         ports:
@@ -313,7 +313,7 @@ services:
             - MARIADB_USER
             - MARIADB_PASSWORD
             - REDIS_PASSWORD
-            - OPENSEARCH_PASSWORD
+            - INDEXER_PASSWORD
             - DOMAIN
             - ADMIN_PATH
             - CRYPT_KEY
