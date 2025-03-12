@@ -48,6 +48,7 @@ RUN <<EOF
 
     cp /etc/nginx/sites-available/magento2.conf  /etc/nginx/sites-available/${DOMAIN}.conf
     ln -s /etc/nginx/sites-available/${DOMAIN}.conf /etc/nginx/sites-enabled/${DOMAIN}.conf
+    sed -i "s/127.0.0.1:8080/nginx:8080/" /etc/nginx/sites-available/${DOMAIN}.conf
     sed -i "s/example.com/${DOMAIN}/g" /etc/nginx/sites-available/${DOMAIN}.conf
     sed -i "s/ADMIN_PLACEHOLDER/${ADMIN_PATH}/" /etc/nginx/conf_m2/extra_protect.conf
 
