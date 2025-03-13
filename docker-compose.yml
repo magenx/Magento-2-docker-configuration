@@ -318,6 +318,7 @@ services:
             - ADMIN_PATH
             - CRYPT_KEY
             - RABBITMQ_PASSWORD
+            - BRAND
         hostname: php
         restart: always
         depends_on:
