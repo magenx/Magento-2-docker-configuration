@@ -327,9 +327,9 @@ services:
         ports:
             - "127.0.0.1:9000:9000"
         volumes:
-            - magento:${ROOT_PATH}:ro
-            - media:${MAGENTO_PUB_PATH}/media:rw
-            - var:${MAGENTO_ROOT_PATH}/var:rw
+            - ${MAGENTO_ROOT_PATH}:${MAGENTO_ROOT_PATH}:ro
+            - ${MAGENTO_PUB_PATH}/media:${MAGENTO_PUB_PATH}/media:rw
+            - ${MAGENTO_ROOT_PATH}/var:${MAGENTO_ROOT_PATH}/var:rw
         user: ${PHP_USER}
         working_dir: ${MAGENTO_PUB_PATH}
         entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
@@ -353,9 +353,7 @@ services:
         container_name: ${BRAND}-magento
         environment: *setphpenv
         volumes:
-            - magento:${ROOT_PATH}:delegated
-            - media:${MAGENTO_PUB_PATH}/media
-            - var:${MAGENTO_ROOT_PATH}/var
+            - ${MAGENTO_ROOT_PATH}:${MAGENTO_ROOT_PATH}:delegated
         user: ${BRAND}
         working_dir: ${MAGENTO_ROOT_PATH}
         entrypoint: ["n98-magerun2", "-vv"]
@@ -376,6 +374,8 @@ services:
               NGINX_GITHUB_REPO:
               MAGENX_NGINX_GITHUB_REPO:
               MAGENX_NGINX_GITHUB_REPO_API:
+              PROFILER_PLACEHOLDER:
+              PHPMYADMIN_FOLDER:
         container_name: ${BRAND}-nginx
         hostname: nginx
         restart: always
@@ -389,12 +389,12 @@ services:
             - "443:443"
             - "127.0.0.1:8080:8080"
         volumes:
-            - magento:${ROOT_PATH}:ro
+            - ${MAGENTO_ROOT_PATH}:${MAGENTO_ROOT_PATH}:ro
             - ssl:/etc/ssl
             - certbot:/etc/letsencrypt:ro
             - phpmyadmin:/var/www/html:ro
-            - phpmyadmincfg:/etc/phpmyadmin:ro
-        working_dir: ${MAGENTO_PUB_PATH}
+        working_dir: ${MAGENTO_ROOT_PATH}
+        user: ${BRAND}
         cpu_shares: 614
         mem_limit: 512m
         mem_reservation: 128m
@@ -426,7 +426,6 @@ services:
                 condition: service_started
         volumes:
             - phpmyadmin:/var/www/html
-            - phpmyadmincfg:/etc/phpmyadmin
         cpu_shares: 614
         mem_limit: 512m
         mem_reservation: 512m
@@ -440,7 +439,8 @@ services:
         image: certbot/certbot:latest
         container_name: ${BRAND}-certbot
         volumes:
-            - magento:${ROOT_PATH}
+            - ${MAGENTO_ROOT_PATH}:${MAGENTO_ROOT_PATH}:ro
+            - ${MAGENTO_PUB_PATH}/.well-known/acme-challenge/:${MAGENTO_PUB_PATH}/.well-known/acme-challenge/:rw
             - certbot:/etc/letsencrypt
             - certbotlib:/var/lib/letsencrypt
         << : [*ulimits, *logger]
@@ -466,7 +466,7 @@ services:
                 }
               }
         volumes:
-            - magento:${ROOT_PATH}
+            - ${MAGENTO_ROOT_PATH}:${MAGENTO_ROOT_PATH}:rw
         user: ${BRAND}
         working_dir: ${MAGENTO_ROOT_PATH}
         entrypoint: ["composer"]
@@ -490,7 +490,8 @@ services:
             mariadb:
                 condition: service_healthy
         volumes:
-            - magento:${ROOT_PATH}
+            - ${MAGENTO_ROOT_PATH}:${MAGENTO_ROOT_PATH}:ro
+            - ${MAGENTO_ROOT_PATH}/var:${MAGENTO_ROOT_PATH}/var:rw
         user: ${PHP_USER}
         working_dir: ${MAGENTO_ROOT_PATH}
         command: ["crond", "-f"]
@@ -504,14 +505,9 @@ services:
 #   Named volumes list
 # # ---------------------------------------------------------------------------------------------------------------------#            
 volumes:
-    magento:
-    media:
-    var:
     ssl:
     mariadb:
-    mariadbcnf:
     phpmyadmin:
-    phpmyadmincfg:
     opensearch:
     redis:
     rabbitmq:

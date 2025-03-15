@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:labs
-FROM nginx:mainline-alpine-perl
+FROM nginxinc/nginx-unprivileged:mainline-alpine-perl
 
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
@@ -15,6 +15,11 @@ ARG ADMIN_PATH
 ARG MAGENTO_ROOT_PATH
 ARG MAGENTO_PUB_PATH
 ARG TZ
+
+ARG PROFILER_PLACEHOLDER
+ARG PHPMYADMIN_FOLDER
+
+USER root
 
 RUN <<EOF
     mkdir -p ${MAGENTO_ROOT_PATH}
@@ -57,9 +62,16 @@ RUN <<EOF
     sed -i "s/127.0.0.1:9000/php:9000/"  /etc/nginx/conf_m2/maps.conf
     sed -i "s,/var/www/html,${MAGENTO_ROOT_PATH}," /etc/nginx/conf_m2/maps.conf
     sed -i "s/127.0.0.1/varnish/g" /etc/nginx/conf_m2/varnish_proxy.conf
+    sed -i "/user  nginx;/d" /etc/nginx/nginx.conf
+    sed -i "s,/var/run/nginx.pid,/tmp/nginx.pid," /etc/nginx/nginx.conf
     openssl dhparam -dsaparam -out /etc/ssl/certs/dhparams.pem 4096
     openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout /etc/ssl/certs/default_server.key -out /etc/ssl/certs/default_server.crt \
     -subj "/CN=default_server" -days 3650 -subj "/C=US/ST=Oregon/L=Portland/O=default_server/OU=Org/CN=default_server"
+EOF
+
+RUN <<EOF
+    mkdir -p /var/cache/nginx /var/run
+    chown -R ${BRAND} /var/cache/nginx /var/run /var/log/nginx
 EOF
 
 RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone

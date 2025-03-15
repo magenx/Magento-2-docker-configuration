@@ -143,7 +143,7 @@ php_admin_value[opcache.optimization_level] = 0xffffffff
 php_admin_value[opcache.blacklist_filename] = "/etc/opcache-default.blacklist"
 php_admin_value[opcache.max_file_size] = 0
 php_admin_value[opcache.force_restart_timeout] = 60
-php_admin_value[opcache.error_log] = "/var/log/php-fpm/opcache.log"
+php_admin_value[opcache.error_log] = "/var/log/php${PHP_VERSION}/opcache.log"
 php_admin_value[opcache.log_verbosity_level] = 1
 php_admin_value[opcache.preferred_memory_model] = ""
 EOF
