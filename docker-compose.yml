@@ -404,7 +404,10 @@ services:
     phpmyadmin:
         image: phpmyadmin:fpm-alpine
         container_name: ${BRAND}-phpmyadmin
+        hostname: phpmyadmin
         environment:
+            - PMA_ARBITRARY
+            - HIDE_PHP_VERSION
             - PMA_HOST
             - PMA_PORT
             - MAX_EXECUTION_TIME
@@ -420,6 +423,8 @@ services:
                 condition: service_healthy
             nginx:
                 condition: service_started
+        ports:
+            - "127.0.0.1:9001:9001"
         volumes:
             - phpmyadmin:/var/www/html
         cpu_shares: 614
