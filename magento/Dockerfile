@@ -17,5 +17,3 @@ EOF
 RUN <<EOF
     mkdir -p ${MAGENTO_ROOT_PATH}
 EOF
-
-USER ${BRAND}:${PHP_USER}
