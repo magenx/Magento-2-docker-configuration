@@ -87,10 +87,7 @@ services:
 #  MariaDB is a high performing open source relational database
 # # ---------------------------------------------------------------------------------------------------------------------#
     mariadb:
-        build:
-            context: ./mariadb
-            args:
-              MARIADB_VERSION:
+        image: mariadb:${MARIADB_VERSION}
         container_name: ${BRAND}-mariadb
         hostname: mariadb
         environment:
