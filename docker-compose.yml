@@ -87,10 +87,7 @@ services:
 #  MariaDB is a high performing open source relational database
 # # ---------------------------------------------------------------------------------------------------------------------#
     mariadb:
-        build:
-            context: ./mariadb
-            args:
-              MARIADB_VERSION:
+        image: mariadb:${MARIADB_VERSION}
         container_name: ${BRAND}-mariadb
         hostname: mariadb
         environment:
@@ -106,7 +103,6 @@ services:
         restart: always
         volumes:
             - mariadb:/var/lib/mysql
-            - mariadbcnf:/etc/mysql
             - ./mariadb/init.sql.gz:/docker-entrypoint-initdb.d/init.sql.gz:ro
         cpu_shares: 1024
         mem_limit: 2048m
