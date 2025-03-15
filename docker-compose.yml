@@ -103,7 +103,6 @@ services:
         restart: always
         volumes:
             - mariadb:/var/lib/mysql
-            - mariadbcnf:/etc/mysql
             - ./mariadb/init.sql.gz:/docker-entrypoint-initdb.d/init.sql.gz:ro
         cpu_shares: 1024
         mem_limit: 2048m
