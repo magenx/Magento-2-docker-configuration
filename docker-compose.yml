@@ -500,7 +500,7 @@ services:
                 }
               }
         volumes:
-            - ${MAGENTO_ROOT_PATH}:${MAGENTO_ROOT_PATH}:rw
+            <<: *magento_volumes
         user: ${BRAND}
         working_dir: ${MAGENTO_ROOT_PATH}
         entrypoint: ["composer"]
@@ -524,8 +524,7 @@ services:
             mariadb:
                 condition: service_healthy
         volumes:
-            - ${MAGENTO_ROOT_PATH}:${MAGENTO_ROOT_PATH}:ro
-            - ${MAGENTO_ROOT_PATH}/var:${MAGENTO_ROOT_PATH}/var:rw
+            <<: *magento_volumes
         user: ${PHP_USER}
         working_dir: ${MAGENTO_ROOT_PATH}
         command: ["crond", "-f"]
