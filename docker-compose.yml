@@ -340,6 +340,8 @@ services:
               <<: *setappargs
               MAGENTO_GITHUB_REPO:
               MAGENTO_GITHUB_BRANCH:
+              COMPOSER_USER:
+              COMPOSER_PASSWORD:
         container_name: ${BRAND}-magento
         environment: &setphpenv
             - MARIADB_DATABASE
