@@ -419,7 +419,7 @@ services:
             - "443:443"
             - "127.0.0.1:8080:8080"
         volumes:
-            <<: *magento_volumes
+             <<: *magento_volumes
             - ssl:/etc/ssl
             - certbot:/etc/letsencrypt:ro
             - phpmyadmin:/var/www/html:ro
