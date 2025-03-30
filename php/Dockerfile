@@ -149,9 +149,9 @@ EOF
 
 RUN <<EOF
     addgroup -S -g 1001 ${PHP_USER}
-    adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER}
-    addgroup -S -g 1000 ${BRAND}
-    adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND}
+    adduser -D -S -H -u 1001 -G ${PHP_USER} ${PHP_USER}
+    addgroup -g 1000 ${BRAND}
+    adduser -D -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND}
     chown -R ${PHP_USER} /var/log/php${PHP_VERSION}
 EOF
 
