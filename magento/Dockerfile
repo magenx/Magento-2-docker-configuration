@@ -28,11 +28,6 @@ EOF
 
 RUN <<EOF
     mkdir -p ${MAGENTO_ROOT_PATH}
-EOF
-
-USER ${BRAND}:${PHP_USER}
-
-RUN <<EOF
     cd ${MAGENTO_ROOT_PATH}
     git init -b ${MAGENTO_GITHUB_BRANCH}
     git remote add origin ${MAGENTO_GITHUB_REPO}
