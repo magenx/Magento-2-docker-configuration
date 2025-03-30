@@ -383,7 +383,10 @@ services:
                 condition: service_healthy
         ports:
             - "127.0.0.1:9000:9000"
-        volumes: *magento_volumes
+        volumes:
+            - magento:${MAGENTO_ROOT_PATH}:ro
+            - media:${MAGENTO_ROOT_PATH}/pub/media:rw
+            - var:${MAGENTO_ROOT_PATH}/var:rw
         user: ${PHP_USER}
         working_dir: ${MAGENTO_ROOT_PATH}/pub
         entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
@@ -419,7 +422,9 @@ services:
             - "443:443"
             - "127.0.0.1:8080:8080"
         volumes:
-             <<: *magento_volumes
+            - magento:${MAGENTO_ROOT_PATH}:ro
+            - media:${MAGENTO_ROOT_PATH}/pub/media:ro
+            - var:${MAGENTO_ROOT_PATH}/var:ro
             - ssl:/etc/ssl
             - certbot:/etc/letsencrypt:ro
             - phpmyadmin:/var/www/html:ro
@@ -519,7 +524,10 @@ services:
         depends_on:
             mariadb:
                 condition: service_healthy
-        volumes: *magento_volumes
+        volumes:
+            - magento:${MAGENTO_ROOT_PATH}:ro
+            - media:${MAGENTO_ROOT_PATH}/pub/media:rw
+            - var:${MAGENTO_ROOT_PATH}/var:rw
         user: ${PHP_USER}
         working_dir: ${MAGENTO_ROOT_PATH}
         command: ["crond", "-f"]
