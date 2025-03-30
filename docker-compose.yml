@@ -341,7 +341,17 @@ services:
               MAGENTO_GITHUB_REPO:
               MAGENTO_GITHUB_BRANCH:
         container_name: ${BRAND}-magento
-        environment: *setphpenv
+        environment: &setphpenv
+            - MARIADB_DATABASE
+            - MARIADB_USER
+            - MARIADB_PASSWORD
+            - REDIS_PASSWORD
+            - INDEXER_PASSWORD
+            - DOMAIN
+            - ADMIN_PATH
+            - CRYPT_KEY
+            - RABBITMQ_PASSWORD
+            - BRAND
         volumes: &magento_volumes
             - magento:${MAGENTO_ROOT_PATH}
             - media:${MAGENTO_ROOT_PATH}/pub/media
@@ -365,17 +375,7 @@ services:
               <<: *setappargs
               ALPINE_VERSION:
         container_name: ${BRAND}-php
-        environment: &setphpenv
-            - MARIADB_DATABASE
-            - MARIADB_USER
-            - MARIADB_PASSWORD
-            - REDIS_PASSWORD
-            - INDEXER_PASSWORD
-            - DOMAIN
-            - ADMIN_PATH
-            - CRYPT_KEY
-            - RABBITMQ_PASSWORD
-            - BRAND
+        environment: *setphpenv
         hostname: php
         restart: always
         depends_on:
@@ -383,8 +383,7 @@ services:
                 condition: service_healthy
         ports:
             - "127.0.0.1:9000:9000"
-        volumes:
-            <<: *magento_volumes
+        volumes: *magento_volumes
         user: ${PHP_USER}
         working_dir: ${MAGENTO_ROOT_PATH}/pub
         entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
@@ -486,8 +485,7 @@ services:
     composer:
         build:
             context: ./composer
-            args:
-              <<: *setappargs
+            args: *setappargs
         container_name: ${BRAND}-composer
         environment:
             COMPOSER_AUTH: |
@@ -499,8 +497,7 @@ services:
                   }
                 }
               }
-        volumes:
-            <<: *magento_volumes
+        volumes: *magento_volumes
         user: ${BRAND}
         working_dir: ${MAGENTO_ROOT_PATH}
         entrypoint: ["composer"]
@@ -516,15 +513,13 @@ services:
     cron:
         build:
             context: ./cron
-            args:
-              <<: *setappargs
+            args: *setappargs
         container_name: ${BRAND}-cron
         environment: *setphpenv
         depends_on:
             mariadb:
                 condition: service_healthy
-        volumes:
-            <<: *magento_volumes
+        volumes: *magento_volumes
         user: ${PHP_USER}
         working_dir: ${MAGENTO_ROOT_PATH}
         command: ["crond", "-f"]
