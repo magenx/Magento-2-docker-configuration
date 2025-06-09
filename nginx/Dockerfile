@@ -13,7 +13,6 @@ ARG DOMAIN
 ARG ROOT_PATH
 ARG ADMIN_PATH
 ARG MAGENTO_ROOT_PATH
-ARG MAGENTO_PUB_PATH
 ARG TZ
 
 ARG PROFILER_PLACEHOLDER
@@ -24,9 +23,9 @@ USER root
 RUN <<EOF
     mkdir -p ${MAGENTO_ROOT_PATH}
     addgroup -S -g 1001 ${PHP_USER}
-    adduser -S -H -h ${ROOT_PATH} -u 1001 -G ${PHP_USER} ${PHP_USER}
-    addgroup -S -g 1000 ${BRAND}
-    adduser -S -H -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND}
+    adduser -D -S -H -u 1001 -G ${PHP_USER} ${PHP_USER}
+    addgroup -g 1000 ${BRAND}
+    adduser -D -h ${ROOT_PATH} -u 1000 -G ${PHP_USER} ${BRAND}
 EOF
 
 RUN <<EOF

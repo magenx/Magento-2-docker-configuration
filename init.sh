@@ -1,5 +1,7 @@
 #!/bin/bash
 
+BRANCH="$1"
+
 export DEBIAN_FRONTEND=noninteractive 
 apt update && apt upgrade -y
 apt-get -y install ca-certificates software-properties-common screen ipset vim strace rsyslog git apache2-utils
@@ -23,7 +25,7 @@ source ~/.bash_profile
 mkdir /opt/magento
 cd /opt/magento
 
-git clone https://github.com/magenx/Magento-2-docker-configuration.git .
+git clone -b ${BRANCH} https://github.com/magenx/Magento-2-docker-configuration.git .
 
 vim .env
 
