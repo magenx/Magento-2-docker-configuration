@@ -61,15 +61,11 @@ echo \
    bash passgen.sh
 ```
 <br />
-
-When mariadb is started for the first time, a new database with the specified name will be created and initialized with the provided configuration variables. Furthermore, it will execute files with extensions .sh, .sql, .sql.gz, .sql.xz and .sql.zst that are found in ./mariadb/  
-**magento** container using files from this repository - https://github.com/magenx/Magento-2-docker-demo , with custom env.php
-<br />
   
 **[ ! ]** Check all data, adjust your settings, edit your variables  
 - [x] Run to pull and build images and start containers:   
 ```
-   doco build --no-cache php       
+   doco build --no-cache       
    doco up -d
 ```
 - [x] Watch syslog for errors and issues:
@@ -105,17 +101,6 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
 
 <br />
 
-- [x] Example how to run composer or magento command from host:  
-> magento entrypoint is n98-magerun2 script, looks like providing more commands and options  
-```
-   doco run --rm composer update
-   doco run --rm php -m
-   doco run --rm magento module:status --enabled
-   doco run --rm magento module:disable {module name}
-```
-
-<br />
-
 - [x] Stop all services:
 ```
    doco down
@@ -123,12 +108,10 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
    Stopping magenx-cron          ... done
    Stopping magenx-nginx         ... done
    Stopping magenx-php           ... done
-   Stopping magenx-magento       ... done
    Stopping magenx-opensearch    ... done
    Stopping magenx-rabbitmq      ... done
    Stopping magenx-varnish       ... done
    Stopping magenx-certbot       ... done
-   Stopping magenx-nodejs        ... done
    Stopping magenx-phpmyadmin    ... done
    Stopping magenx-mariadb       ... done
    Stopping magenx-redis         ... done
@@ -137,7 +120,6 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
 <br />
 
 # :hammer_and_wrench: Stack components in use:  
-- [x] [Portainer](https://hub.docker.com/r/portainer/portainer-ce) -  Portainer provides seamless management of Docker containers
 - [x] [MariaDB](https://hub.docker.com/r/mariadb) - MariaDB Server is a high performing open source relational database, forked from MySQL.
 - [x] [Nginx](https://hub.docker.com/r/nginx) - Official build of Nginx.
 - [x] [PHP](https://hub.docker.com/r/php) - PHP scripting language.
@@ -145,10 +127,8 @@ magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT
 - [x] [OpenSearch](https://hub.docker.com/r/opensearchproject) - Opensearch is a powerful open source search and analytics engine that makes data easy to explore.
 - [x] [Redis x2](https://hub.docker.com/r/redis) - Redis is an open source key-value store that functions as a data structure server.
 - [x] [RabbitMQ](https://hub.docker.com/r/rabbitmq) - RabbitMQ is an open source multi-protocol messaging broker.
-- [x] [NodeJS](https://hub.docker.com/r/node) - Node.js is a JavaScript-based platform for server-side and networking applications.
 - [x] [PHPMyAdmin](https://hub.docker.com/r/phpmyadmin) - phpMyAdmin - A web interface for MySQL and MariaDB.
 - [x] [Certbot](https://hub.docker.com/r/certbot/certbot) - Official build of EFF's Certbot tool for obtaining TLS/SSL certificates from Let's Encrypt.
-- [x] [Composer]
 - [x] [Cron]
   
 <br />
