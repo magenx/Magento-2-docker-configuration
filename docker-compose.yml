@@ -15,18 +15,18 @@
 # [website url]: https://www.magenx.com
 #
 
+
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Configure reusable arguments
 # # ---------------------------------------------------------------------------------------------------------------------#
-x-setappargs: &setappargs
+x-magento: &magento
     BRAND:
     DOMAIN:
     PHP_USER:
-    ROOT_PATH:
     ADMIN_PATH:
     MAGENTO_ROOT_PATH:
     PHP_VERSION:
-    TZ:
+    TIMEZONE:
 
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Configure logger driver
@@ -38,7 +38,6 @@ x-logger: &logger
                 syslog-address: "unixgram:///dev/log"
                 mode: non-blocking
                 tag: "[ {{.Name}} ]"
-                
                 
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Configure ulimits
@@ -58,8 +57,6 @@ x-ulimits: &ulimits
 x-cap_add: &cap_add
         cap_add:
             - SYS_PTRACE
-            
-            
 
 services:
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -76,7 +73,7 @@ services:
             - MARIADB_DATABASE
             - MARIADB_USER
             - MARIADB_PASSWORD
-            - TZ
+            - TIMEZONE
         command: >
             --key_buffer_size=16M
             --myisam-recover-options=FORCE,BACKUP
@@ -119,7 +116,6 @@ services:
         restart: always
         volumes:
             - mariadb:/var/lib/mysql
-            - ./mariadb/init.sql.gz:/docker-entrypoint-initdb.d/init.sql.gz:ro
         cpu_shares: 1024
         mem_limit: 2048m
         mem_reservation: 512m
@@ -266,7 +262,7 @@ services:
             args:
               VARNISH_VERSION:
               VARNISH_CACHE_SIZE:
-              TZ:
+              TIMEZONE:
         container_name: ${BRAND}-varnish
         hostname: varnish
         restart: always
@@ -284,19 +280,16 @@ services:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
-#  Configure container for magento app
+#  Configure container to run php and php-fpm
 # # ---------------------------------------------------------------------------------------------------------------------#    
-    magento:
+    php:
         build:
-            context: ./magento
+            context: ./php
             args:
-              <<: *setappargs
-              MAGENTO_GITHUB_REPO:
-              MAGENTO_GITHUB_BRANCH:
-              COMPOSER_USER:
-              COMPOSER_PASSWORD:
-        container_name: ${BRAND}-magento
-        environment: &setphpenv
+              <<: *magento
+              ALPINE_VERSION:
+        container_name: ${BRAND}-php
+        environment: &phpenv
             - MARIADB_DATABASE
             - MARIADB_USER
             - MARIADB_PASSWORD
@@ -307,30 +300,6 @@ services:
             - CRYPT_KEY
             - RABBITMQ_PASSWORD
             - BRAND
-        volumes: &magento_volumes
-            - magento:${MAGENTO_ROOT_PATH}
-            - media:${MAGENTO_ROOT_PATH}/pub/media
-            - var:${MAGENTO_ROOT_PATH}/var
-        user: ${BRAND}
-        working_dir: ${MAGENTO_ROOT_PATH}
-        entrypoint: ["n98-magerun2", "-vv"]
-        cpu_shares: 614
-        mem_limit: 512m
-        mem_reservation: 128m
-        << : [*ulimits, *logger]
-
-
-# # ---------------------------------------------------------------------------------------------------------------------#
-#  Configure container to run php and php-fpm
-# # ---------------------------------------------------------------------------------------------------------------------#    
-    php:
-        build:
-            context: ./php
-            args:
-              <<: *setappargs
-              ALPINE_VERSION:
-        container_name: ${BRAND}-php
-        environment: *setphpenv
         hostname: php
         restart: always
         depends_on:
@@ -339,11 +308,11 @@ services:
         ports:
             - "127.0.0.1:9000:9000"
         volumes:
-            - magento:${MAGENTO_ROOT_PATH}:ro
-            - media:${MAGENTO_ROOT_PATH}/pub/media:rw
-            - var:${MAGENTO_ROOT_PATH}/var:rw
+            - ${MAGENTO_ROOT_PATH}/current:${MAGENTO_ROOT_PATH}/public_html:ro
+            - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/pub/media:rw
+            - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/var:rw
         user: ${PHP_USER}
-        working_dir: ${MAGENTO_ROOT_PATH}/pub
+        working_dir: ${MAGENTO_ROOT_PATH}/public_html
         entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
         cpu_shares: 1024
         mem_limit: 2048m
@@ -357,13 +326,7 @@ services:
     nginx:
         build:
             context: ./nginx
-            args:
-              <<: *setappargs
-              NGINX_GITHUB_REPO:
-              MAGENX_NGINX_GITHUB_REPO:
-              MAGENX_NGINX_GITHUB_REPO_API:
-              PROFILER_PLACEHOLDER:
-              PHPMYADMIN_FOLDER:
+            args: *magento
         container_name: ${BRAND}-nginx
         hostname: nginx
         restart: always
@@ -377,9 +340,9 @@ services:
             - "443:443"
             - "127.0.0.1:8080:8080"
         volumes:
-            - magento:${MAGENTO_ROOT_PATH}:ro
-            - media:${MAGENTO_ROOT_PATH}/pub/media:ro
-            - var:${MAGENTO_ROOT_PATH}/var:ro
+            - ${MAGENTO_ROOT_PATH}/current:${MAGENTO_ROOT_PATH}/public_html:ro
+            - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/pub/media:ro
+            - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/var:ro
             - ssl:/etc/ssl
             - certbot:/etc/letsencrypt:ro
             - phpmyadmin:/var/www/html:ro
@@ -409,7 +372,7 @@ services:
             - PMA_PMADB
             - PMA_CONTROLUSER
             - PMA_CONTROLPASS
-            - TZ
+            - TIMEZONE
         restart: always
         depends_on:
             mariadb:
@@ -436,34 +399,6 @@ services:
             - magento:${MAGENTO_ROOT_PATH}/.well-known/acme-challenge/:rw
             - certbot:/etc/letsencrypt
             - certbotlib:/var/lib/letsencrypt
-        << : [*ulimits, *logger]
-
-
-# # ---------------------------------------------------------------------------------------------------------------------#
-#   Composer is a dependency manager written in and for PHP
-# # ---------------------------------------------------------------------------------------------------------------------# 
-    composer:
-        build:
-            context: ./composer
-            args: *setappargs
-        container_name: ${BRAND}-composer
-        environment:
-            COMPOSER_AUTH: |
-              {
-                "http-basic": {
-                  "repo.magento.com": {
-                    "username": "${COMPOSER_USER}",
-                    "password": "${COMPOSER_PASSWORD}"
-                  }
-                }
-              }
-        volumes: *magento_volumes
-        user: ${BRAND}
-        working_dir: ${MAGENTO_ROOT_PATH}
-        entrypoint: ["composer"]
-        cpu_shares: 1024
-        mem_limit: 1024m
-        mem_reservation: 512m
         << : [*ulimits, *logger]
 
 
@@ -496,9 +431,6 @@ services:
 #   Named volumes list
 # # ---------------------------------------------------------------------------------------------------------------------#            
 volumes:
-    magento:
-    media:
-    var:
     ssl:
     mariadb:
     phpmyadmin:
