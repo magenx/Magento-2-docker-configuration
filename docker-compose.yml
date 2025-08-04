@@ -309,8 +309,8 @@ services:
             - "127.0.0.1:9000:9000"
         volumes:
             - ${MAGENTO_ROOT_PATH}/current:${MAGENTO_ROOT_PATH}/public_html:ro
-            - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/pub/media:rw
-            - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/var:rw
+            - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/public_html/pub/media:rw
+            - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/public_html/var:rw
         user: ${PHP_USER}
         working_dir: ${MAGENTO_ROOT_PATH}/public_html
         entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
@@ -341,8 +341,8 @@ services:
             - "127.0.0.1:8080:8080"
         volumes:
             - ${MAGENTO_ROOT_PATH}/current:${MAGENTO_ROOT_PATH}/public_html:ro
-            - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/pub/media:ro
-            - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/var:ro
+            - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/public_html/pub/media:ro
+            - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/public_html/var:ro
             - ssl:/etc/ssl
             - certbot:/etc/letsencrypt:ro
             - phpmyadmin:/var/www/html:ro
@@ -396,7 +396,7 @@ services:
         image: certbot/certbot:latest
         container_name: ${BRAND}-certbot
         volumes:
-            - magento:${MAGENTO_ROOT_PATH}/.well-known/acme-challenge/:rw
+            - ${MAGENTO_ROOT_PATH}/current/.well-known/acme-challenge/:rw
             - certbot:/etc/letsencrypt
             - certbotlib:/var/lib/letsencrypt
         << : [*ulimits, *logger]
@@ -415,9 +415,9 @@ services:
             mariadb:
                 condition: service_healthy
         volumes:
-            - magento:${MAGENTO_ROOT_PATH}:ro
-            - media:${MAGENTO_ROOT_PATH}/pub/media:rw
-            - var:${MAGENTO_ROOT_PATH}/var:rw
+            - ${MAGENTO_ROOT_PATH}/current:${MAGENTO_ROOT_PATH}/public_html:ro
+            - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/public_html/pub/media:ro
+            - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/public_html/var:rw
         user: ${PHP_USER}
         working_dir: ${MAGENTO_ROOT_PATH}
         command: ["crond", "-f"]
