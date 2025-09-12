@@ -408,9 +408,9 @@ services:
     cron:
         build:
             context: ./cron
-            args: *setappargs
+            args: *magento
         container_name: ${BRAND}-cron
-        environment: *setphpenv
+        environment: *phpenv
         depends_on:
             mariadb:
                 condition: service_healthy
