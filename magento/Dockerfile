@@ -24,8 +24,7 @@ RUN <<EOF
     apk update
     apk add --update --no-cache \
     bash \
-    curl \
-    strace
+    curl
 EOF
 
 SHELL ["/bin/bash","-c"]
@@ -90,9 +89,6 @@ listen.group = ${PHP_USER}
 listen.mode = 0660
 pm = ondemand
 pm.max_children = 100
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 3
 pm.max_requests = 10000
 clear_env = no
 ;;
@@ -154,7 +150,22 @@ RUN <<EOF
 EOF
 
 RUN <<EOF
+    curl -o /usr/local/bin/n98-magerun2 https://files.magerun.net/n98-magerun2.phar
+    chmod +x /usr/local/bin/n98-magerun2
+EOF
+
+RUN <<EOF
     ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
     echo ${TIMEZONE} > /etc/timezone
     ln -s /usr/bin/php${PHP_VERSION} /usr/local/bin/php
 EOF
+
+RUN <<EOF
+    RELEASE_VERSION="${ARTIFACT#release_}"
+    RELEASE_VERSION="${RELEASE_VERSION%.tar.gz}"
+    mkdir -p ${ROOT_PATH}/releases/${RELEASE_VERSION}
+	
+EOF
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh

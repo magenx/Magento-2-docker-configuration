@@ -15,19 +15,6 @@
 # [website url]: https://www.magenx.com
 #
 
-
-# # ---------------------------------------------------------------------------------------------------------------------#
-#  Configure reusable arguments
-# # ---------------------------------------------------------------------------------------------------------------------#
-x-magento: &magento
-    BRAND:
-    DOMAIN:
-    PHP_USER:
-    ADMIN_PATH:
-    MAGENTO_ROOT_PATH:
-    PHP_VERSION:
-    TIMEZONE:
-
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Configure logger driver
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -64,7 +51,7 @@ services:
 # # ---------------------------------------------------------------------------------------------------------------------#
     mariadb:
         image: mariadb:${MARIADB_VERSION}
-        container_name: ${BRAND}-mariadb
+        container_name: mariadb
         hostname: mariadb
         environment:
             - MARIADB_AUTO_UPGRADE
@@ -137,13 +124,14 @@ services:
             context: ./opensearch
             args:
               OPENSEARCH_VERSION:
-        container_name: ${BRAND}-opensearch
+        container_name: opensearch
         hostname: opensearch
         environment:
             - cluster.name=${BRAND}-cluster
             - node.name=${BRAND}-node1
             - node.attr.rack=${BRAND}-rack1
             - discovery.type=single-node
+            - cluster.routing.allocation.enable=all
             - bootstrap.memory_lock=true
             - plugins.security.ssl.transport.enforce_hostname_verification=false
             - plugins.security.ssl.http.enabled=false
@@ -175,7 +163,7 @@ services:
 # # ---------------------------------------------------------------------------------------------------------------------#
     redis-cache:
         image: &redis_image redis:${REDIS_VERSION}-alpine
-        container_name: ${BRAND}-redis-cache
+        container_name: redis-cache
         hostname: redis-cache
         command: >
             --bind redis-cache
@@ -205,7 +193,7 @@ services:
 # # ---------------------------------------------------------------------------------------------------------------------#
     redis-session:
         image: *redis_image
-        container_name: ${BRAND}-redis-session
+        container_name: redis-session
         hostname: redis-session
         command: >
             --bind redis-session
@@ -236,10 +224,10 @@ services:
 # # ---------------------------------------------------------------------------------------------------------------------#                
     rabbitmq:
         image: rabbitmq:${RABBITMQ_VERSION}-alpine
-        container_name: ${BRAND}-rabbitmq
+        container_name: rabbitmq
         hostname: rabbitmq
         environment:
-            - RABBITMQ_DEFAULT_USER=rabbitmq_${BRAND}
+            - RABBITMQ_DEFAULT_USER=${BRAND}
             - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
         restart: always
         ports:
@@ -263,7 +251,7 @@ services:
               VARNISH_VERSION:
               VARNISH_CACHE_SIZE:
               TIMEZONE:
-        container_name: ${BRAND}-varnish
+        container_name: varnish
         hostname: varnish
         restart: always
         depends_on:
@@ -278,18 +266,25 @@ services:
         mem_reservation: 128m
         << : [*ulimits, *logger]
 
-
 # # ---------------------------------------------------------------------------------------------------------------------#
-#  Configure container to run php and php-fpm
-# # ---------------------------------------------------------------------------------------------------------------------#    
-    php:
+#  Magento application code
+# # ---------------------------------------------------------------------------------------------------------------------#  
+    magento:
         build:
-            context: ./php
-            args:
-              <<: *magento
+            context: ./magento
+            args: &magento_env
+              BRAND:
+              DOMAIN:
+              PHP_USER:
+              ADMIN_PATH:
+              ROOT_PATH:
+              PHP_VERSION:
+              TIMEZONE:
+              MAGENTO_GITHUB_REPO:
+              MAGENTO_GITHUB_BRANCH:
               ALPINE_VERSION:
-        container_name: ${BRAND}-php
-        environment: &phpenv
+        container_name: magento
+        environment: &php_env
             - MARIADB_DATABASE
             - MARIADB_USER
             - MARIADB_PASSWORD
@@ -300,6 +295,30 @@ services:
             - CRYPT_KEY
             - RABBITMQ_PASSWORD
             - BRAND
+            - ROOT_PATH
+        volumes:
+            - magento:${ROOT_PATH}
+            - media:${ROOT_PATH}/shared/pub/media
+            - var:${ROOT_PATH}/shared/var
+        user: "${BRAND}"
+        working_dir: "${ROOT_PATH}/current"
+        entrypoint: ["/entrypoint.sh"]
+        cpu_shares: 614
+        mem_limit: 512m
+        mem_reservation: 128m
+        << : [*ulimits, *logger]
+
+
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Configure container to run php and php-fpm
+# # ---------------------------------------------------------------------------------------------------------------------#    
+    php:
+        build:
+            context: ./php
+            args:
+              <<: *magento_env
+        container_name: php
+        environment: *php_env
         hostname: php
         restart: always
         depends_on:
@@ -308,11 +327,11 @@ services:
         ports:
             - "127.0.0.1:9000:9000"
         volumes:
-            - ${MAGENTO_ROOT_PATH}/current:${MAGENTO_ROOT_PATH}/public_html:ro
-            - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/public_html/pub/media:rw
-            - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/public_html/var:rw
+            - magento:${ROOT_PATH}:ro
+            - media:${ROOT_PATH}/shared/pub/media:rw
+            - var:${ROOT_PATH}/shared/var:rw
         user: ${PHP_USER}
-        working_dir: ${MAGENTO_ROOT_PATH}/public_html
+        working_dir: "${ROOT_PATH}/current"
         entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
         cpu_shares: 1024
         mem_limit: 2048m
@@ -326,8 +345,8 @@ services:
     nginx:
         build:
             context: ./nginx
-            args: *magento
-        container_name: ${BRAND}-nginx
+            args: *magento_env
+        container_name: nginx
         hostname: nginx
         restart: always
         depends_on:
@@ -340,13 +359,13 @@ services:
             - "443:443"
             - "127.0.0.1:8080:8080"
         volumes:
-            - ${MAGENTO_ROOT_PATH}/current:${MAGENTO_ROOT_PATH}/public_html:ro
-            - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/public_html/pub/media:ro
-            - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/public_html/var:ro
+            - magento:${ROOT_PATH}:ro
+            - media:${ROOT_PATH}/shared/pub/media:ro
+            - var:${ROOT_PATH}/shared/var:ro
             - ssl:/etc/ssl
             - certbot:/etc/letsencrypt:ro
             - phpmyadmin:/var/www/html:ro
-        working_dir: ${MAGENTO_ROOT_PATH}
+        working_dir: ${ROOT_PATH}/current
         user: ${BRAND}
         cpu_shares: 614
         mem_limit: 512m
@@ -355,11 +374,43 @@ services:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
+#   Composer is a dependency manager written in and for PHP
+# # ---------------------------------------------------------------------------------------------------------------------# 
+    composer:
+        build:
+            context: ./composer
+            args:
+              <<: *magento_env
+        container_name: composer
+        environment:
+            COMPOSER_AUTH: |
+              {
+                "http-basic": {
+                  "repo.magento.com": {
+                    "username": "${COMPOSER_USER}",
+                    "password": "${COMPOSER_PASSWORD}"
+                  }
+                }
+              }
+        volumes:
+            - magento:${ROOT_PATH}:rw
+            - media:${ROOT_PATH}/shared/pub/media:rw
+            - var:${ROOT_PATH}/shared/var:rw
+        user: ${BRAND}
+        working_dir: "${ROOT_PATH}/current/"
+        entrypoint: ["composer"]
+        cpu_shares: 1024
+        mem_limit: 1024m
+        mem_reservation: 512m
+        << : [*ulimits, *logger]
+
+
+# # ---------------------------------------------------------------------------------------------------------------------#
 #  phpMyAdmin - A web interface for MariaDB
 # # ---------------------------------------------------------------------------------------------------------------------#  
     phpmyadmin:
         image: phpmyadmin:fpm-alpine
-        container_name: ${BRAND}-phpmyadmin
+        container_name: phpmyadmin
         hostname: phpmyadmin
         environment:
             - PMA_ARBITRARY
@@ -394,9 +445,9 @@ services:
 # # ---------------------------------------------------------------------------------------------------------------------#           
     certbot:
         image: certbot/certbot:latest
-        container_name: ${BRAND}-certbot
+        container_name: certbot
         volumes:
-            - ${MAGENTO_ROOT_PATH}/current/.well-known/acme-challenge/:rw
+            - magento:${ROOT_PATH}/current/pub/.well-known/acme-challenge/:rw
             - certbot:/etc/letsencrypt
             - certbotlib:/var/lib/letsencrypt
         << : [*ulimits, *logger]
@@ -408,18 +459,18 @@ services:
     cron:
         build:
             context: ./cron
-            args: *magento
-        container_name: ${BRAND}-cron
-        environment: *phpenv
+            args: *magento_env
+        container_name: cron
+        environment: *php_env
         depends_on:
             mariadb:
                 condition: service_healthy
         volumes:
-            - ${MAGENTO_ROOT_PATH}/current:${MAGENTO_ROOT_PATH}/public_html:ro
-            - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/public_html/pub/media:ro
-            - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/public_html/var:rw
+            - magento:${ROOT_PATH}:ro
+            - media:${ROOT_PATH}/shared/pub/media:ro
+            - var:${ROOT_PATH}/shared/var:rw
         user: ${PHP_USER}
-        working_dir: ${MAGENTO_ROOT_PATH}
+        working_dir: "${ROOT_PATH}/current/"
         command: ["crond", "-f"]
         cpu_shares: 1024
         mem_limit: 2048m
@@ -439,6 +490,9 @@ volumes:
     rabbitmq:
     certbot:
     certbotlib:
+    magento:
+    media:
+    var:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#

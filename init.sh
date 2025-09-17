@@ -25,6 +25,7 @@ cd /opt/magento
 
 git clone https://github.com/magenx/Magento-2-docker-configuration.git .
 
+mv .env.template .env
 vim .env
 
 echo "generating random passwords ..."
