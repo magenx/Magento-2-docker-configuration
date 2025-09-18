@@ -20,8 +20,8 @@ echo "alias for docker compose command = [ doco ]"
 echo "alias doco='docker compose'" >> ~/.bash_profile
 source ~/.bash_profile
 
-mkdir /opt/magento
-cd /opt/magento
+mkdir -p /opt/magenx/docker
+cd /opt/magenx/docker
 
 git clone https://github.com/magenx/Magento-2-docker-configuration.git .
 
@@ -31,4 +31,4 @@ vim .env
 echo "generating random passwords ..."
 bash passgen.sh
 
-cd /opt/magento
+cd /opt/magenx/docker

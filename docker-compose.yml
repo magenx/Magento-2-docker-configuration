@@ -87,22 +87,19 @@ services:
             --table_definition_cache=4000
             --table_open_cache=4000
             --innodb_lock_wait_timeout=7200
-            --innodb_flush_method=O_DIRECT
             --innodb_flush_log_at_trx_commit=2
             --innodb_log_file_size=128M
             --innodb_log_buffer_size=8M
-            --innodb_file_per_table=1
             --innodb_read_io_threads=8
             --innodb_write_io_threads=8
             --innodb_buffer_pool_size=2G
-            --log_error=/var/log/mysqld.log
             --skip-log-bin
             --disable-log-bin
         ports:
             - "127.0.0.1:3306:3306"
-        restart: always
         volumes:
-            - mariadb:/var/lib/mysql
+            - ${DATA}/mariadb:/var/lib/mysql
+        restart: always
         cpu_shares: 1024
         mem_limit: 2048m
         mem_reservation: 512m
@@ -120,12 +117,12 @@ services:
 #  Opensearch is a powerful open source search and analytics engine
 # # ---------------------------------------------------------------------------------------------------------------------#
     opensearch:
+        container_name: opensearch
+        hostname: opensearch
         build:
             context: ./opensearch
             args:
               OPENSEARCH_VERSION:
-        container_name: opensearch
-        hostname: opensearch
         environment:
             - cluster.name=${BRAND}-cluster
             - node.name=${BRAND}-node1
@@ -142,9 +139,10 @@ services:
         ports:
             - "127.0.0.1:9200:9200"
             - "127.0.0.1:9300:9300"
-        restart: always
         volumes:
-            - opensearch:/usr/share/opensearch/data
+            - ${DATA}/opensearch:/usr/share/opensearch/data
+            - ${DATA}/opensearch/logs:/usr/share/opensearch/logs
+        restart: always
         cpu_shares: 1024
         mem_limit: 2048m
         mem_reservation: 512m
@@ -161,12 +159,12 @@ services:
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Redis is an open source key-value store that functions as a data structure server.
 # # ---------------------------------------------------------------------------------------------------------------------#
-    redis-cache:
+    cache:
         image: &redis_image redis:${REDIS_VERSION}-alpine
-        container_name: redis-cache
-        hostname: redis-cache
+        container_name: cache
+        hostname: cache
         command: >
-            --bind redis-cache
+            --bind cache
             --port 6380
             --save ""
             --loglevel warning
@@ -191,12 +189,12 @@ services:
 # # ---------------------------------------------------------------------------------------------------------------------#
 #  Redis is an open source key-value store that functions as a data structure server.
 # # ---------------------------------------------------------------------------------------------------------------------#
-    redis-session:
+    session:
         image: *redis_image
-        container_name: redis-session
-        hostname: redis-session
+        container_name: session
+        hostname: session
         command: >
-            --bind redis-session
+            --bind session
             --port 6379
             --save 300 15
             --requirepass ${REDIS_PASSWORD}
@@ -209,9 +207,9 @@ services:
             --lazyfree-lazy-user-del yes
         ports:
             - "127.0.0.1:6379:6379"
-        restart: always
         volumes:
-            - redis:/data
+            - ${DATA}/redis:/data
+        restart: always
         cpu_shares: 614
         mem_limit: 1024mb
         mem_reservation: 128m
@@ -229,11 +227,11 @@ services:
         environment:
             - RABBITMQ_DEFAULT_USER=${BRAND}
             - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
-        restart: always
         ports:
             - "127.0.0.1:5672:5672"
         volumes:
-            - rabbitmq:/var/lib/rabbitmq
+            - ${DATA}/rabbitmq:/var/lib/rabbitmq
+        restart: always
         cpu_shares: 614
         mem_limit: 512m
         mem_reservation: 128m
@@ -245,15 +243,14 @@ services:
 #  Varnish is an HTTP accelerator designed for content-heavy dynamic web sites as well as APIs.
 # # ---------------------------------------------------------------------------------------------------------------------#                  
     varnish:
+        container_name: varnish
+        hostname: varnish
         build:
             context: ./varnish
             args:
               VARNISH_VERSION:
               VARNISH_CACHE_SIZE:
               TIMEZONE:
-        container_name: varnish
-        hostname: varnish
-        restart: always
         depends_on:
             - nginx
             - php
@@ -261,50 +258,9 @@ services:
             - "127.0.0.1:8081:8081"
             - "127.0.0.1:6082:6082" 
         user: varnish
+        restart: always
         cpu_shares: 614
         mem_limit: 1024m
-        mem_reservation: 128m
-        << : [*ulimits, *logger]
-
-# # ---------------------------------------------------------------------------------------------------------------------#
-#  Magento application code
-# # ---------------------------------------------------------------------------------------------------------------------#  
-    magento:
-        build:
-            context: ./magento
-            args: &magento_env
-              BRAND:
-              DOMAIN:
-              PHP_USER:
-              ADMIN_PATH:
-              ROOT_PATH:
-              PHP_VERSION:
-              TIMEZONE:
-              MAGENTO_GITHUB_REPO:
-              MAGENTO_GITHUB_BRANCH:
-              ALPINE_VERSION:
-        container_name: magento
-        environment: &php_env
-            - MARIADB_DATABASE
-            - MARIADB_USER
-            - MARIADB_PASSWORD
-            - REDIS_PASSWORD
-            - INDEXER_PASSWORD
-            - DOMAIN
-            - ADMIN_PATH
-            - CRYPT_KEY
-            - RABBITMQ_PASSWORD
-            - BRAND
-            - ROOT_PATH
-        volumes:
-            - magento:${ROOT_PATH}
-            - media:${ROOT_PATH}/shared/pub/media
-            - var:${ROOT_PATH}/shared/var
-        user: "${BRAND}"
-        working_dir: "${ROOT_PATH}/current"
-        entrypoint: ["/entrypoint.sh"]
-        cpu_shares: 614
-        mem_limit: 512m
         mem_reservation: 128m
         << : [*ulimits, *logger]
 
@@ -313,30 +269,76 @@ services:
 #  Configure container to run php and php-fpm
 # # ---------------------------------------------------------------------------------------------------------------------#    
     php:
+        container_name: php
+        hostname: php
         build:
             context: ./php
-            args:
-              <<: *magento_env
-        container_name: php
-        environment: *php_env
-        hostname: php
-        restart: always
+            args: &magento_env
+              BRAND:
+              DOMAIN:
+              PHP_USER:
+              ADMIN_PATH:
+              ROOT_PATH:
+              PHP_PACKAGES:
+              PHP_VERSION:
+              PHP_FPM_POOL:
+              PHP_INI:
+              TIMEZONE:
+              ALPINE_VERSION:
+        environment: &php_env
+            - MARIADB_DATABASE
+            - MARIADB_USER
+            - MARIADB_PASSWORD
+            - RABBITMQ_PASSWORD
+            - REDIS_PASSWORD
+            - INDEXER_PASSWORD
+            - BRAND
+            - DOMAIN
+            - ROOT_PATH
+            - ADMIN_PATH
+            - CRYPT_KEY
         depends_on:
             mariadb:
                 condition: service_healthy
         ports:
             - "127.0.0.1:9000:9000"
         volumes:
-            - magento:${ROOT_PATH}:ro
-            - media:${ROOT_PATH}/shared/pub/media:rw
-            - var:${ROOT_PATH}/shared/var:rw
+            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public:ro
+            - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
+            - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media
+        working_dir: "${ROOT_PATH}/public"
         user: ${PHP_USER}
-        working_dir: "${ROOT_PATH}/current"
         entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
+        restart: always
         cpu_shares: 1024
         mem_limit: 2048m
         mem_reservation: 512m
         << : [*ulimits, *cap_add, *logger]
+
+
+
+# # ---------------------------------------------------------------------------------------------------------------------#
+#  Configure container for magento app
+# # ---------------------------------------------------------------------------------------------------------------------#    
+    magento:
+        container_name: magento
+        build:
+            context: ./magento
+            args: *magento_env
+            additional_contexts:
+              php: "service:php"
+        environment: *php_env
+        volumes:
+            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public:ro
+            - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
+            - ${MAGENTO}/${BRAND}/shared//pub/media:${ROOT_PATH}/public/pub/media
+        working_dir: "${ROOT_PATH}/public"
+        user: ${BRAND}
+        entrypoint: ["/entrypoint.sh"]
+        cpu_shares: 614
+        mem_limit: 1024m
+        mem_reservation: 128m
+        << : [*ulimits, *logger]
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
@@ -359,13 +361,13 @@ services:
             - "443:443"
             - "127.0.0.1:8080:8080"
         volumes:
-            - magento:${ROOT_PATH}:ro
-            - media:${ROOT_PATH}/shared/pub/media:ro
-            - var:${ROOT_PATH}/shared/var:ro
-            - ssl:/etc/ssl
-            - certbot:/etc/letsencrypt:ro
-            - phpmyadmin:/var/www/html:ro
-        working_dir: ${ROOT_PATH}/current
+            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public:ro
+            - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var:ro
+            - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media:ro
+            - ${DATA}/ssl:/etc/ssl
+            - ${DATA}/letsencrypt:/etc/letsencrypt:ro
+            - ${DATA}/phpmyadmin:/var/www/html:ro
+        working_dir: "${ROOT_PATH}/public"
         user: ${BRAND}
         cpu_shares: 614
         mem_limit: 512m
@@ -381,6 +383,8 @@ services:
             context: ./composer
             args:
               <<: *magento_env
+            additional_contexts:
+              php: "service:php"
         container_name: composer
         environment:
             COMPOSER_AUTH: |
@@ -393,11 +397,11 @@ services:
                 }
               }
         volumes:
-            - magento:${ROOT_PATH}:rw
-            - media:${ROOT_PATH}/shared/pub/media:rw
-            - var:${ROOT_PATH}/shared/var:rw
+            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public
+            - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
+            - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media
+        working_dir: "${ROOT_PATH}/public"
         user: ${BRAND}
-        working_dir: "${ROOT_PATH}/current/"
         entrypoint: ["composer"]
         cpu_shares: 1024
         mem_limit: 1024m
@@ -433,7 +437,7 @@ services:
         ports:
             - "127.0.0.1:9001:9001"
         volumes:
-            - phpmyadmin:/var/www/html
+            - ${DATA}/phpmyadmin:/var/www/html
         cpu_shares: 614
         mem_limit: 512m
         mem_reservation: 512m
@@ -447,9 +451,9 @@ services:
         image: certbot/certbot:latest
         container_name: certbot
         volumes:
-            - magento:${ROOT_PATH}/current/pub/.well-known/acme-challenge/:rw
-            - certbot:/etc/letsencrypt
-            - certbotlib:/var/lib/letsencrypt
+            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public/pub/.well-known/acme-challenge/:rw
+            - ${DATA}/letsencrypt:/etc/letsencrypt
+            - ${DATA}/letsencrypt:/var/lib/letsencrypt
         << : [*ulimits, *logger]
 
 
@@ -460,17 +464,19 @@ services:
         build:
             context: ./cron
             args: *magento_env
+            additional_contexts:
+              php: "service:php"
         container_name: cron
         environment: *php_env
         depends_on:
             mariadb:
                 condition: service_healthy
         volumes:
-            - magento:${ROOT_PATH}:ro
-            - media:${ROOT_PATH}/shared/pub/media:ro
-            - var:${ROOT_PATH}/shared/var:rw
+            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public
+            - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
+            - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media
+        working_dir: "${ROOT_PATH}/public"
         user: ${PHP_USER}
-        working_dir: "${ROOT_PATH}/current/"
         command: ["crond", "-f"]
         cpu_shares: 1024
         mem_limit: 2048m
@@ -479,26 +485,8 @@ services:
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
-#   Named volumes list
-# # ---------------------------------------------------------------------------------------------------------------------#            
-volumes:
-    ssl:
-    mariadb:
-    phpmyadmin:
-    opensearch:
-    redis:
-    rabbitmq:
-    certbot:
-    certbotlib:
-    magento:
-    media:
-    var:
-
-
-# # ---------------------------------------------------------------------------------------------------------------------#
 #   Named networks list
 # # ---------------------------------------------------------------------------------------------------------------------# 
 networks:
     default:
         name: ${BRAND}
-
