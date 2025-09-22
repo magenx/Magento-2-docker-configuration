@@ -12,8 +12,8 @@ PASSWORD=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9%&?' | fold -w 32 | head 
 echo "${SERVICE}_PASSWORD='${PASSWORD}'" >> .env
 done
 
-for THIS_ in ADMIN_ RABBITMQ_ PHPMYADMIN_
+for THIS in ADMIN RABBITMQ PHPMYADMIN
 do
 RANDOM_PATH=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 6 | head -n 1)
-echo "${THIS_}PATH='${THIS_,,}_${RANDOM_PATH}'" >> .env
+echo "${THIS}_PATH='${THIS,,}_${RANDOM_PATH}'" >> .env
 done
