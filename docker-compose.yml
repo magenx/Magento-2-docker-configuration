@@ -70,8 +70,8 @@ services:
             --bind-address=mariadb
             --skip-name-resolve
             --back_log=20
-            --interactive_timeout=7200
-            --wait_timeout=7200
+            --interactive_timeout=600
+            --wait_timeout=600
             --net_read_timeout=120
             --net_write_timeout=300
             --sort_buffer_size=1M
@@ -86,7 +86,7 @@ services:
             --open_files_limit=65535
             --table_definition_cache=4000
             --table_open_cache=4000
-            --innodb_lock_wait_timeout=7200
+            --innodb_lock_wait_timeout=600
             --innodb_flush_log_at_trx_commit=2
             --innodb_log_file_size=128M
             --innodb_log_buffer_size=8M
@@ -95,15 +95,17 @@ services:
             --innodb_buffer_pool_size=2G
             --skip-log-bin
             --disable-log-bin
-        ports:
-            - "127.0.0.1:3306:3306"
+        expose:
+            - "3306"
+        networks:
+            - backend
         volumes:
             - ${DATA}/mariadb:/var/lib/mysql
-        restart: always
-        cpu_shares: 1024
-        mem_limit: 2048m
-        mem_reservation: 512m
-        oom_kill_disable: true
+        user: "3306:3306"
+        restart: unless-stopped
+        cpus: 2
+        mem_limit: 4G
+        mem_reservation: 2G
         healthcheck:
             test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized", "--innodb_buffer_pool_loaded"]
             start_period: 10s
@@ -136,19 +138,21 @@ services:
             - plugins.security.allow_default_init_securityindex=true
             - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
             - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD}
-        ports:
-            - "127.0.0.1:9200:9200"
-            - "127.0.0.1:9300:9300"
+        expose:
+            - "9200"
+            - "9300"
+        networks:
+            - frontend
         volumes:
             - ${DATA}/opensearch:/usr/share/opensearch/data
             - ${DATA}/opensearch/logs:/usr/share/opensearch/logs
-        restart: always
-        cpu_shares: 1024
-        mem_limit: 2048m
-        mem_reservation: 512m
-        oom_kill_disable: true
+        user: "9200:9200"
+        restart: unless-stopped
+        cpus: 1
+        mem_limit: 2G
+        mem_reservation: 1G
         healthcheck:
-            test: ["CMD-SHELL", "curl -XGET -u admin:${OPENSEARCH_PASSWORD} 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=15s' || exit 1"]
+            test: ["CMD-SHELL", "curl -XGET -u admin:${OPENSEARCH_PASSWORD} 'http://opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=15s' || exit 1"]
             start_period: 15s
             interval: 15s
             timeout: 5s
@@ -167,22 +171,33 @@ services:
             --bind cache
             --port 6380
             --save ""
+            --appendonly no
+            --activerehashing yes
             --loglevel warning
             --requirepass ${REDIS_PASSWORD}
-            --maxmemory ${REDIS_CACHE_MEMORY}
+            --maxmemory ${REDIS_CACHE_SIZE}
             --maxmemory-policy allkeys-lru
             --lazyfree-lazy-eviction yes
             --lazyfree-lazy-expire yes
             --lazyfree-lazy-server-del yes
             --replica-lazy-flush yes
             --lazyfree-lazy-user-del yes
-        ports:
-            - "127.0.0.1:6380:6380"
-        restart: always
-        cpu_shares: 614
-        mem_limit: 1024mb
-        mem_reservation: 128m
-        oom_kill_disable: true
+        expose:
+            - "6380"
+        networks:
+            - frontend
+        volumes:
+            - ${DATA}/redis/cache:/data
+        restart: unless-stopped
+        cpus: 1
+        mem_limit: 2G
+        mem_reservation: 512M
+        healthcheck:
+            test: ["CMD", "redis-cli", "-h", "cache", "-p", "6380", "-a", "${REDIS_PASSWORD}", "ping"]
+            start_period: 10s
+            interval: 10s
+            timeout: 5s
+            retries: 3
         << : [*ulimits, *logger]
 
 
@@ -198,22 +213,30 @@ services:
             --port 6379
             --save 300 15
             --requirepass ${REDIS_PASSWORD}
-            --maxmemory ${REDIS_SESSION_MEMORY}
+            --maxmemory ${REDIS_SESSION_SIZE}
             --maxmemory-policy allkeys-lru
             --lazyfree-lazy-eviction yes
             --lazyfree-lazy-expire yes
             --lazyfree-lazy-server-del yes
             --replica-lazy-flush yes
             --lazyfree-lazy-user-del yes
-        ports:
-            - "127.0.0.1:6379:6379"
+        expose:
+            - "6379"
+        networks:
+            - frontend
         volumes:
-            - ${DATA}/redis:/data
-        restart: always
-        cpu_shares: 614
-        mem_limit: 1024mb
-        mem_reservation: 128m
-        oom_kill_disable: true
+            - ${DATA}/redis/session:/data
+        user: "6379:6379"
+        restart: unless-stopped
+        cpus: 1
+        mem_limit: 1G
+        mem_reservation: 512M
+        healthcheck:
+            test: ["CMD", "redis-cli", "-h", "session", "-p", "6379", "-a", "${REDIS_PASSWORD}", "ping"]
+            start_period: 10s
+            interval: 10s
+            timeout: 5s
+            retries: 3
         << : [*ulimits, *logger]
 
 
@@ -227,15 +250,23 @@ services:
         environment:
             - RABBITMQ_DEFAULT_USER=${BRAND}
             - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
-        ports:
-            - "127.0.0.1:5672:5672"
+        expose:
+            - "5672"
+        networks:
+            - frontend
         volumes:
             - ${DATA}/rabbitmq:/var/lib/rabbitmq
-        restart: always
-        cpu_shares: 614
-        mem_limit: 512m
-        mem_reservation: 128m
-        oom_kill_disable: true
+        user: "5672:5672"
+        restart: unless-stopped
+        cpus: 1
+        mem_limit: 1G
+        mem_reservation: 512M
+        healthcheck:
+            test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+            start_period: 10s
+            interval: 10s
+            timeout: 5s
+            retries: 3
         << : [*ulimits, *logger]
                 
                 
@@ -254,14 +285,21 @@ services:
         depends_on:
             - nginx
             - php
-        ports:
-            - "127.0.0.1:8081:8081"
-            - "127.0.0.1:6082:6082" 
-        user: varnish
-        restart: always
-        cpu_shares: 614
-        mem_limit: 1024m
-        mem_reservation: 128m
+        expose:
+            - "8081"
+        networks:
+            - frontend
+        user: "8081:8081"
+        restart: unless-stopped
+        cpus: 1
+        mem_limit: 1G
+        mem_reservation: 1G
+        healthcheck:
+            test: ["CMD", "varnishadm", "ping"]
+            start_period: 10s
+            interval: 10s
+            timeout: 5s
+            retries: 3
         << : [*ulimits, *logger]
 
 
@@ -285,6 +323,13 @@ services:
               PHP_INI:
               TIMEZONE:
               ALPINE_VERSION:
+        develop:
+          watch:
+            - path: ./php
+              include: Dockerfile
+              action: rebuild
+            - path: ./php/config
+              action: rebuild
         environment: &php_env
             - MARIADB_DATABASE
             - MARIADB_USER
@@ -300,19 +345,22 @@ services:
         depends_on:
             mariadb:
                 condition: service_healthy
-        ports:
-            - "127.0.0.1:9000:9000"
+        expose:
+            - "9000"
+        networks:
+            - backend
+            - frontend
         volumes:
             - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public:ro
             - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
             - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media
         working_dir: "${ROOT_PATH}/public"
-        user: ${PHP_USER}
+        user: "1000:1001"
         entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
-        restart: always
-        cpu_shares: 1024
-        mem_limit: 2048m
-        mem_reservation: 512m
+        restart: unless-stopped
+        cpus: 1
+        mem_limit: 1G
+        mem_reservation: 1G
         << : [*ulimits, *cap_add, *logger]
 
 
@@ -327,17 +375,30 @@ services:
             args: *magento_env
             additional_contexts:
               php: "service:php"
+        develop:
+          watch:
+            - path: ./magento
+              include: Dockerfile
+              action: rebuild
+            - path: ./php
+              include: Dockerfile
+              action: rebuild
+            - path: ./php/config/magento
+              action: rebuild
         environment: *php_env
         volumes:
             - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public:ro
             - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
             - ${MAGENTO}/${BRAND}/shared//pub/media:${ROOT_PATH}/public/pub/media
+        networks:
+            - backend
         working_dir: "${ROOT_PATH}/public"
-        user: ${BRAND}
+        user: "1000:1001"
         entrypoint: ["/entrypoint.sh"]
-        cpu_shares: 614
-        mem_limit: 1024m
-        mem_reservation: 128m
+        restart: unless-stopped
+        cpus: 2
+        mem_limit: 2G
+        mem_reservation: 1G
         << : [*ulimits, *logger]
 
 
@@ -345,12 +406,19 @@ services:
 #  Nginx is an open source reverse proxy server for HTTP, HTTPS
 # # ---------------------------------------------------------------------------------------------------------------------#                   
     nginx:
+        container_name: nginx
+        hostname: nginx
         build:
             context: ./nginx
             args: *magento_env
-        container_name: nginx
-        hostname: nginx
-        restart: always
+        develop:
+          watch:
+            - path: ./nginx
+              include: Dockerfile
+              action: rebuild
+            - path: ./nginx/config
+              include: "*.conf"
+              action: rebuild
         depends_on:
             mariadb:
                 condition: service_healthy
@@ -359,19 +427,24 @@ services:
         ports:
             - "80:80"
             - "443:443"
-            - "127.0.0.1:8080:8080"
+        expose:
+            - "8080"
+        networks:
+            - frontend 
         volumes:
             - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public:ro
             - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var:ro
             - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media:ro
+            - ${DATA}/nginx/cache:/var/cache/nginx
             - ${DATA}/ssl:/etc/ssl
             - ${DATA}/letsencrypt:/etc/letsencrypt:ro
             - ${DATA}/phpmyadmin:/var/www/html:ro
         working_dir: "${ROOT_PATH}/public"
-        user: ${BRAND}
-        cpu_shares: 614
-        mem_limit: 512m
-        mem_reservation: 128m
+        user: "1000:1001"
+        restart: unless-stopped
+        cpus: 2
+        mem_limit: 2G
+        mem_reservation: 1G
         << : [*ulimits, *logger]
 
 
@@ -379,13 +452,23 @@ services:
 #   Composer is a dependency manager written in and for PHP
 # # ---------------------------------------------------------------------------------------------------------------------# 
     composer:
+        container_name: composer
         build:
             context: ./composer
             args:
               <<: *magento_env
             additional_contexts:
               php: "service:php"
-        container_name: composer
+        develop:
+          watch:
+            - path: ./composer
+              include: Dockerfile
+              action: rebuild
+            - path: ./php
+              include: Dockerfile
+              action: rebuild
+            - path: ./php/config/composer
+              action: rebuild
         environment:
             COMPOSER_AUTH: |
               {
@@ -400,11 +483,13 @@ services:
             - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public
             - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
             - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media
+        networks:
+            - frontend
         working_dir: "${ROOT_PATH}/public"
-        user: ${BRAND}
+        user: "1000:1001"
         entrypoint: ["composer"]
-        cpu_shares: 1024
-        mem_limit: 1024m
+        cpus: 2
+        mem_limit: 2G
         mem_reservation: 512m
         << : [*ulimits, *logger]
 
@@ -428,17 +513,20 @@ services:
             - PMA_CONTROLUSER
             - PMA_CONTROLPASS
             - TIMEZONE
-        restart: always
         depends_on:
             mariadb:
                 condition: service_healthy
             nginx:
                 condition: service_started
-        ports:
-            - "127.0.0.1:9001:9001"
+        expose:
+            - "9001"
+        networks:
+            - backend
         volumes:
             - ${DATA}/phpmyadmin:/var/www/html
-        cpu_shares: 614
+        user: "9001:9001"
+        restart: always
+        cpus: 1
         mem_limit: 512m
         mem_reservation: 512m
         << : [*ulimits, *logger]
@@ -454,6 +542,9 @@ services:
             - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public/pub/.well-known/acme-challenge/:rw
             - ${DATA}/letsencrypt:/etc/letsencrypt
             - ${DATA}/letsencrypt:/var/lib/letsencrypt
+        networks:
+            - frontend
+        user: "1000:1001"
         << : [*ulimits, *logger]
 
 
@@ -461,12 +552,22 @@ services:
 #   Cron job scheduler run arbitrary commands, or "jobs", according to a schedule
 # # ---------------------------------------------------------------------------------------------------------------------# 
     cron:
+        container_name: cron
         build:
             context: ./cron
             args: *magento_env
             additional_contexts:
               php: "service:php"
-        container_name: cron
+        develop:
+          watch:
+            - path: ./cron
+              include: Dockerfile
+              action: rebuild
+            - path: ./php
+              include: Dockerfile
+              action: rebuild
+            - path: ./php/config/cron
+              action: rebuild
         environment: *php_env
         depends_on:
             mariadb:
@@ -475,11 +576,13 @@ services:
             - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public
             - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
             - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media
+        networks:
+            - backend
         working_dir: "${ROOT_PATH}/public"
-        user: ${PHP_USER}
+        user: "1000:1001"
         command: ["crond", "-f"]
-        cpu_shares: 1024
-        mem_limit: 2048m
+        cpus: 1
+        mem_limit: 2G
         mem_reservation: 512m
         << : [*ulimits, *logger]
 
@@ -488,5 +591,5 @@ services:
 #   Named networks list
 # # ---------------------------------------------------------------------------------------------------------------------# 
 networks:
-    default:
-        name: ${BRAND}
+  frontend:
+  backend:

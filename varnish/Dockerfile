@@ -5,16 +5,34 @@ FROM varnish:${VARNISH_VERSION}-alpine
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
-ARG TZ
+ARG TIMEZONE
 ARG VARNISH_CACHE_SIZE
 
 USER root
 
 RUN <<EOF
-    apk update
-    apk add --update --no-cache uuidgen
-    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
-    uuidgen > /etc/varnish/secret
+  deluser varnish
+  deluser vcache
+  deluser varnishlog
+  delgroup varnish
+  
+  addgroup -g 8081 -S varnish
+  adduser -u 8081 -S -D -H -s /sbin/nologin -G varnish -g varnish varnish
+  adduser -u 8082 -S -D -H -s /sbin/nologin -G varnish -g varnish vcache
+  adduser -u 8083 -S -D -H -s /sbin/nologin -G varnish -g varnish varnishlog
+  
+  chown varnish /var/lib/varnish /etc/varnish/ /var/log/varnish
+  mkdir -p -m 1777 /var/lib/varnish/varnishd
+EOF
+
+RUN <<EOF
+  apk update
+  apk add --update --no-cache uuidgen
+  
+  ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+  echo ${TIMEZONE} > /etc/timezone
+  
+  uuidgen > /etc/varnish/secret
 EOF
 
 COPY default.vcl /etc/varnish/
@@ -40,3 +58,5 @@ RUN <<EOF cat > /usr/local/bin/docker-varnish-entrypoint
             -p http_resp_hdr_len=65536 \\
             -p timeout_linger=100
 EOF
+
+USER varnish

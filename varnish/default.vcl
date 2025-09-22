@@ -1,18 +1,28 @@
-# VCL version 5.0 is not supported so it should be 4.1 even though actually used Varnish version is 6
-vcl 4.1;
+# Varnish version 7
+vcl 4.0;
 
 import std;
-# The minimal Varnish version is 6.0
-# For SSL offloading, pass the following header in your proxy server or load balancer: 'X-Forwarded-Proto: https'
 
 backend default {
     .host = "nginx";
     .port = "8080";
     .first_byte_timeout = 600s;
+    .probe = {
+        .request = "GET /health_check.php HTTP/1.1"
+                   "Host: ${DOMAIN}"
+                   "X-Probe: Varnish backend health check"
+                   "Connection: close";
+        .timeout = 2s;
+        .interval = 5s;
+        .window = 10;
+        .threshold = 5;
+   }
 }
 
 acl purge {
-    "php";
+    "nginx";
+	"magento";
+	"php";
 }
 
 sub vcl_recv {
@@ -55,14 +65,22 @@ sub vcl_recv {
         return (pass);
     }
 
-    # Bypass shopping cart and checkout
-    if (req.url ~ "/checkout") {
+    # Bypass customer, shopping cart, checkout
+    if (req.url ~ "/customer" || req.url ~ "/checkout") {
         return (pass);
     }
 
     # Bypass health check requests
-    if (req.url ~ "/pub/health_check.php") {
+    if (req.url ~ "^/health_check.php") {
         return (pass);
+    }
+
+    # Bypass cache if profiler headers are present
+    if (req.http.X-Mage-Profiler == "${PROFILER}" || req.http.X-Mage-Db-Profiler == "${PROFILER}") {
+        return (pass);
+    } else {
+        unset req.http.X-Mage-Profiler;
+        unset req.http.X-Mage-Db-Profiler;
     }
 
     # Set initial grace period usage status
@@ -90,24 +108,23 @@ sub vcl_recv {
     }
 
     # Remove all marketing get parameters to minimize the cache objects
-    if (req.url ~ "(\?|&)(gclid|cx|ie|cof|siteurl|zanpid|origin|fbclid|mc_[a-z]+|utm_[a-z]+|_bta_[a-z]+)=") {
-        set req.url = regsuball(req.url, "(gclid|cx|ie|cof|siteurl|zanpid|origin|fbclid|mc_[a-z]+|utm_[a-z]+|_bta_[a-z]+)=[-_A-z0-9+()%.]+&?", "");
+    if (req.url ~ "(\?|&)(gad_source|gbraid|wbraid|_gl|dclid|gclsrc|srsltid|msclkid|gclid|cx|_kx|ie|cof|siteurl|zanpid|origin|fbclid|mc_[a-z]+|utm_[a-z]+|_bta_[a-z]+)=") {
+        set req.url = regsuball(req.url, "(gad_source|gbraid|wbraid|_gl|dclid|gclsrc|srsltid|msclkid|gclid|cx|_kx|ie|cof|siteurl|zanpid|origin|fbclid|mc_[a-z]+|utm_[a-z]+|_bta_[a-z]+)=[-_A-z0-9+()%.]+&?", "");
         set req.url = regsub(req.url, "[?|&]+$", "");
     }
 
     # Static files caching
-    if (req.url ~ "^/(pub/)?(media|static)/") {
+    if (req.url ~ "^/(media|static)/") {
         # Static files should not be cached by default
-        return (pass);
-
+        #return (pass);
         # But if you use a few locales and don't use CDN you can enable caching static files by commenting previous line (#return (pass);) and uncommenting next 3 lines
-        #unset req.http.Https;
-        #unset req.http.X-Forwarded-Proto;
-        #unset req.http.Cookie;
+        unset req.http.Https;
+        unset req.http.X-Forwarded-Proto;
+        unset req.http.Cookie;
     }
 
-    # Authenticated GraphQL requests should not be cached by default
-    if (req.url ~ "/graphql" && req.http.Authorization ~ "^Bearer") {
+    # Bypass authenticated GraphQL requests without a X-Magento-Cache-Id
+    if (req.url ~ "/graphql" && !req.http.X-Magento-Cache-Id && req.http.Authorization ~ "^Bearer") {
         return (pass);
     }
 
@@ -115,7 +132,7 @@ sub vcl_recv {
 }
 
 sub vcl_hash {
-    if (req.http.cookie ~ "X-Magento-Vary=") {
+    if ((req.url !~ "/graphql" || !req.http.X-Magento-Cache-Id) && req.http.cookie ~ "X-Magento-Vary=") {
         hash_data(regsub(req.http.cookie, "^.*?X-Magento-Vary=([^;]+);*.*$", "\1"));
     }
 
@@ -123,6 +140,7 @@ sub vcl_hash {
     if (req.http.X-Forwarded-Proto) {
         hash_data(req.http.X-Forwarded-Proto);
     }
+									  
     
 
     if (req.url ~ "/graphql") {
@@ -131,9 +149,19 @@ sub vcl_hash {
 }
 
 sub process_graphql_headers {
+    if (req.http.X-Magento-Cache-Id) {
+        hash_data(req.http.X-Magento-Cache-Id);
+
+        # When the frontend stops sending the auth token, make sure users stop getting results cached for logged-in users
+        if (req.http.Authorization ~ "^Bearer") {
+            hash_data("Authorized");
+        }
+    }
+
     if (req.http.Store) {
         hash_data(req.http.Store);
     }
+
     if (req.http.Content-Currency) {
         hash_data(req.http.Content-Currency);
     }
@@ -155,12 +183,8 @@ sub vcl_backend_response {
         set beresp.http.X-Magento-Cache-Control = beresp.http.Cache-Control;
     }
 
-    # cache only successfully responses and 404s
-    if (beresp.status != 200 && beresp.status != 404) {
-        set beresp.ttl = 0s;
-        set beresp.uncacheable = true;
-        return (deliver);
-    } elsif (beresp.http.Cache-Control ~ "private") {
+    # cache only successfully responses and 404s that are not marked as private
+    if ((beresp.status != 200 && beresp.status != 404) || beresp.http.Cache-Control ~ "private") {
         set beresp.uncacheable = true;
         set beresp.ttl = 86400s;
         return (deliver);
@@ -168,6 +192,18 @@ sub vcl_backend_response {
 
     # validate if we need to cache it and prevent from setting cookie
     if (beresp.ttl > 0s && (bereq.method == "GET" || bereq.method == "HEAD")) {
+		# Collapse beresp.http.set-cookie in order to merge multiple set-cookie headers
+        # Although it is not recommended to collapse set-cookie header,
+        # it is safe to do it here as the set-cookie header is removed below
+        std.collect(beresp.http.set-cookie);
+        # Do not cache the response under current cache key (hash),
+        # if the response has X-Magento-Vary but the request does not.
+        if ((bereq.url !~ "/graphql" || !bereq.http.X-Magento-Cache-Id)
+         && bereq.http.cookie !~ "X-Magento-Vary="
+         && beresp.http.set-cookie ~ "X-Magento-Vary=") {
+           set beresp.ttl = 0s;
+           set beresp.uncacheable = true;
+        }																			   
         unset beresp.http.set-cookie;
     }
 
@@ -180,30 +216,38 @@ sub vcl_backend_response {
         # Mark as Hit-For-Pass for the next 2 minutes
         set beresp.ttl = 120s;
         set beresp.uncacheable = true;
-    }
+   }
+
+   # If the cache key in the Magento response doesn't match the one that was sent in the request, don't cache under the request's key
+   if (bereq.url ~ "/graphql" && bereq.http.X-Magento-Cache-Id && bereq.http.X-Magento-Cache-Id != beresp.http.X-Magento-Cache-Id) {
+      set beresp.ttl = 0s;
+      set beresp.uncacheable = true;
+   }
 
     return (deliver);
 }
 
 sub vcl_deliver {
-    if (resp.http.X-Magento-Debug) {
-        if (resp.http.x-varnish ~ " ") {
-            set resp.http.X-Magento-Cache-Debug = "HIT";
-            set resp.http.Grace = req.http.grace;
-        } else {
-            set resp.http.X-Magento-Cache-Debug = "MISS";
-        }
+						  
+    if (obj.uncacheable) {
+        set resp.http.X-Magento-Cache-Debug = "UNCACHEABLE";
+    } else if (obj.hits) {		  
+        set resp.http.X-Magento-Cache-Debug = "HIT";
+        set resp.http.Grace = req.http.grace;
     } else {
-        unset resp.http.Age;
+        set resp.http.X-Magento-Cache-Debug = "MISS";
     }
 
     # Not letting browser to cache non-static files.
-    if (resp.http.Cache-Control !~ "private" && req.url !~ "^/(pub/)?(media|static)/") {
+    if (resp.http.Cache-Control !~ "private" && req.url !~ "^/(media|static)/") {
         set resp.http.Pragma = "no-cache";
         set resp.http.Expires = "-1";
         set resp.http.Cache-Control = "no-store, no-cache, must-revalidate, max-age=0";
     }
 
+    if (!resp.http.X-Magento-Debug) {
+        unset resp.http.Age;
+    }
     unset resp.http.X-Magento-Debug;
     unset resp.http.X-Magento-Tags;
     unset resp.http.X-Powered-By;

@@ -14,36 +14,36 @@ ARG BRAND
 ARG ROOT_PATH
 ARG TIMEZONE
 
-COPY www.conf zz-override.ini /tmp/
+COPY config/www.conf config/zz-override.ini /tmp/
 
 RUN <<EOF
-    apk update
-    apk add --update --no-cache \
-    bash \
-    curl \
-    strace \
-    gettext
+  apk update
+  apk add --update --no-cache \
+  bash \
+  curl \
+  strace \
+  gettext-base
 EOF
 
 SHELL ["/bin/bash","-c"]
 
 RUN <<EOF
-    #
-    _PHP_PACKAGES+=(${PHP_PACKAGES})
-    apk add --update --no-cache php${PHP_VERSION} ${_PHP_PACKAGES[@]/#/php${PHP_VERSION}-}
-    #
-    envsubst < /tmp/zz-override.ini >  ${PHP_INI_OVERRIDES}/zz-override.ini
-    envsubst < /tmp/www.conf > ${PHP_FPM_POOL}
-    #
-    mkdir -p ${ROOT_PATH}
-    addgroup -S -g 1000 ${PHP_USER}
-    adduser -D -S -G ${PHP_USER} -h ${ROOT_PATH} -u 1000 ${PHP_USER}
-    adduser -D -G ${PHP_USER} -h ${ROOT_PATH} -s /bin/bash -u 1001 ${BRAND}
-    chown -R ${PHP_USER} /var/log/php${PHP_VERSION}
-    #
-    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
-    echo ${TIMEZONE} > /etc/timezone
-    ln -s /usr/bin/php${PHP_VERSION} /usr/local/bin/php
-    #
-    apk del gettext && rm -rf /tmp/*
+  
+  _PHP_PACKAGES+=(${PHP_PACKAGES})
+  apk add --update --no-cache php${PHP_VERSION} ${_PHP_PACKAGES[@]/#/php${PHP_VERSION}-}
+  
+  envsubst < /tmp/zz-override.ini >  ${PHP_INI_OVERRIDES}/zz-override.ini
+  envsubst < /tmp/www.conf > ${PHP_FPM_POOL}
+  
+  mkdir -p ${ROOT_PATH}
+  addgroup -S -g 1000 ${PHP_USER}
+  adduser -D -S -G ${PHP_USER} -h ${ROOT_PATH} -u 1000 ${PHP_USER}
+  adduser -D -G ${PHP_USER} -h ${ROOT_PATH} -s /bin/bash -u 1001 ${BRAND}
+  chown -R ${PHP_USER} /var/log/php${PHP_VERSION}
+  
+  ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+  echo ${TIMEZONE} > /etc/timezone
+  ln -s /usr/bin/php${PHP_VERSION} /usr/local/bin/php
+  
+  rm -rf /tmp/*
 EOF
