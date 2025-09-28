@@ -436,7 +436,6 @@ services:
             - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var:ro
             - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media:ro
             - ${DATA}/nginx/cache:/var/cache/nginx
-            - ${DATA}/ssl:/etc/ssl
             - ${DATA}/letsencrypt:/etc/letsencrypt:ro
             - ${DATA}/phpmyadmin:/var/www/html:ro
         working_dir: "${ROOT_PATH}/public"
@@ -585,6 +584,55 @@ services:
         mem_limit: 2G
         mem_reservation: 512m
         << : [*ulimits, *logger]
+
+
+# # ---------------------------------------------------------------------------------------------------------------------#
+#   Fast and secure standalone server for resizing, processing, and converting images
+# # ---------------------------------------------------------------------------------------------------------------------# 
+    imgproxy:
+        image: "ghcr.io/imgproxy/imgproxy:latest"
+        container_name: imgproxy
+        environment:
+          - IMGPROXY_ALLOW_INSECURE=true
+          - IMGPROXY_ALLOWED_SOURCES=local://,http://127.0.0.1/
+          - IMGPROXY_LOCAL_FILESYSTEM_ROOT=${ROOT_PATH}/public/pub/media
+          - IMGPROXY_FALLBACK_IMAGE_PATH=/media/catalog/product/placeholder/default/placeholder.jpg
+          - IMGPROXY_WATERMARK_PATH=/media/catalog/product/placeholder/default/watermark.jpg
+          - IMGPROXY_MAX_REDIRECTS=1
+          - IMGPROXY_TTL=31536000
+          - IMGPROXY_ENFORCE_WEBP=true
+          - IMGPROXY_AUTO_WEBP=1
+          - IMGPROXY_AUTO_AVIF=1
+          - IMGPROXY_QUALITY=70
+          - IMGPROXY_FORMAT_QUALITY=jpeg=70,avif=40,webp=60
+          - IMGPROXY_BIND=0.0.0.0:4593
+          - IMGPROXY_USE_ETAG=true
+          - IMGPROXY_CONCURRENCY=10
+          - IMGPROXY_TIMEOUT=5
+          - IMGPROXY_READ_REQUEST_TIMEOUT=5
+          - IMGPROXY_WRITE_RESPONSE_TIMEOUT=5
+          - IMGPROXY_DOWNLOAD_TIMEOUT=5
+          - IMGPROXY_ENABLE_DEBUG_HEADERS=true
+        depends_on:
+            nginx:
+                condition: service_started
+        volumes:
+            - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media:ro
+        expose:
+            - "4593"
+        networks:
+            - frontend
+        working_dir: "${ROOT_PATH}/public/pub/media"
+        user: "1000:1001"
+        restart: unless-stopped
+        cpus: 1
+        mem_limit: 2G
+        mem_reservation: 512m
+        healthcheck:
+          test: ["CMD", "imgproxy", "health"]
+          interval: 10s
+          timeout: 10s
+          retries: 3
 
 
 # # ---------------------------------------------------------------------------------------------------------------------#
