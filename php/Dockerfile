@@ -22,7 +22,7 @@ RUN <<EOF
   bash \
   curl \
   strace \
-  gettext-base
+  gettext-dev
 EOF
 
 SHELL ["/bin/bash","-c"]
