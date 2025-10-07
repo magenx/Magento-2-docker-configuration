@@ -1,4 +1,5 @@
 # syntax = docker/dockerfile:labs
+
 ARG ALPINE_VERSION
 FROM alpine:${ALPINE_VERSION}
 
@@ -7,7 +8,7 @@ LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG PHP_PACKAGES
 ARG PHP_VERSION
-ARG PHP_FPM_POOL
+ARG PHP_FPM_CONFIG
 ARG PHP_INI
 ARG PHP_USER
 ARG BRAND
@@ -22,7 +23,7 @@ RUN <<EOF
   bash \
   curl \
   strace \
-  gettext-base
+  gettext-envsubst
 EOF
 
 SHELL ["/bin/bash","-c"]
@@ -32,13 +33,13 @@ RUN <<EOF
   _PHP_PACKAGES+=(${PHP_PACKAGES})
   apk add --update --no-cache php${PHP_VERSION} ${_PHP_PACKAGES[@]/#/php${PHP_VERSION}-}
   
-  envsubst < /tmp/zz-override.ini >  ${PHP_INI_OVERRIDES}/zz-override.ini
-  envsubst < /tmp/www.conf > ${PHP_FPM_POOL}
+  envsubst < /tmp/zz-override.ini >  ${PHP_INI}/zz-override.ini
+  envsubst < /tmp/www.conf > ${PHP_FPM_CONFIG}
   
   mkdir -p ${ROOT_PATH}
-  addgroup -S -g 1000 ${PHP_USER}
-  adduser -D -S -G ${PHP_USER} -h ${ROOT_PATH} -u 1000 ${PHP_USER}
-  adduser -D -G ${PHP_USER} -h ${ROOT_PATH} -s /bin/bash -u 1001 ${BRAND}
+  addgroup -S -g 1001 ${PHP_USER}
+  adduser -D -S -G ${PHP_USER} -h ${ROOT_PATH} -u 1001 ${PHP_USER}
+  adduser -D -G ${PHP_USER} -h ${ROOT_PATH} -s /bin/bash -u 1000 ${BRAND}
   chown -R ${PHP_USER} /var/log/php${PHP_VERSION}
   
   ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime

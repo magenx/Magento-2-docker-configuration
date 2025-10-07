@@ -1,0 +1,18 @@
+# syntax = docker/dockerfile:labs
+
+ARG OPENSEARCH_VERSION
+FROM opensearchproject/opensearch-dashboards:${OPENSEARCH_VERSION}
+
+
+LABEL author="admin@magenx.com"
+LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
+
+USER root
+
+RUN <<EOF
+  groupmod --gid 9200 opensearch-dashboards
+  usermod --uid 9200 opensearch-dashboards
+  chown -R opensearch-dashboards:opensearch-dashboards /usr/share/opensearch-dashboards
+EOF
+
+USER opensearch-dashboards

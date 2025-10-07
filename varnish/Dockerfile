@@ -1,4 +1,5 @@
 # syntax = docker/dockerfile:labs
+
 ARG VARNISH_VERSION
 FROM varnish:${VARNISH_VERSION}-alpine
 

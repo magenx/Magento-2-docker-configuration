@@ -1,4 +1,5 @@
 # syntax = docker/dockerfile:labs
+
 ARG OPENSEARCH_VERSION
 FROM opensearchproject/opensearch:${OPENSEARCH_VERSION}
 

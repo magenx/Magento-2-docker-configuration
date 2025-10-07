@@ -14,630 +14,812 @@
 # [admin email]: admin@magenx.com
 # [website url]: https://www.magenx.com
 #
-
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #  Configure logger driver
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 x-logger: &logger
-        logging:
-            driver: syslog
-            options:
-                syslog-address: "unixgram:///dev/log"
-                mode: non-blocking
-                tag: "[ {{.Name}} ]"
-                
-# # ---------------------------------------------------------------------------------------------------------------------#
+  logging:
+    driver: syslog
+    options:
+      syslog-address: "unixgram:///dev/log"
+      mode: non-blocking
+      tag: "[ {{.Name}} ]"
+
+
+# -----------------------------------------------------------------------------------------------------------------------
 #  Configure ulimits
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 x-ulimits: &ulimits
-        ulimits:
-            memlock:
-               soft: -1
-               hard: -1
-            nofile:
-               soft: 65536
-               hard: 65536
+  ulimits:
+    memlock:
+      soft: -1
+      hard: -1
+    nofile:
+      soft: 65536
+      hard: 65536
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+
+# -----------------------------------------------------------------------------------------------------------------------
 #  Configure capabilities
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 x-cap_add: &cap_add
-        cap_add:
-            - SYS_PTRACE
+  cap_add:
+    - SYS_PTRACE
 
+
+# -----------------------------------------------------------------------------------------------------------------------
+#  Services configuration parameters
+# -----------------------------------------------------------------------------------------------------------------------
 services:
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
+#  Containers management with Portainer
+# -----------------------------------------------------------------------------------------------------------------------
+  portainer:
+    image: portainer/portainer-ce:alpine
+    container_name: portainer
+    hostname: portainer
+    expose:
+      - "9443:9443"
+    networks:
+      - frontend
+    volumes:
+      - ${DATA_PATH}/portainer:/data
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    user: "9443:9443"
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 2G
+    mem_reservation: 1G
+    << : [*ulimits, *logger]
+
+
+# -----------------------------------------------------------------------------------------------------------------------
+#   Scans log files for login failures then updates iptables to reject originating ip address
+# -----------------------------------------------------------------------------------------------------------------------
+  fail2ban:
+    container_name: fail2ban
+    hostname: fail2ban
+    build:
+      context: ./fail2ban
+      args:
+        - ALPINE_VERSION
+    networks:
+      - frontend
+    volumes:
+      - ${DATA_PATH}/nginx/log:/var/log/nginx:ro
+      - ${DATA_PATH}/fail2ban/:/var/lib/fail2ban
+    user: "1000:1000"
+    entrypoint: ["fail2ban-server", "-f", "-x", "-v", "start"]
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 2G
+    mem_reservation: 1G
+    healthcheck:
+      test: ["CMD-SHELL", "fail2ban-client ping || exit 1"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    << : [*ulimits, *logger]
+
+
+# -----------------------------------------------------------------------------------------------------------------------
 #  MariaDB is a high performing open source relational database
-# # ---------------------------------------------------------------------------------------------------------------------#
-    mariadb:
-        image: mariadb:${MARIADB_VERSION}
-        container_name: mariadb
-        hostname: mariadb
-        environment:
-            - MARIADB_AUTO_UPGRADE
-            - MARIADB_DISABLE_UPGRADE_BACKUP
-            - MARIADB_RANDOM_ROOT_PASSWORD
-            - MARIADB_DATABASE
-            - MARIADB_USER
-            - MARIADB_PASSWORD
-            - TIMEZONE
-        command: >
-            --key_buffer_size=16M
-            --myisam-recover-options=FORCE,BACKUP
-            --innodb=force
-            --max_allowed_packet=250M
-            --max_connect_errors=100000
-            --bind-address=mariadb
-            --skip-name-resolve
-            --back_log=20
-            --interactive_timeout=600
-            --wait_timeout=600
-            --net_read_timeout=120
-            --net_write_timeout=300
-            --sort_buffer_size=1M
-            --read_buffer_size=1M
-            --read_rnd_buffer_size=1M
-            --join_buffer_size=1M
-            --tmp_table_size=128M
-            --max_heap_table_size=128M
-            --max_connections=150
-            --thread_cache_size=32
-            --thread_pool_size=16
-            --open_files_limit=65535
-            --table_definition_cache=4000
-            --table_open_cache=4000
-            --innodb_lock_wait_timeout=600
-            --innodb_flush_log_at_trx_commit=2
-            --innodb_log_file_size=128M
-            --innodb_log_buffer_size=8M
-            --innodb_read_io_threads=8
-            --innodb_write_io_threads=8
-            --innodb_buffer_pool_size=2G
-            --skip-log-bin
-            --disable-log-bin
-        expose:
-            - "3306"
-        networks:
-            - backend
-        volumes:
-            - ${DATA}/mariadb:/var/lib/mysql
-        user: "3306:3306"
-        restart: unless-stopped
-        cpus: 2
-        mem_limit: 4G
-        mem_reservation: 2G
-        healthcheck:
-            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized", "--innodb_buffer_pool_loaded"]
-            start_period: 10s
-            interval: 10s
-            timeout: 5s
-            retries: 3
-        << : [*ulimits, *logger]
+# -----------------------------------------------------------------------------------------------------------------------
+  mariadb:
+    image: mariadb:${MARIADB_VERSION}
+    container_name: mariadb
+    hostname: mariadb
+    environment:
+      - MARIADB_AUTO_UPGRADE
+      - MARIADB_DISABLE_UPGRADE_BACKUP
+      - MARIADB_RANDOM_ROOT_PASSWORD
+      - MARIADB_DATABASE
+      - MARIADB_USER
+      - MARIADB_PASSWORD
+      - TIMEZONE
+    command: >
+      --key_buffer_size=16M
+      --myisam-recover-options=FORCE,BACKUP
+      --innodb=force
+      --max_allowed_packet=250M
+      --max_connect_errors=100000
+      --bind-address=mariadb
+      --skip-name-resolve
+      --back_log=20
+      --interactive_timeout=600
+      --wait_timeout=600
+      --net_read_timeout=120
+      --net_write_timeout=300
+      --sort_buffer_size=1M
+      --read_buffer_size=1M
+      --read_rnd_buffer_size=1M
+      --join_buffer_size=1M
+      --tmp_table_size=128M
+      --max_heap_table_size=128M
+      --max_connections=150
+      --thread_cache_size=32
+      --thread_pool_size=16
+      --open_files_limit=65535
+      --table_definition_cache=4000
+      --table_open_cache=4000
+      --innodb_lock_wait_timeout=600
+      --innodb_flush_log_at_trx_commit=2
+      --innodb_log_file_size=128M
+      --innodb_log_buffer_size=8M
+      --innodb_read_io_threads=8
+      --innodb_write_io_threads=8
+      --innodb_buffer_pool_size=2G
+      --skip-log-bin
+      --disable-log-bin
+    expose:
+      - "3306"
+    networks:
+      - backend
+    volumes:
+      - ${DATA_PATH}/mariadb:/var/lib/mysql
+    user: "3306:3306"
+    restart: unless-stopped
+    cpus: 2
+    mem_limit: 4G
+    mem_reservation: 2G
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized", "--innodb_buffer_pool_loaded"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #  Opensearch is a powerful open source search and analytics engine
-# # ---------------------------------------------------------------------------------------------------------------------#
-    opensearch:
-        container_name: opensearch
-        hostname: opensearch
-        build:
-            context: ./opensearch
-            args:
-              OPENSEARCH_VERSION:
-        environment:
-            - cluster.name=${BRAND}-cluster
-            - node.name=${BRAND}-node1
-            - node.attr.rack=${BRAND}-rack1
-            - discovery.type=single-node
-            - cluster.routing.allocation.enable=all
-            - bootstrap.memory_lock=true
-            - plugins.security.ssl.transport.enforce_hostname_verification=false
-            - plugins.security.ssl.http.enabled=false
-            - plugins.security.allow_unsafe_democertificates=true
-            - plugins.security.allow_default_init_securityindex=true
-            - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
-            - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD}
-        expose:
-            - "9200"
-            - "9300"
-        networks:
-            - frontend
-        volumes:
-            - ${DATA}/opensearch:/usr/share/opensearch/data
-            - ${DATA}/opensearch/logs:/usr/share/opensearch/logs
-        user: "9200:9200"
-        restart: unless-stopped
-        cpus: 1
-        mem_limit: 2G
-        mem_reservation: 1G
-        healthcheck:
-            test: ["CMD-SHELL", "curl -XGET -u admin:${OPENSEARCH_PASSWORD} 'http://opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=15s' || exit 1"]
-            start_period: 15s
-            interval: 15s
-            timeout: 5s
-            retries: 3
-        << : [*ulimits, *logger]
+# -----------------------------------------------------------------------------------------------------------------------
+  opensearch:
+    container_name: opensearch
+    hostname: opensearch
+    build:
+      context: ./opensearch
+      args:
+        - OPENSEARCH_VERSION
+    develop:
+      watch:
+        - path: ./opensearch
+          action: rebuild
+    environment:
+      - cluster.name=${BRAND}-cluster
+      - node.name=${BRAND}-node1
+      - node.attr.rack=${BRAND}-rack1
+      - discovery.type=single-node
+      - cluster.routing.allocation.enable=all
+      - bootstrap.memory_lock=true
+      - plugins.security.ssl.transport.enforce_hostname_verification=false
+      - plugins.security.ssl.http.enabled=false
+      - plugins.security.allow_unsafe_democertificates=true
+      - plugins.security.allow_default_init_securityindex=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD}
+    expose:
+      - "9200"
+      - "9300"
+    networks:
+      - frontend
+    volumes:
+      - ${DATA_PATH}/opensearch:/usr/share/opensearch/data
+      - ${DATA_PATH}/opensearch/logs:/usr/share/opensearch/logs
+    user: "9200:9200"
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 2G
+    mem_reservation: 1G
+    healthcheck:
+      test: ["CMD-SHELL", "curl -XGET -u admin:${OPENSEARCH_PASSWORD} 'http://opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=15s' || exit 1"]
+      start_period: 15s
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
+#  Opensearch-Dashboards is an open source analytics and visualization platform designed to work with Opensearch
+# -----------------------------------------------------------------------------------------------------------------------
+  opensearch-dashboards:
+    container_name: opensearch-dashboards
+    hostname: opensearch-dashboards
+    build:
+      context: ./opensearch
+      dockerfile: Dockerfile.dashboards
+      args:
+        - OPENSEARCH_VERSION
+    develop:
+      watch:
+        - path: ./opensearch
+          action: rebuild
+    environment:
+      - OPENSEARCH_HOSTS=http://opensearch:9200
+      - OPENSEARCH_USERNAME=dashboards
+      - OPENSEARCH_PASSWORD=${OPENSEARCH_DASHBOARDS_PASSWORD}
+      - SERVER_PUBLICBASEURL=https://${DOMAIN}/${OPENSEARCH_DASHBOARDS_PATH}
+      - SERVER_SSL_ENABLED=false
+      - OPENSEARCH_SSL_VERIFICATIONMODE=none
+      - OPENSEARCH_REQUESTHEADERSWHITELIST=["securitytenant","Authorization"]
+      - OPENSEARCH_SECURITY_MULTITENANCY_ENABLED=true
+      - OPENSEARCH_SECURITY_MULTITENANCY_TENANTS_PREFERRED=["Private", "Global"]
+      - OPENSEARCH_SECURITY_READONLY_MODE_ROLES=["kibana_read_only"]
+      - SERVER_CUSTOMRESPONSEHEADERS={"Access-Control-Allow-Credentials":"true"}
+    expose:
+      - "5601"
+    networks:
+      - frontend
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    volumes:
+      - ${DATA_PATH}/opensearch/dashboards/logs:/usr/share/opensearch-dashboards/logs
+    user: "9200:9200"
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 2G
+    mem_reservation: 1G
+    << : [*ulimits, *logger]
+
+
+# -----------------------------------------------------------------------------------------------------------------------
 #  Redis is an open source key-value store that functions as a data structure server.
-# # ---------------------------------------------------------------------------------------------------------------------#
-    cache:
-        image: &redis_image redis:${REDIS_VERSION}-alpine
-        container_name: cache
-        hostname: cache
-        command: >
-            --bind cache
-            --port 6380
-            --save ""
-            --appendonly no
-            --activerehashing yes
-            --loglevel warning
-            --requirepass ${REDIS_PASSWORD}
-            --maxmemory ${REDIS_CACHE_SIZE}
-            --maxmemory-policy allkeys-lru
-            --lazyfree-lazy-eviction yes
-            --lazyfree-lazy-expire yes
-            --lazyfree-lazy-server-del yes
-            --replica-lazy-flush yes
-            --lazyfree-lazy-user-del yes
-        expose:
-            - "6380"
-        networks:
-            - frontend
-        volumes:
-            - ${DATA}/redis/cache:/data
-        restart: unless-stopped
-        cpus: 1
-        mem_limit: 2G
-        mem_reservation: 512M
-        healthcheck:
-            test: ["CMD", "redis-cli", "-h", "cache", "-p", "6380", "-a", "${REDIS_PASSWORD}", "ping"]
-            start_period: 10s
-            interval: 10s
-            timeout: 5s
-            retries: 3
-        << : [*ulimits, *logger]
+# -----------------------------------------------------------------------------------------------------------------------
+  cache:
+    image: &redis_image redis:${REDIS_VERSION}-alpine
+    container_name: cache
+    hostname: cache
+    command: >
+      --bind cache
+      --port 6380
+      --save ""
+      --appendonly no
+      --activerehashing yes
+      --loglevel warning
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory ${REDIS_CACHE_SIZE}
+      --maxmemory-policy allkeys-lru
+      --lazyfree-lazy-eviction yes
+      --lazyfree-lazy-expire yes
+      --lazyfree-lazy-server-del yes
+      --replica-lazy-flush yes
+      --lazyfree-lazy-user-del yes
+    expose:
+      - "6380"
+    networks:
+      - frontend
+    volumes:
+      - ${DATA_PATH}/redis-cache:/data
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 2G
+    mem_reservation: 512M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "cache", "-p", "6380", "-a", "${REDIS_PASSWORD}", "ping"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #  Redis is an open source key-value store that functions as a data structure server.
-# # ---------------------------------------------------------------------------------------------------------------------#
-    session:
-        image: *redis_image
-        container_name: session
-        hostname: session
-        command: >
-            --bind session
-            --port 6379
-            --save 300 15
-            --requirepass ${REDIS_PASSWORD}
-            --maxmemory ${REDIS_SESSION_SIZE}
-            --maxmemory-policy allkeys-lru
-            --lazyfree-lazy-eviction yes
-            --lazyfree-lazy-expire yes
-            --lazyfree-lazy-server-del yes
-            --replica-lazy-flush yes
-            --lazyfree-lazy-user-del yes
-        expose:
-            - "6379"
-        networks:
-            - frontend
-        volumes:
-            - ${DATA}/redis/session:/data
-        user: "6379:6379"
-        restart: unless-stopped
-        cpus: 1
-        mem_limit: 1G
-        mem_reservation: 512M
-        healthcheck:
-            test: ["CMD", "redis-cli", "-h", "session", "-p", "6379", "-a", "${REDIS_PASSWORD}", "ping"]
-            start_period: 10s
-            interval: 10s
-            timeout: 5s
-            retries: 3
-        << : [*ulimits, *logger]
+# -----------------------------------------------------------------------------------------------------------------------
+  session:
+    image: *redis_image
+    container_name: session
+    hostname: session
+    command: >
+      --bind session
+      --port 6379
+      --save 300 15
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory ${REDIS_SESSION_SIZE}
+      --maxmemory-policy allkeys-lru
+      --lazyfree-lazy-eviction yes
+      --lazyfree-lazy-expire yes
+      --lazyfree-lazy-server-del yes
+      --replica-lazy-flush yes
+      --lazyfree-lazy-user-del yes
+    expose:
+      - "6379"
+    networks:
+      - frontend
+    volumes:
+      - ${DATA_PATH}/redis-session:/data
+    user: "6379:6379"
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 1G
+    mem_reservation: 512M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "session", "-p", "6379", "-a", "${REDIS_PASSWORD}", "ping"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
+#  Redis Insight lets you visually browse and interact with data
+# -----------------------------------------------------------------------------------------------------------------------
+  redisinsight:
+    image: redis/redisinsight:latest
+    hostname: redisinsight
+    container_name: redisinsight
+    expose:
+      - "5540"
+    networks:
+      - frontend
+    volumes:
+      - ${DATA_PATH}/redis-insight:/data
+    environment:
+      - RI_REDIS_PASSWORD=${REDIS_PASSWORD}
+    user: "5540:5540"
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 1G
+    mem_reservation: 512M
+    << : [*ulimits, *logger]
+
+
+# -----------------------------------------------------------------------------------------------------------------------
 #  RabbitMQ is an open source multi-protocol messaging broker
-# # ---------------------------------------------------------------------------------------------------------------------#                
-    rabbitmq:
-        image: rabbitmq:${RABBITMQ_VERSION}-alpine
-        container_name: rabbitmq
-        hostname: rabbitmq
-        environment:
-            - RABBITMQ_DEFAULT_USER=${BRAND}
-            - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
-        expose:
-            - "5672"
-        networks:
-            - frontend
-        volumes:
-            - ${DATA}/rabbitmq:/var/lib/rabbitmq
-        user: "5672:5672"
-        restart: unless-stopped
-        cpus: 1
-        mem_limit: 1G
-        mem_reservation: 512M
-        healthcheck:
-            test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-            start_period: 10s
-            interval: 10s
-            timeout: 5s
-            retries: 3
-        << : [*ulimits, *logger]
+# -----------------------------------------------------------------------------------------------------------------------                
+  rabbitmq:
+    image: rabbitmq:${RABBITMQ_VERSION}-alpine
+    container_name: rabbitmq
+    hostname: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${BRAND}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+      - RABBITMQ_DEFAULT_VHOST=/${BRAND}
+    expose:
+      - "5672"
+      - "15672"
+    networks:
+      - frontend
+    volumes:
+      - ${DATA_PATH}/rabbitmq:/var/lib/rabbitmq
+    user: "5672:5672"
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 1G
+    mem_reservation: 512M
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    << : [*ulimits, *logger]
                 
                 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #  Varnish is an HTTP accelerator designed for content-heavy dynamic web sites as well as APIs.
-# # ---------------------------------------------------------------------------------------------------------------------#                  
-    varnish:
-        container_name: varnish
-        hostname: varnish
-        build:
-            context: ./varnish
-            args:
-              VARNISH_VERSION:
-              VARNISH_CACHE_SIZE:
-              TIMEZONE:
-        depends_on:
-            - nginx
-            - php
-        expose:
-            - "8081"
-        networks:
-            - frontend
-        user: "8081:8081"
-        restart: unless-stopped
-        cpus: 1
-        mem_limit: 1G
-        mem_reservation: 1G
-        healthcheck:
-            test: ["CMD", "varnishadm", "ping"]
-            start_period: 10s
-            interval: 10s
-            timeout: 5s
-            retries: 3
-        << : [*ulimits, *logger]
+# -----------------------------------------------------------------------------------------------------------------------                  
+  varnish:
+    container_name: varnish
+    hostname: varnish
+    build:
+      context: ./varnish
+      args:
+        - VARNISH_VERSION
+        - VARNISH_CACHE_SIZE
+        - TIMEZONE
+    develop:
+      watch:
+        - path: ./varnish
+          action: rebuild
+    depends_on:
+      - nginx
+      - php
+    expose:
+      - "8081"
+    networks:
+      - frontend
+    user: "8081:8081"
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 1G
+    mem_reservation: 1G
+    healthcheck:
+      test: ["CMD", "varnishadm", "ping"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #  Configure container to run php and php-fpm
-# # ---------------------------------------------------------------------------------------------------------------------#    
-    php:
-        container_name: php
-        hostname: php
-        build:
-            context: ./php
-            args: &magento_env
-              BRAND:
-              DOMAIN:
-              PHP_USER:
-              ADMIN_PATH:
-              ROOT_PATH:
-              PHP_PACKAGES:
-              PHP_VERSION:
-              PHP_FPM_POOL:
-              PHP_INI:
-              TIMEZONE:
-              ALPINE_VERSION:
-        develop:
-          watch:
-            - path: ./php
-              include: Dockerfile
-              action: rebuild
-            - path: ./php/config
-              action: rebuild
-        environment: &php_env
-            - MARIADB_DATABASE
-            - MARIADB_USER
-            - MARIADB_PASSWORD
-            - RABBITMQ_PASSWORD
-            - REDIS_PASSWORD
-            - INDEXER_PASSWORD
-            - BRAND
-            - DOMAIN
-            - ROOT_PATH
-            - ADMIN_PATH
-            - CRYPT_KEY
-        depends_on:
-            mariadb:
-                condition: service_healthy
-        expose:
-            - "9000"
-        networks:
-            - backend
-            - frontend
-        volumes:
-            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public:ro
-            - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
-            - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media
-        working_dir: "${ROOT_PATH}/public"
-        user: "1000:1001"
-        entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
-        restart: unless-stopped
-        cpus: 1
-        mem_limit: 1G
-        mem_reservation: 1G
-        << : [*ulimits, *cap_add, *logger]
+# -----------------------------------------------------------------------------------------------------------------------    
+  php:
+    image: "${BRAND}-php"
+    container_name: php
+    hostname: php
+    build:
+      context: ./php
+      args: &magento_env
+        - BRAND
+        - DOMAIN
+        - PHP_USER
+        - ADMIN_PATH
+        - ROOT_PATH
+        - PHP_PACKAGES
+        - PHP_VERSION
+        - PHP_FPM_CONFIG
+        - PHP_INI
+        - TIMEZONE
+        - ALPINE_VERSION
+    develop:
+      watch:
+        - path: ./php/Dockerfile
+          action: rebuild
+        - path: ./php/config
+          action: rebuild
+    environment: &php_env
+      - MARIADB_DATABASE
+      - MARIADB_USER
+      - MARIADB_PASSWORD
+      - RABBITMQ_PASSWORD
+      - REDIS_PASSWORD
+      - INDEXER_PASSWORD
+      - BRAND
+      - DOMAIN
+      - ROOT_PATH
+      - ADMIN_PATH
+      - CRYPT_KEY
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    expose:
+      - "9000"
+    networks:
+      - backend
+      - frontend
+    volumes:
+      - ${APP_PATH}/public:${ROOT_PATH}/public
+      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
+      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
+      - ${APP_PATH}/releases:${ROOT_PATH}/releases
+    working_dir: "${ROOT_PATH}/public/current"
+    user: "1001:1001"
+    entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 1G
+    mem_reservation: 1G
+    << : [*ulimits, *cap_add, *logger]
 
 
+# -----------------------------------------------------------------------------------------------------------------------
+#  XHGui graphical interface for XHProf profiling data
+# -----------------------------------------------------------------------------------------------------------------------  
+  xhgui:
+    container_name: xhgui
+    hostname: xhgui
+    build:
+      context: ./xhgui
+    environment:
+      - XHGUI_SAVE_HANDLER
+      - XHGUI_PDO_DSN
+      - XHGUI_PDO_USER
+      - XHGUI_PDO_PASS
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    expose:
+      - "8142"
+    networks:
+      - backend
+      - frontend
+    command: >
+      sh -c "nginx -g 'pid /dev/shm/nginx.pid;' && exec php-fpm"
+    user: "8142:8142"
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 1G
+    mem_reservation: 1G
+    << : [*ulimits, *cap_add, *logger]
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+
+# -----------------------------------------------------------------------------------------------------------------------
 #  Configure container for magento app
-# # ---------------------------------------------------------------------------------------------------------------------#    
-    magento:
-        container_name: magento
-        build:
-            context: ./magento
-            args: *magento_env
-            additional_contexts:
-              php: "service:php"
-        develop:
-          watch:
-            - path: ./magento
-              include: Dockerfile
-              action: rebuild
-            - path: ./php
-              include: Dockerfile
-              action: rebuild
-            - path: ./php/config/magento
-              action: rebuild
-        environment: *php_env
-        volumes:
-            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public:ro
-            - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
-            - ${MAGENTO}/${BRAND}/shared//pub/media:${ROOT_PATH}/public/pub/media
-        networks:
-            - backend
-        working_dir: "${ROOT_PATH}/public"
-        user: "1000:1001"
-        entrypoint: ["/entrypoint.sh"]
-        restart: unless-stopped
-        cpus: 2
-        mem_limit: 2G
-        mem_reservation: 1G
-        << : [*ulimits, *logger]
+# -----------------------------------------------------------------------------------------------------------------------    
+  magento:
+    image: ${BRAND}-magento
+    container_name: magento
+    build:
+      context: ./magento
+      args: *magento_env
+      additional_contexts:
+        - "${BRAND}-php=service:php"
+    develop:
+      watch:
+        - path: ./magento/Dockerfile
+          action: rebuild
+        - path: ./php/Dockerfile
+          action: rebuild
+        - path: ./php/config/magento
+          action: rebuild
+    environment: *php_env
+    volumes:
+      - ${APP_PATH}/public:${ROOT_PATH}/public
+      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
+      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
+      - ${APP_PATH}/releases:${ROOT_PATH}/releases
+    working_dir: "${ROOT_PATH}/public/current"
+    networks:
+      - backend
+      - frontend
+    user: "1000:1001"
+    entrypoint: ["/entrypoint.sh"]
+    restart: unless-stopped
+    cpus: 2
+    mem_limit: 2G
+    mem_reservation: 1G
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #  Nginx is an open source reverse proxy server for HTTP, HTTPS
-# # ---------------------------------------------------------------------------------------------------------------------#                   
-    nginx:
-        container_name: nginx
-        hostname: nginx
-        build:
-            context: ./nginx
-            args: *magento_env
-        develop:
-          watch:
-            - path: ./nginx
-              include: Dockerfile
-              action: rebuild
-            - path: ./nginx/config
-              include: "*.conf"
-              action: rebuild
-        depends_on:
-            mariadb:
-                condition: service_healthy
-            php:
-                condition: service_started
-        ports:
-            - "80:80"
-            - "443:443"
-        expose:
-            - "8080"
-        networks:
-            - frontend 
-        volumes:
-            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public:ro
-            - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var:ro
-            - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media:ro
-            - ${DATA}/nginx/cache:/var/cache/nginx
-            - ${DATA}/letsencrypt:/etc/letsencrypt:ro
-            - ${DATA}/phpmyadmin:/var/www/html:ro
-        working_dir: "${ROOT_PATH}/public"
-        user: "1000:1001"
-        restart: unless-stopped
-        cpus: 2
-        mem_limit: 2G
-        mem_reservation: 1G
-        << : [*ulimits, *logger]
+# -----------------------------------------------------------------------------------------------------------------------                   
+  nginx:
+    container_name: nginx
+    hostname: nginx
+    build:
+      context: ./nginx
+      args: *magento_env
+    develop:
+      watch:
+        - path: ./nginx/Dockerfile
+          action: rebuild
+    environment: 
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
+      - BRAND
+      - DOMAIN
+      - PHP_USER
+      - PHP_FPM
+      - PHPMYADMIN_PHP_FPM
+      - TIMEZONE
+      - PROFILER
+      - ROOT_PATH
+      - ADMIN_PATH
+      - PHPMYADMIN_PATH
+      - RABBITMQ_PATH
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      php:
+        condition: service_started
+    ports:
+      - "80:80"
+      - "443:443"
+    expose:
+      - "8080"
+    networks:
+      - frontend 
+    volumes:
+      - ${APP_PATH}/public:${ROOT_PATH}/public:ro
+      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var:ro
+      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media:ro
+      - ${APP_PATH}/releases:${ROOT_PATH}/releases:ro
+      - ${DATA_PATH}/letsencrypt:/etc/letsencrypt:ro
+      - ${DATA_PATH}/phpmyadmin:/var/www/html:ro
+      - ${DATA_PATH}/nginx/log:/var/log/nginx
+      - ${DATA_PATH}/nginx/cache:/var/cache/nginx
+    working_dir: "${ROOT_PATH}/public/current"
+    user: "1000:1001"
+    restart: unless-stopped
+    cpus: 2
+    mem_limit: 2G
+    mem_reservation: 1G
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #   Composer is a dependency manager written in and for PHP
-# # ---------------------------------------------------------------------------------------------------------------------# 
-    composer:
-        container_name: composer
-        build:
-            context: ./composer
-            args:
-              <<: *magento_env
-            additional_contexts:
-              php: "service:php"
-        develop:
-          watch:
-            - path: ./composer
-              include: Dockerfile
-              action: rebuild
-            - path: ./php
-              include: Dockerfile
-              action: rebuild
-            - path: ./php/config/composer
-              action: rebuild
-        environment:
-            COMPOSER_AUTH: |
-              {
-                "http-basic": {
-                  "repo.magento.com": {
-                    "username": "${COMPOSER_USER}",
-                    "password": "${COMPOSER_PASSWORD}"
-                  }
-                }
-              }
-        volumes:
-            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public
-            - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
-            - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media
-        networks:
-            - frontend
-        working_dir: "${ROOT_PATH}/public"
-        user: "1000:1001"
-        entrypoint: ["composer"]
-        cpus: 2
-        mem_limit: 2G
-        mem_reservation: 512m
-        << : [*ulimits, *logger]
+# ----------------------------------------------------------------------------------------------------------------------- 
+  composer:
+    image: ${BRAND}-composer
+    container_name: composer
+    build:
+      context: ./composer
+      args: *magento_env
+      additional_contexts:
+        - "${BRAND}-php=service:php"
+    develop:
+      watch:
+        - path: ./composer
+          action: rebuild
+        - path: ./php/Dockerfile
+          action: rebuild
+        - path: ./php/config/composer
+          action: rebuild
+    environment:
+      COMPOSER_AUTH: |
+        {
+          "http-basic": {
+            "repo.magento.com": {
+              "username": "${COMPOSER_USER}",
+              "password": "${COMPOSER_PASSWORD}"
+            }
+          }
+        }
+    volumes:
+      - ${APP_PATH}/public:${ROOT_PATH}/public
+      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
+      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
+      - ${APP_PATH}/releases:${ROOT_PATH}/releases
+    working_dir: "${ROOT_PATH}/public/current"
+    networks:
+      - frontend
+    user: "1000:1001"
+    entrypoint: ["composer"]
+    cpus: 2
+    mem_limit: 2G
+    mem_reservation: 512m
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #  phpMyAdmin - A web interface for MariaDB
-# # ---------------------------------------------------------------------------------------------------------------------#  
-    phpmyadmin:
-        image: phpmyadmin:fpm-alpine
-        container_name: phpmyadmin
-        hostname: phpmyadmin
-        environment:
-            - PMA_ARBITRARY
-            - HIDE_PHP_VERSION
-            - PMA_HOST
-            - PMA_PORT
-            - MAX_EXECUTION_TIME
-            - MEMORY_LIMIT
-            - UPLOAD_LIMIT
-            - PMA_PMADB
-            - PMA_CONTROLUSER
-            - PMA_CONTROLPASS
-            - TIMEZONE
-        depends_on:
-            mariadb:
-                condition: service_healthy
-            nginx:
-                condition: service_started
-        expose:
-            - "9001"
-        networks:
-            - backend
-        volumes:
-            - ${DATA}/phpmyadmin:/var/www/html
-        user: "9001:9001"
-        restart: always
-        cpus: 1
-        mem_limit: 512m
-        mem_reservation: 512m
-        << : [*ulimits, *logger]
+# -----------------------------------------------------------------------------------------------------------------------  
+  phpmyadmin:
+    image: phpmyadmin:fpm-alpine
+    container_name: phpmyadmin
+    hostname: phpmyadmin
+    environment:
+      - PMA_ARBITRARY
+      - HIDE_PHP_VERSION
+      - PMA_HOST
+      - PMA_PORT
+      - MAX_EXECUTION_TIME
+      - MEMORY_LIMIT
+      - UPLOAD_LIMIT
+      - PMA_PMADB
+      - PMA_CONTROLUSER
+      - PMA_CONTROLPASS
+      - TIMEZONE
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      nginx:
+        condition: service_started
+    expose:
+      - "9001"
+    networks:
+      - backend
+    volumes:
+      - ${DATA_PATH}/phpmyadmin:/var/www/html
+    user: "9001:9001"
+    restart: always
+    cpus: 1
+    mem_limit: 512m
+    mem_reservation: 512m
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #   Certbot tool for obtaining TLS/SSL certificates from Let's Encrypt
-# # ---------------------------------------------------------------------------------------------------------------------#           
-    certbot:
-        image: certbot/certbot:latest
-        container_name: certbot
-        volumes:
-            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public/pub/.well-known/acme-challenge/:rw
-            - ${DATA}/letsencrypt:/etc/letsencrypt
-            - ${DATA}/letsencrypt:/var/lib/letsencrypt
-        networks:
-            - frontend
-        user: "1000:1001"
-        << : [*ulimits, *logger]
+# -----------------------------------------------------------------------------------------------------------------------           
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    networks:
+      - frontend
+    volumes:
+      - ${APP_PATH}/public:${ROOT_PATH}/public
+      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
+      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
+      - ${APP_PATH}/releases:${ROOT_PATH}/releases
+      - ${DATA_PATH}/letsencrypt:/etc/letsencrypt
+      - ${DATA_PATH}/letsencrypt:/var/lib/letsencrypt
+    working_dir: "${ROOT_PATH}/public/current"
+    user: "1000:1001"
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #   Cron job scheduler run arbitrary commands, or "jobs", according to a schedule
-# # ---------------------------------------------------------------------------------------------------------------------# 
-    cron:
-        container_name: cron
-        build:
-            context: ./cron
-            args: *magento_env
-            additional_contexts:
-              php: "service:php"
-        develop:
-          watch:
-            - path: ./cron
-              include: Dockerfile
-              action: rebuild
-            - path: ./php
-              include: Dockerfile
-              action: rebuild
-            - path: ./php/config/cron
-              action: rebuild
-        environment: *php_env
-        depends_on:
-            mariadb:
-                condition: service_healthy
-        volumes:
-            - ${MAGENTO}/${BRAND}/current:${ROOT_PATH}/public
-            - ${MAGENTO}/${BRAND}/shared/var:${ROOT_PATH}/public/var
-            - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media
-        networks:
-            - backend
-        working_dir: "${ROOT_PATH}/public"
-        user: "1000:1001"
-        command: ["crond", "-f"]
-        cpus: 1
-        mem_limit: 2G
-        mem_reservation: 512m
-        << : [*ulimits, *logger]
+# ----------------------------------------------------------------------------------------------------------------------- 
+  cron:
+    image: ${BRAND}-cron
+    container_name: cron
+    build:
+      context: ./cron
+      args: *magento_env
+      additional_contexts:
+        - "${BRAND}-php=service:php"
+    develop:
+      watch:
+        - path: ./cron
+          action: rebuild
+        - path: ./php/Dockerfile
+          action: rebuild
+        - path: ./php/config/cron
+          action: rebuild
+    environment: *php_env
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - backend
+    volumes:
+      - ${APP_PATH}/public:${ROOT_PATH}/public
+      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
+      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
+      - ${APP_PATH}/releases:${ROOT_PATH}/releases
+    working_dir: "${ROOT_PATH}/public/current"
+    user: "1000:1001"
+    command: ["crond", "-f"]
+    cpus: 1
+    mem_limit: 2G
+    mem_reservation: 512m
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #   Fast and secure standalone server for resizing, processing, and converting images
-# # ---------------------------------------------------------------------------------------------------------------------# 
-    imgproxy:
-        image: "ghcr.io/imgproxy/imgproxy:latest"
-        container_name: imgproxy
-        environment:
-          - IMGPROXY_ALLOW_INSECURE=true
-          - IMGPROXY_ALLOWED_SOURCES=local://,http://127.0.0.1/
-          - IMGPROXY_LOCAL_FILESYSTEM_ROOT=${ROOT_PATH}/public/pub/media
-          - IMGPROXY_FALLBACK_IMAGE_PATH=/media/catalog/product/placeholder/default/placeholder.jpg
-          - IMGPROXY_WATERMARK_PATH=/media/catalog/product/placeholder/default/watermark.jpg
-          - IMGPROXY_MAX_REDIRECTS=1
-          - IMGPROXY_TTL=31536000
-          - IMGPROXY_ENFORCE_WEBP=true
-          - IMGPROXY_AUTO_WEBP=1
-          - IMGPROXY_AUTO_AVIF=1
-          - IMGPROXY_QUALITY=70
-          - IMGPROXY_FORMAT_QUALITY=jpeg=70,avif=40,webp=60
-          - IMGPROXY_BIND=0.0.0.0:4593
-          - IMGPROXY_USE_ETAG=true
-          - IMGPROXY_CONCURRENCY=10
-          - IMGPROXY_TIMEOUT=5
-          - IMGPROXY_READ_REQUEST_TIMEOUT=5
-          - IMGPROXY_WRITE_RESPONSE_TIMEOUT=5
-          - IMGPROXY_DOWNLOAD_TIMEOUT=5
-          - IMGPROXY_ENABLE_DEBUG_HEADERS=true
-        depends_on:
-            nginx:
-                condition: service_started
-        volumes:
-            - ${MAGENTO}/${BRAND}/shared/pub/media:${ROOT_PATH}/public/pub/media:ro
-        expose:
-            - "4593"
-        networks:
-            - frontend
-        working_dir: "${ROOT_PATH}/public/pub/media"
-        user: "1000:1001"
-        restart: unless-stopped
-        cpus: 1
-        mem_limit: 2G
-        mem_reservation: 512m
-        healthcheck:
-          test: ["CMD", "imgproxy", "health"]
-          interval: 10s
-          timeout: 10s
-          retries: 3
+# ----------------------------------------------------------------------------------------------------------------------- 
+  imgproxy:
+    image: "ghcr.io/imgproxy/imgproxy:latest"
+    container_name: imgproxy
+    environment:
+      - IMGPROXY_ALLOW_INSECURE=true
+      - IMGPROXY_ALLOWED_SOURCES=local://,http://127.0.0.1/
+      - IMGPROXY_LOCAL_FILESYSTEM_ROOT=${ROOT_PATH}/shared/pub/media
+      - IMGPROXY_FALLBACK_IMAGE_PATH=${ROOT_PATH}/shared/pub/media/catalog/product/placeholder/default/placeholder.jpg
+      - IMGPROXY_WATERMARK_PATH=${ROOT_PATH}/shared/pub/media/catalog/product/placeholder/default/watermark.jpg
+      - IMGPROXY_MAX_REDIRECTS=1
+      - IMGPROXY_TTL=31536000
+      - IMGPROXY_ENFORCE_WEBP=true
+      - IMGPROXY_AUTO_WEBP=1
+      - IMGPROXY_AUTO_AVIF=1
+      - IMGPROXY_QUALITY=70
+      - IMGPROXY_FORMAT_QUALITY=jpeg=70,avif=40,webp=60
+      - IMGPROXY_BIND=0.0.0.0:4593
+      - IMGPROXY_USE_ETAG=true
+      - IMGPROXY_CONCURRENCY=10
+      - IMGPROXY_TIMEOUT=5
+      - IMGPROXY_READ_REQUEST_TIMEOUT=5
+      - IMGPROXY_WRITE_RESPONSE_TIMEOUT=5
+      - IMGPROXY_DOWNLOAD_TIMEOUT=5
+      - IMGPROXY_ENABLE_DEBUG_HEADERS=true
+    depends_on:
+      nginx:
+         condition: service_started
+    volumes:
+      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media:ro
+    expose:
+      - "4593"
+    networks:
+      - frontend
+    working_dir: "${ROOT_PATH}/shared/pub/media"
+    user: "1000:1001"
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 2G
+    mem_reservation: 512m
+    healthcheck:
+      test: ["CMD", "imgproxy", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    << : [*ulimits, *logger]
 
 
-# # ---------------------------------------------------------------------------------------------------------------------#
+# -----------------------------------------------------------------------------------------------------------------------
 #   Named networks list
-# # ---------------------------------------------------------------------------------------------------------------------# 
+# ----------------------------------------------------------------------------------------------------------------------- 
 networks:
   frontend:
   backend:
