@@ -17,52 +17,9 @@
 ```
    curl -Lo init.sh https://raw.githubusercontent.com/magenx/Magento-2-docker-configuration/main/init.sh && . init.sh
 ```
-  
-### or
-- [x] Manual commands:  
-```
-  apt update && apt upgrade -y
-  apt-get -y install ca-certificates software-properties-common screen ipset vim strace rsyslog git apache2-utils
-  install -m 0755 -d /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-  chmod a+r /etc/apt/keyrings/docker.asc
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  tee /etc/apt/sources.list.d/docker.list > /dev/null
-  apt-get update
-```
-  
-- [x] Install docker compose cli:  
-```
-   apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-  
-- [x] Add alias or use auto completion feature:  
-```
-  echo "alias doco='docker compose'" >> ~/.bash_profile
-  . ~/.bash_profile
-```
-  
-- [x] Create deployment directory:  
-```
-  mkdir /opt/magenx/docker && cd /opt/magenx/docker
-```
-  
-- [x] Clone repo:  
-> 
-```
-  git clone https://github.com/magenx/Magento-2-docker-configuration.git .
-```
-   
-- [x] To avoid copying default passwords and hacking through open ports - generate new passwords:  
-> https://docs.docker.com/compose/compose-file/compose-file-v3/#secrets  
-```
-   bash passgen.sh
-```
 <br />
   
-**[ ! ]** Check all data, adjust your settings, edit your variables  
+**[ ! ]** Check all data, adjust your settings, add configs, edit your variables  
 - [x] Run to pull and build images and start containers:   
 ```
    doco build --no-cache       
