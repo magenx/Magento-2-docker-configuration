@@ -442,7 +442,6 @@ services:
 #  Configure container to run php and php-fpm
 # -----------------------------------------------------------------------------------------------------------------------    
   php:
-    image: "${BRAND}-php"
     container_name: php
     hostname: php
     build:
@@ -535,13 +534,10 @@ services:
 #  Configure container for magento app
 # -----------------------------------------------------------------------------------------------------------------------    
   magento:
-    image: ${BRAND}-magento
     container_name: magento
     build:
       context: ./magento
       args: *magento_env
-      additional_contexts:
-        - "${BRAND}-php=service:php"
     develop:
       watch:
         - path: ./magento/Dockerfile
@@ -608,6 +604,7 @@ services:
     networks:
       - frontend 
     volumes:
+      - ./nginx/sites-enabled.sh:/docker-entrypoint.d/100-sites-enabled.sh:ro
       - ${APP_PATH}/public:${ROOT_PATH}/public:ro
       - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var:ro
       - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media:ro
@@ -629,13 +626,10 @@ services:
 #   Composer is a dependency manager written in and for PHP
 # ----------------------------------------------------------------------------------------------------------------------- 
   composer:
-    image: ${BRAND}-composer
     container_name: composer
     build:
       context: ./composer
       args: *magento_env
-      additional_contexts:
-        - "${BRAND}-php=service:php"
     develop:
       watch:
         - path: ./composer
@@ -698,6 +692,7 @@ services:
       - "9001"
     networks:
       - backend
+      - frontend
     volumes:
       - ${DATA_PATH}/phpmyadmin:/var/www/html
     user: "9001:9001"
@@ -732,13 +727,10 @@ services:
 #   Cron job scheduler run arbitrary commands, or "jobs", according to a schedule
 # ----------------------------------------------------------------------------------------------------------------------- 
   cron:
-    image: ${BRAND}-cron
     container_name: cron
     build:
       context: ./cron
       args: *magento_env
-      additional_contexts:
-        - "${BRAND}-php=service:php"
     develop:
       watch:
         - path: ./cron
