@@ -8,21 +8,24 @@
 
 # :rocket: Deploy your project:
 > Disclaimer: By default, the latest versions of packages are configured, above those recommended by Magento 2
-- [x] Install Docker [ Debian ]:
+- [x] Install Docker [ Debian 12/13 | Ubuntu 22/24 ]:
 > you can use any linux host or Docker Desktop  
 > https://docs.docker.com/  
-> https://docs.docker.com/engine/install/debian/
+> https://docs.docker.com/engine/install/
   
-- [x] Use init.sh script provided to install and configure docker environment:  
+- [x] Use docker.sh script provided to install and configure docker environment:  
 ```
-   curl -Lo init.sh https://raw.githubusercontent.com/magenx/Magento-2-docker-configuration/main/init.sh && . init.sh
+   curl -Lo docker.sh https://raw.githubusercontent.com/magenx/Magento-2-docker-configuration/main/docker.sh && . docker.sh
+```
+```
+   curl -LO magenx.sh/docker.sh
 ```
 <br />
   
 **[ ! ]** Check all data, adjust your settings, add configs, edit your variables  
 - [x] Run to pull and build images and start containers:   
 ```
-   doco build --no-cache       
+   doco build php --no-cache       
    doco up -d
 ```
 - [x] Folders structure:   
