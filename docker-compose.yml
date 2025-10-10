@@ -558,7 +558,6 @@ services:
       - frontend
     user: "1000:1001"
     entrypoint: ["/entrypoint.sh"]
-    restart: unless-stopped
     cpus: 2
     mem_limit: 2G
     mem_reservation: 1G
@@ -692,7 +691,7 @@ services:
     volumes:
       - ${DATA_PATH}/phpmyadmin:/var/www/html
     user: "9001:9001"
-    restart: always
+    restart: unless-stopped
     cpus: 1
     mem_limit: 512m
     mem_reservation: 512m
