@@ -585,6 +585,7 @@ services:
       - PHP_FPM
       - TIMEZONE
       - PROFILER
+      - RESOLVER
       - ROOT_PATH
       - ADMIN_PATH
       - PHPMYADMIN_PATH
