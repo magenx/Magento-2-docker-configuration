@@ -5,7 +5,7 @@ import std;
 
 backend default {
     .host = "nginx";
-    .port = "8080";
+    .port = "80";
     .first_byte_timeout = 600s;
     .probe = {
         .request = "GET /health_check.php HTTP/1.1"
@@ -26,6 +26,9 @@ acl purge {
 }
 
 sub vcl_recv {
+
+    set req.http.X-Forwarded-Proto = "https";
+	
     if (req.restarts > 0) {
         set req.hash_always_miss = true;
     }

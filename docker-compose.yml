@@ -55,7 +55,7 @@ services:
 #  Containers management with Portainer
 # -----------------------------------------------------------------------------------------------------------------------
   portainer:
-    image: portainer/portainer-ce:alpine
+    image: portainer/portainer-ce@sha256:c6908c1a2d036668799d51fb4d5ba5a5b3905509c7ac1b832c0fc0ef4c152f0e # Sep 25, 2025 at 6:59 am
     container_name: portainer
     hostname: portainer
     expose:
@@ -420,8 +420,8 @@ services:
     depends_on:
       - nginx
       - php
-    expose:
-      - "8081"
+    ports:
+      - "80"
     networks:
       - frontend
     user: "8081:8081"
@@ -584,7 +584,6 @@ services:
       - DOMAIN
       - PHP_USER
       - PHP_FPM
-      - PHPMYADMIN_PHP_FPM
       - TIMEZONE
       - PROFILER
       - ROOT_PATH
@@ -596,10 +595,8 @@ services:
         condition: service_healthy
       php:
         condition: service_started
-    ports:
-      - "80:80"
-      - "443:443"
     expose:
+      - "80" 
       - "8080"
     networks:
       - frontend 
@@ -609,7 +606,6 @@ services:
       - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var:ro
       - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media:ro
       - ${APP_PATH}/releases:${ROOT_PATH}/releases:ro
-      - ${DATA_PATH}/letsencrypt:/etc/letsencrypt:ro
       - ${DATA_PATH}/phpmyadmin:/var/www/html:ro
       - ${DATA_PATH}/nginx/log:/var/log/nginx
       - ${DATA_PATH}/nginx/cache:/var/cache/nginx
@@ -668,7 +664,7 @@ services:
 #  phpMyAdmin - A web interface for MariaDB
 # -----------------------------------------------------------------------------------------------------------------------  
   phpmyadmin:
-    image: phpmyadmin:fpm-alpine
+    image: phpmyadmin@sha256:f842ffda6bbf94a085c2e99fe43dd6db80597cb513d9940887987b2e36a8605d # Oct 9, 2025 at 10:41 am
     container_name: phpmyadmin
     hostname: phpmyadmin
     environment:
@@ -689,7 +685,7 @@ services:
       nginx:
         condition: service_started
     expose:
-      - "9001"
+      - "80"
     networks:
       - backend
       - frontend
@@ -700,26 +696,6 @@ services:
     cpus: 1
     mem_limit: 512m
     mem_reservation: 512m
-    << : [*ulimits, *logger]
-
-
-# -----------------------------------------------------------------------------------------------------------------------
-#   Certbot tool for obtaining TLS/SSL certificates from Let's Encrypt
-# -----------------------------------------------------------------------------------------------------------------------           
-  certbot:
-    image: certbot/certbot:latest
-    container_name: certbot
-    networks:
-      - frontend
-    volumes:
-      - ${APP_PATH}/public:${ROOT_PATH}/public
-      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
-      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
-      - ${APP_PATH}/releases:${ROOT_PATH}/releases
-      - ${DATA_PATH}/letsencrypt:/etc/letsencrypt
-      - ${DATA_PATH}/letsencrypt:/var/lib/letsencrypt
-    working_dir: "${ROOT_PATH}/public/current"
-    user: "1000:1001"
     << : [*ulimits, *logger]
 
 
@@ -763,7 +739,7 @@ services:
 #   Fast and secure standalone server for resizing, processing, and converting images
 # ----------------------------------------------------------------------------------------------------------------------- 
   imgproxy:
-    image: "ghcr.io/imgproxy/imgproxy:latest"
+    image: "ghcr.io/imgproxy/imgproxy@sha256:7ea5a6f9dee9e570541be8b846a32c822352e92dc3ce207ab4a6b03ed6bbf0fc" # 2025-09-21T11:22:34-07:00
     container_name: imgproxy
     environment:
       - IMGPROXY_ALLOW_INSECURE=true
