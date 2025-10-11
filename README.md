@@ -18,7 +18,7 @@
    curl -Lo docker.sh https://raw.githubusercontent.com/magenx/Magento-2-docker-configuration/main/docker.sh && . docker.sh
 ```
 ```
-   curl -LO magenx.sh/docker.sh
+   curl -LO magenx.sh/docker.sh && . docker.sh
 ```
 <br />
   
