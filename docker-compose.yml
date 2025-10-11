@@ -596,8 +596,7 @@ services:
       php:
         condition: service_started
     expose:
-      - "80" 
-      - "8080"
+      - "80"
     networks:
       - frontend 
     volumes:
