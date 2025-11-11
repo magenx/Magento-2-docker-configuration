@@ -13,12 +13,13 @@
 > https://docs.docker.com/  
 > https://docs.docker.com/engine/install/
   
-- [x] Use docker.sh script provided to install and configure docker environment:  
+- [x] Use docker.sh script provided to install and configure docker environment:
+> replace BRAND with your "brand" name option
 ```
-   curl -Lo docker.sh https://raw.githubusercontent.com/magenx/Magento-2-docker-configuration/main/docker.sh && . docker.sh
+   curl -Lo docker.sh https://raw.githubusercontent.com/magenx/Magento-2-docker-configuration/main/docker.sh && . docker.sh BRAND
 ```
 ```
-   curl -LO magenx.sh/docker.sh && . docker.sh
+   curl -LO magenx.sh/docker.sh && . docker.sh BRAND
 ```
 <br />
   
