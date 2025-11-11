@@ -13,6 +13,8 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+BRAND=$1
+
 echo "Configuring /etc/docker/daemon.json"
 mkdir -p /etc/docker/
 cat > /etc/docker/daemon.json <<EOF
@@ -49,9 +51,9 @@ echo "alias doco='docker compose'" >> ~/.bash_profile
 source ~/.bash_profile
 
 echo ""
-echo "Create /opt/magenx/docker directory"
-mkdir -p /opt/magenx/docker
-cd /opt/magenx/docker
+echo "Create /opt/${BRAND}/docker directory"
+mkdir -p /opt/${BRAND}/docker
+cd /opt/${BRAND}/docker
 
 echo ""
 echo "Clone docker compose configuration"
