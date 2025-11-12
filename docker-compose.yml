@@ -328,11 +328,13 @@ services:
       - "80"
     networks:
       - frontend
-    user: "8081:8081"
+    volumes:
+      - ./varnish/default.vcl:/etc/varnish/default.vcl:ro
+    user: "1000:1000"
     restart: unless-stopped
     cpus: 1
-    mem_limit: 1G
-    mem_reservation: 1G
+    mem_limit: ${VARNISH_SIZE}
+    mem_reservation: ${VARNISH_SIZE}
     healthcheck:
       test: ["CMD", "varnishadm", "ping"]
       start_period: 10s
@@ -390,7 +392,7 @@ services:
       - backend
       - frontend
     volumes:
-      - ${APP_PATH}/public:${ROOT_PATH}/public
+      - ${APP_PATH}/public:${ROOT_PATH}/public:ro
       - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
       - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
       - ${APP_PATH}/releases:${ROOT_PATH}/releases
@@ -516,11 +518,11 @@ services:
       - ${DATA_PATH}/nginx/log:/var/log/nginx
       - ${DATA_PATH}/nginx/cache:/var/cache/nginx
     working_dir: "${ROOT_PATH}/public/current"
-    user: "1000:1001"
+    user: "101:101"
     restart: unless-stopped
     cpus: 2
-    mem_limit: 2G
-    mem_reservation: 1G
+    mem_limit: 1G
+    mem_reservation: 512m
     << : [*ulimits, *logger]
 
 
@@ -562,7 +564,7 @@ services:
     entrypoint: ["composer"]
     cpus: 2
     mem_limit: 2G
-    mem_reservation: 512m
+    mem_reservation: 1G
     << : [*ulimits, *logger]
 
 
@@ -637,7 +639,7 @@ services:
     command: ["crond", "-f"]
     cpus: 1
     mem_limit: 2G
-    mem_reservation: 512m
+    mem_reservation: 1G
     << : [*ulimits, *logger]
 
 
@@ -651,8 +653,8 @@ services:
       - IMGPROXY_ALLOW_INSECURE=true
       - IMGPROXY_ALLOWED_SOURCES=local://,http://127.0.0.1/
       - IMGPROXY_LOCAL_FILESYSTEM_ROOT=${ROOT_PATH}/shared/pub/media
-      - IMGPROXY_FALLBACK_IMAGE_PATH=${ROOT_PATH}/shared/pub/media/catalog/product/placeholder/default/placeholder.jpg
-      - IMGPROXY_WATERMARK_PATH=${ROOT_PATH}/shared/pub/media/catalog/product/placeholder/default/watermark.jpg
+      #- IMGPROXY_FALLBACK_IMAGE_PATH=${ROOT_PATH}/shared/pub/media/catalog/product/placeholder/default/placeholder.jpg
+      #- IMGPROXY_WATERMARK_PATH=${ROOT_PATH}/shared/pub/media/catalog/product/placeholder/default/watermark.jpg
       - IMGPROXY_MAX_REDIRECTS=1
       - IMGPROXY_TTL=31536000
       - IMGPROXY_AUTO_WEBP=1
@@ -677,10 +679,10 @@ services:
     networks:
       - frontend
     working_dir: "${ROOT_PATH}/shared/pub/media"
-    user: "1000:1001"
+    user: "1001:1001"
     restart: unless-stopped
     cpus: 1
-    mem_limit: 2G
+    mem_limit: 1G
     mem_reservation: 512m
     healthcheck:
       test: ["CMD", "imgproxy", "health"]

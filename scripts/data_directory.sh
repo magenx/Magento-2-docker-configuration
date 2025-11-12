@@ -11,7 +11,7 @@ for dir in \
   "opensearch:109200" \
   "mariadb:103306" \
   "phpmyadmin:109000" \
-  "nginx:101000" \
+  "nginx:100101" \
   "xhgui:108142"
 do
   IFS=":" read directory uid <<< "$dir"

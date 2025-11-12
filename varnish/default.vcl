@@ -10,7 +10,7 @@ backend default {
     .probe = {
         .request = "GET /health_check.php HTTP/1.1"
                    "Host: ${DOMAIN}"
-                   "X-Probe: Varnish backend health check"
+                   "User-Agent: Varnish backend health check"
                    "Connection: close";
         .timeout = 2s;
         .interval = 5s;
@@ -20,9 +20,9 @@ backend default {
 }
 
 acl purge {
-    "nginx";
-	"magento";
-	"php";
+    "172.16.0.0/12";
+	"localhost";
+	"127.0.0.1";
 }
 
 sub vcl_recv {
