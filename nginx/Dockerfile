@@ -1,6 +1,7 @@
 # syntax = docker/dockerfile:labs
 
-FROM nginx:mainline-alpine
+ARG NGINX_IMAGE
+FROM ${NGINX_IMAGE}
 
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"

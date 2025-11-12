@@ -1,13 +1,13 @@
 # syntax = docker/dockerfile:labs
 
-ARG VARNISH_VERSION
-FROM varnish:${VARNISH_VERSION}-alpine
+ARG VARNISH_IMAGE
+FROM ${VARNISH_IMAGE}
 
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
 ARG TIMEZONE
-ARG VARNISH_CACHE_SIZE
+ARG VARNISH_SIZE
 
 USER root
 
@@ -46,7 +46,7 @@ RUN <<EOF cat > /usr/local/bin/docker-varnish-entrypoint
             -T varnish:6082 \\
             -f /etc/varnish/default.vcl \\
             -S /etc/varnish/secret \\
-            -s malloc,${VARNISH_CACHE_SIZE} \\
+            -s malloc,${VARNISH_SIZE} \\
             -p thread_pool_min=200 \\
             -p thread_pool_max=4000 \\
             -p thread_pool_add_delay=2 \\

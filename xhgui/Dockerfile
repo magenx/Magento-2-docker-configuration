@@ -1,6 +1,7 @@
 # syntax = docker/dockerfile:labs
 
-FROM xhgui/xhgui:latest
+ARG XHGUI_IMAGE
+FROM ${XHGUI_IMAGE}
 
 ARG UID=8142
 ARG GID=8142

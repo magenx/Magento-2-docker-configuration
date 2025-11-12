@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:labs
 
-ARG OPENSEARCH_VERSION
-FROM opensearchproject/opensearch:${OPENSEARCH_VERSION}
+ARG OPENSEARCH_IMAGE
+FROM ${OPENSEARCH_IMAGE}
 
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"

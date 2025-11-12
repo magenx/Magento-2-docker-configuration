@@ -51,64 +51,12 @@ x-cap_add: &cap_add
 #  Services configuration parameters
 # -----------------------------------------------------------------------------------------------------------------------
 services:
-# -----------------------------------------------------------------------------------------------------------------------
-#  Containers management with Portainer
-# -----------------------------------------------------------------------------------------------------------------------
-  portainer:
-    image: portainer/portainer-ce@sha256:c6908c1a2d036668799d51fb4d5ba5a5b3905509c7ac1b832c0fc0ef4c152f0e # Sep 25, 2025 at 6:59 am
-    container_name: portainer
-    hostname: portainer
-    expose:
-      - "9443:9443"
-    networks:
-      - frontend
-    volumes:
-      - ${DATA_PATH}/portainer:/data
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    user: "9443:9443"
-    restart: unless-stopped
-    cpus: 1
-    mem_limit: 2G
-    mem_reservation: 1G
-    << : [*ulimits, *logger]
-
-
-# -----------------------------------------------------------------------------------------------------------------------
-#   Scans log files for login failures then updates iptables to reject originating ip address
-# -----------------------------------------------------------------------------------------------------------------------
-  fail2ban:
-    container_name: fail2ban
-    hostname: fail2ban
-    build:
-      context: ./fail2ban
-      args:
-        - ALPINE_VERSION
-    networks:
-      - frontend
-    volumes:
-      - ${DATA_PATH}/nginx/log:/var/log/nginx:ro
-      - ${DATA_PATH}/fail2ban/:/var/lib/fail2ban
-    user: "1000:1000"
-    entrypoint: ["fail2ban-server", "-f", "-x", "-v", "start"]
-    restart: unless-stopped
-    cpus: 1
-    mem_limit: 2G
-    mem_reservation: 1G
-    healthcheck:
-      test: ["CMD-SHELL", "fail2ban-client ping || exit 1"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    << : [*ulimits, *logger]
-
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  MariaDB is a high performing open source relational database
 # -----------------------------------------------------------------------------------------------------------------------
   mariadb:
-    image: mariadb:${MARIADB_VERSION}
+    image: ${MARIADB_IMAGE}
     container_name: mariadb
     hostname: mariadb
     environment:
@@ -182,7 +130,7 @@ services:
     build:
       context: ./opensearch
       args:
-        - OPENSEARCH_VERSION
+        - OPENSEARCH_IMAGE
     develop:
       watch:
         - path: ./opensearch
@@ -223,54 +171,10 @@ services:
 
 
 # -----------------------------------------------------------------------------------------------------------------------
-#  Opensearch-Dashboards is an open source analytics and visualization platform designed to work with Opensearch
-# -----------------------------------------------------------------------------------------------------------------------
-  opensearch-dashboards:
-    container_name: opensearch-dashboards
-    hostname: opensearch-dashboards
-    build:
-      context: ./opensearch
-      dockerfile: Dockerfile.dashboards
-      args:
-        - OPENSEARCH_VERSION
-    develop:
-      watch:
-        - path: ./opensearch
-          action: rebuild
-    environment:
-      - OPENSEARCH_HOSTS=http://opensearch:9200
-      - OPENSEARCH_USERNAME=dashboards
-      - OPENSEARCH_PASSWORD=${OPENSEARCH_DASHBOARDS_PASSWORD}
-      - SERVER_PUBLICBASEURL=https://${DOMAIN}/${OPENSEARCH_DASHBOARDS_PATH}
-      - SERVER_SSL_ENABLED=false
-      - OPENSEARCH_SSL_VERIFICATIONMODE=none
-      - OPENSEARCH_REQUESTHEADERSWHITELIST=["securitytenant","Authorization"]
-      - OPENSEARCH_SECURITY_MULTITENANCY_ENABLED=true
-      - OPENSEARCH_SECURITY_MULTITENANCY_TENANTS_PREFERRED=["Private", "Global"]
-      - OPENSEARCH_SECURITY_READONLY_MODE_ROLES=["kibana_read_only"]
-      - SERVER_CUSTOMRESPONSEHEADERS={"Access-Control-Allow-Credentials":"true"}
-    expose:
-      - "5601"
-    networks:
-      - frontend
-    depends_on:
-      opensearch:
-        condition: service_healthy
-    volumes:
-      - ${DATA_PATH}/opensearch/dashboards/logs:/usr/share/opensearch-dashboards/logs
-    user: "9200:9200"
-    restart: unless-stopped
-    cpus: 1
-    mem_limit: 2G
-    mem_reservation: 1G
-    << : [*ulimits, *logger]
-
-
-# -----------------------------------------------------------------------------------------------------------------------
 #  Redis is an open source key-value store that functions as a data structure server.
 # -----------------------------------------------------------------------------------------------------------------------
   cache:
-    image: &redis_image redis:${REDIS_VERSION}-alpine
+    image: &redis_image ${REDIS_IMAGE}
     container_name: cache
     hostname: cache
     command: >
@@ -350,7 +254,7 @@ services:
 #  Redis Insight lets you visually browse and interact with data
 # -----------------------------------------------------------------------------------------------------------------------
   redisinsight:
-    image: redis/redisinsight:latest
+    image: ${REDISINSIGHT_IMAGE}
     hostname: redisinsight
     container_name: redisinsight
     expose:
@@ -358,7 +262,7 @@ services:
     networks:
       - frontend
     volumes:
-      - ${DATA_PATH}/redis-insight:/data
+      - ${DATA_PATH}/redisinsight:/data
     environment:
       - RI_REDIS_PASSWORD=${REDIS_PASSWORD}
     user: "5540:5540"
@@ -373,7 +277,7 @@ services:
 #  RabbitMQ is an open source multi-protocol messaging broker
 # -----------------------------------------------------------------------------------------------------------------------                
   rabbitmq:
-    image: rabbitmq:${RABBITMQ_VERSION}-alpine
+    image: ${RABBITMQ_IMAGE}
     container_name: rabbitmq
     hostname: rabbitmq
     environment:
@@ -410,8 +314,8 @@ services:
     build:
       context: ./varnish
       args:
-        - VARNISH_VERSION
-        - VARNISH_CACHE_SIZE
+        - VARNISH_IMAGE
+        - VARNISH_SIZE
         - TIMEZONE
     develop:
       watch:
@@ -457,7 +361,8 @@ services:
         - PHP_FPM_CONFIG
         - PHP_INI
         - TIMEZONE
-        - ALPINE_VERSION
+        - ALPINE_IMAGE
+        - NGINX_IMAGE
     develop:
       watch:
         - path: ./php/Dockerfile
@@ -507,6 +412,8 @@ services:
     hostname: xhgui
     build:
       context: ./xhgui
+      args:
+        - XHGUI_IMAGE
     environment:
       - XHGUI_SAVE_HANDLER
       - XHGUI_PDO_DSN
@@ -663,7 +570,7 @@ services:
 #  phpMyAdmin - A web interface for MariaDB
 # -----------------------------------------------------------------------------------------------------------------------  
   phpmyadmin:
-    image: phpmyadmin@sha256:f842ffda6bbf94a085c2e99fe43dd6db80597cb513d9940887987b2e36a8605d # Oct 9, 2025 at 10:41 am
+    image: ${PMA_IMAGE}
     container_name: phpmyadmin
     hostname: phpmyadmin
     environment:
@@ -738,7 +645,7 @@ services:
 #   Fast and secure standalone server for resizing, processing, and converting images
 # ----------------------------------------------------------------------------------------------------------------------- 
   imgproxy:
-    image: "ghcr.io/imgproxy/imgproxy@sha256:7ea5a6f9dee9e570541be8b846a32c822352e92dc3ce207ab4a6b03ed6bbf0fc" # 2025-09-21T11:22:34-07:00
+    image: ${IMGPROXY_IMAGE}
     container_name: imgproxy
     environment:
       - IMGPROXY_ALLOW_INSECURE=true
@@ -748,7 +655,6 @@ services:
       - IMGPROXY_WATERMARK_PATH=${ROOT_PATH}/shared/pub/media/catalog/product/placeholder/default/watermark.jpg
       - IMGPROXY_MAX_REDIRECTS=1
       - IMGPROXY_TTL=31536000
-      - IMGPROXY_ENFORCE_WEBP=true
       - IMGPROXY_AUTO_WEBP=1
       - IMGPROXY_AUTO_AVIF=1
       - IMGPROXY_QUALITY=70
