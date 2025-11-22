@@ -364,7 +364,6 @@ services:
         - PHP_INI
         - TIMEZONE
         - ALPINE_IMAGE
-        - NGINX_IMAGE
     develop:
       watch:
         - path: ./php/Dockerfile
