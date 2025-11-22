@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ../.env
+. .env
 
-doco exec -it rabbitmq rabbitmqctl add_vhost /${BRAND}
-doco exec -it rabbitmq rabbitmqctl set_permissions -p /${BRAND} ${BRAND} ".*" ".*" ".*"
+docker compose exec -it rabbitmq rabbitmqctl add_vhost /${BRAND}
+docker compose exec -it rabbitmq rabbitmqctl set_permissions -p /${BRAND} ${BRAND} ".*" ".*" ".*"
