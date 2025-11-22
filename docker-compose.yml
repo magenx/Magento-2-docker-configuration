@@ -352,7 +352,7 @@ services:
     hostname: php
     build:
       context: ./php
-      args: &magento_env
+      args: &magento_arg
         - BRAND
         - DOMAIN
         - PHP_USER
@@ -446,7 +446,7 @@ services:
     container_name: magento
     build:
       context: ./magento
-      args: *magento_env
+      args: *magento_arg
     develop:
       watch:
         - path: ./magento/Dockerfile
@@ -531,7 +531,7 @@ services:
     container_name: composer
     build:
       context: ./composer
-      args: *magento_env
+      args: *magento_arg
     develop:
       watch:
         - path: ./composer
@@ -612,7 +612,7 @@ services:
     container_name: cron
     build:
       context: ./cron
-      args: *magento_env
+      args: *magento_arg
     develop:
       watch:
         - path: ./cron
