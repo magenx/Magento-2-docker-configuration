@@ -325,7 +325,7 @@ services:
       - nginx
       - php
     ports:
-      - "80"
+      - "80:80"
     networks:
       - frontend
     volumes:
@@ -481,24 +481,23 @@ services:
     hostname: nginx
     build:
       context: ./nginx
-      args: *magento_env
+      args:
+        - NGINX_IMAGE
+        - BRAND
+        - DOMAIN
+        - PHP_USER
+        - PHP_FPM
+        - TIMEZONE
+        - PROFILER
+        - RESOLVER
+        - ROOT_PATH
+        - ADMIN_PATH
+        - PHPMYADMIN_PATH
+        - RABBITMQ_PATH
     develop:
       watch:
         - path: ./nginx/Dockerfile
           action: rebuild
-    environment: 
-      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
-      - BRAND
-      - DOMAIN
-      - PHP_USER
-      - PHP_FPM
-      - TIMEZONE
-      - PROFILER
-      - RESOLVER
-      - ROOT_PATH
-      - ADMIN_PATH
-      - PHPMYADMIN_PATH
-      - RABBITMQ_PATH
     depends_on:
       mariadb:
         condition: service_healthy
@@ -509,7 +508,6 @@ services:
     networks:
       - frontend 
     volumes:
-      - ./nginx/sites-enabled.sh:/docker-entrypoint.d/100-sites-enabled.sh:ro
       - ${APP_PATH}/public:${ROOT_PATH}/public:ro
       - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var:ro
       - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media:ro
