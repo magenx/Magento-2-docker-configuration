@@ -7,7 +7,7 @@
 
 sed -i '0,/## generated passwords for services/!d' .env
 
-for SERVICE in REDIS RABBITMQ MARIADB OPENSEARCH INDEXER XHGUI_PDO
+for SERVICE in REDIS RABBITMQ DATABASE OPENSEARCH_ADMIN OPENSEARCH XHGUI_PDO
 do
 PASSWORD=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9%&?' | fold -w 32 | head -n 1)
 echo "${SERVICE}_PASSWORD='${PASSWORD}'" >> .env
