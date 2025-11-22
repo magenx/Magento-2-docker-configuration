@@ -1,6 +1,6 @@
 #!/bin/bash
 . .env
-docker compose exec -it opensearch curl -XPUT -u admin:${OPENSEARCH_PASSWORD} "opensearch:9200/_plugins/_security/api/roles/${BRAND}"   -H "Content-Type: application/json"   -d "$(cat <<EOF
+docker compose exec -it opensearch curl -XPUT -u admin:${OPENSEARCH_ADMIN_PASSWORD} "opensearch:9200/_plugins/_security/api/roles/${BRAND}"   -H "Content-Type: application/json"   -d "$(cat <<EOF
 {
     "cluster_permissions": [
       "cluster_composite_ops_monitor",
@@ -31,11 +31,11 @@ EOF
 
 )"
 
-docker compose exec -it opensearch curl -XPUT -u admin:${OPENSEARCH_PASSWORD} -XPUT "http://opensearch:9200/_plugins/_security/api/internalusers/${BRAND}" \
+docker compose exec -it opensearch curl -XPUT -u admin:${OPENSEARCH_ADMIN_PASSWORD} -XPUT "http://opensearch:9200/_plugins/_security/api/internalusers/${BRAND}" \
   -H "Content-Type: application/json" \
   -d "$(cat <<EOF
 {
-    "password": "${INDEXER_PASSWORD}",
+    "password": "${OPENSEARCH_PASSWORD}",
     "opendistro_security_roles": ["${BRAND}", "own_index"]
 }
 EOF
