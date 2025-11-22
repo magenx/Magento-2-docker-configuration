@@ -635,7 +635,7 @@ services:
       - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
       - ${APP_PATH}/releases:${ROOT_PATH}/releases
     working_dir: "${ROOT_PATH}/public/current"
-    user: "1000:1001"
+    user: "1001:1001"
     command: ["crond", "-f"]
     cpus: 1
     mem_limit: 2G
