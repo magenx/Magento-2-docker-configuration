@@ -6,15 +6,38 @@ FROM ${NGINX_IMAGE}
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
-ARG ROOT_PATH
+ARG BRAND
+ARG DOMAIN
+ARG PHP_USER
+ARG PHP_FPM
 ARG TIMEZONE
+ARG PROFILER
+ARG RESOLVER
+ARG ROOT_PATH
+ARG ADMIN_PATH
+ARG PHPMYADMIN_PATH
+ARG RABBITMQ_PATH
 
 USER root
 
-COPY ./templates /etc/nginx/templates
+COPY ./templates /tmp/templates
 
 RUN <<EOF
   mkdir -p ${ROOT_PATH}
   ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
+
+  find /tmp/templates -name "*.template" -type f | while read template; do
+    relative_path="${template#/tmp/templates/}";
+    target_file="/etc/nginx/${relative_path%.template}";
+    target_dir=$(dirname "$target_file");
+    mkdir -p "$target_dir";
+    envsubst '${BRAND} ${DOMAIN} ${PHP_USER} ${PHP_FPM} ${TIMEZONE} ${PROFILER} ${RESOLVER} ${ROOT_PATH} ${ADMIN_PATH} ${PHPMYADMIN_PATH} ${RABBITMQ_PATH}' \
+    < "$template" > "$target_file";
+    echo "Processed: $template -> $target_file";
+  done
+  
+  ln -snf /etc/nginx/sites-available/magento2.conf /etc/nginx/sites-enabled/magento2.conf
+  ln -snf /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
+  rm -rf /tmp/templates
 EOF
 
