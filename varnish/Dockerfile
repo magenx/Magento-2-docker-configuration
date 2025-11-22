@@ -21,7 +21,7 @@ RUN <<EOF cat > /usr/local/bin/docker-varnish-entrypoint
 #!/bin/sh
     exec varnishd \\
             -F \\
-            -a varnish:8081 \\
+            -a varnish:80 \\
             -T varnish:6082 \\
             -f /etc/varnish/default.vcl \\
             -S /etc/varnish/secret \\
