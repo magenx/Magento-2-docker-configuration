@@ -11,7 +11,6 @@ ARG PHP_VERSION
 ARG PHP_FPM_CONFIG
 ARG PHP_INI
 ARG PHP_USER
-ARG BRAND
 ARG ROOT_PATH
 ARG TIMEZONE
 
@@ -39,7 +38,6 @@ RUN <<EOF
   mkdir -p ${ROOT_PATH}
   addgroup -S -g 1001 ${PHP_USER}
   adduser -D -S -G ${PHP_USER} -h ${ROOT_PATH} -u 1001 ${PHP_USER}
-  adduser -D -G ${PHP_USER} -h ${ROOT_PATH} -s /bin/bash -u 1000 ${BRAND}
   chown -R ${PHP_USER} /var/log/php${PHP_VERSION}
   
   ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
