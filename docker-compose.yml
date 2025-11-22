@@ -147,7 +147,7 @@ services:
       - plugins.security.allow_unsafe_democertificates=true
       - plugins.security.allow_default_init_securityindex=true
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_PASSWORD}
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_ADMIN_PASSWORD}
     expose:
       - "9200"
       - "9300"
@@ -162,7 +162,7 @@ services:
     mem_limit: 2G
     mem_reservation: 1G
     healthcheck:
-      test: ["CMD-SHELL", "curl -XGET -u admin:${OPENSEARCH_PASSWORD} 'http://opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=15s' || exit 1"]
+      test: ["CMD-SHELL", "curl -XGET -u admin:${OPENSEARCH_ADMIN_PASSWORD} 'http://opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=15s' || exit 1"]
       start_period: 15s
       interval: 15s
       timeout: 5s
@@ -377,7 +377,7 @@ services:
       - MARIADB_PASSWORD
       - RABBITMQ_PASSWORD
       - REDIS_PASSWORD
-      - INDEXER_PASSWORD
+      - OPENSEARCH_PASSWORD
       - BRAND
       - DOMAIN
       - ROOT_PATH
