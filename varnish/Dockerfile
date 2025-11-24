@@ -12,10 +12,19 @@ ARG VARNISH_SIZE
 USER root
 
 RUN <<EOF
+  apk add --no-cache shadow
+  groupmod -g 6082 varnish
+  usermod -u 6082 varnish
+  apk del shadow
+
+  chown :6082 /etc/varnish /var/lib/varnish
+
   ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
   echo ${TIMEZONE} > /etc/timezone
   cat /proc/sys/kernel/random/uuid > /etc/varnish/secret
 EOF
+
+COPY default.vcl /etc/varnish/
 
 RUN <<EOF cat > /usr/local/bin/docker-varnish-entrypoint
 #!/bin/sh
