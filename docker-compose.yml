@@ -330,7 +330,11 @@ services:
     networks:
       - frontend
     volumes:
-      - ./varnish/default.vcl:/etc/varnish/default.vcl:ro
+      - type: tmpfs
+        target: /var/lib/varnish/varnishd:exec
+        tmpfs:
+          size: 64m
+          mode: 1777
     user: "6082:6082"
     restart: unless-stopped
     cpus: 1
