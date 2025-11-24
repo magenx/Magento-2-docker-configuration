@@ -322,6 +322,9 @@ services:
       watch:
         - path: ./varnish
           action: rebuild
+    environment:
+      - DOMAIN
+      - PROFILER
     depends_on:
       - nginx
       - php
