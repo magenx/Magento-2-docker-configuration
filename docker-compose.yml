@@ -334,7 +334,7 @@ services:
         target: /var/lib/varnish/varnishd:exec
         tmpfs:
           size: 64m
-          mode: 1777
+          mode: 1770
     user: "6082:6082"
     restart: unless-stopped
     cpus: 1
