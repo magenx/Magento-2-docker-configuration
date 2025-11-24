@@ -38,6 +38,10 @@ RUN <<EOF
   
   ln -snf /etc/nginx/sites-available/magento2.conf /etc/nginx/sites-enabled/magento2.conf
   ln -snf /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
+  
   rm -rf /tmp/templates
+
+  sed -i 's,\(/var\)\{0\,1\}/run/nginx.pid,/tmp/nginx.pid,' /etc/nginx/nginx.conf
+  sed '0,/user/{/user/d;}' /etc/nginx/nginx.conf
 EOF
 
