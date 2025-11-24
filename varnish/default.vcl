@@ -1,22 +1,19 @@
 # Varnish version 7
 vcl 4.0;
 
+import dynamic;
 import std;
 
-backend default {
-    .host = "nginx";
-    .port = "80";
-    .first_byte_timeout = 600s;
-    .probe = {
+backend default none;
+probe health_check {
         .request = "GET /health_check.php HTTP/1.1"
-                   "Host: ${DOMAIN}"
+                   "Host: " + std.getenv("DOMAIN")
                    "User-Agent: Varnish backend health check"
                    "Connection: close";
         .timeout = 2s;
         .interval = 5s;
         .window = 10;
-        .threshold = 5;
-   }
+        .threshold = 5;   
 }
 
 acl purge {
@@ -25,7 +22,16 @@ acl purge {
 	"127.0.0.1";
 }
 
+sub vcl_init {
+    new this = dynamic.director(
+    port = "80",
+    probe = health_check,
+    whitelist = purge,
+    ttl = 1m);
+}
+
 sub vcl_recv {
+    set req.backend_hint = this.backend("backend");
 
     set req.http.X-Forwarded-Proto = "https";
 	
@@ -79,7 +85,7 @@ sub vcl_recv {
     }
 
     # Bypass cache if profiler headers are present
-    if (req.http.X-Mage-Profiler == "${PROFILER}" || req.http.X-Mage-Db-Profiler == "${PROFILER}") {
+    if (req.http.X-Mage-Profiler == std.getenv("PROFILER") || req.http.X-Mage-Db-Profiler == std.getenv("PROFILER")) {
         return (pass);
     } else {
         unset req.http.X-Mage-Profiler;
