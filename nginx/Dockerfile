@@ -42,6 +42,6 @@ RUN <<EOF
   rm -rf /tmp/templates
 
   sed -i 's,\(/var\)\{0\,1\}/run/nginx.pid,/tmp/nginx.pid,' /etc/nginx/nginx.conf
-  sed -i '0,/user/{/user/d;}' /etc/nginx/nginx.conf
+  sed -i '/user  nginx;/d' /etc/nginx/nginx.conf
 EOF
 
