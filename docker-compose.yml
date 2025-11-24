@@ -330,7 +330,7 @@ services:
       - frontend
     volumes:
       - ./varnish/default.vcl:/etc/varnish/default.vcl:ro
-    user: "1000:1000"
+    user: "1001:1001"
     restart: unless-stopped
     cpus: 1
     mem_limit: ${VARNISH_SIZE}
@@ -515,7 +515,7 @@ services:
       - ${DATA_PATH}/nginx/log:/var/log/nginx
       - ${DATA_PATH}/nginx/cache:/var/cache/nginx
     working_dir: "${ROOT_PATH}/public/current"
-    user: "101:101"
+    user: "8080:8080"
     restart: unless-stopped
     cpus: 2
     mem_limit: 1G
