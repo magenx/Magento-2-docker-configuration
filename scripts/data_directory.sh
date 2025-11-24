@@ -10,8 +10,8 @@ for dir in \
   "rabbitmq:105672" \
   "opensearch:109200" \
   "mariadb:103306" \
-  "phpmyadmin:109000" \
-  "nginx:100101" \
+  "phpmyadmin:109001" \
+  "nginx:108080" \
   "xhgui:108142"
 do
   IFS=":" read directory uid <<< "$dir"
