@@ -198,6 +198,7 @@ services:
       - frontend
     volumes:
       - ${DATA_PATH}/redis-cache:/data
+    user: "6380:6380"
     restart: unless-stopped
     cpus: 1
     mem_limit: 2G
@@ -330,7 +331,7 @@ services:
       - frontend
     volumes:
       - ./varnish/default.vcl:/etc/varnish/default.vcl:ro
-    user: "1001:1001"
+    user: "6082:6082"
     restart: unless-stopped
     cpus: 1
     mem_limit: ${VARNISH_SIZE}
@@ -676,7 +677,7 @@ services:
     networks:
       - frontend
     working_dir: "${ROOT_PATH}/shared/pub/media"
-    user: "1001:1001"
+    user: "4593:4593"
     restart: unless-stopped
     cpus: 1
     mem_limit: 1G
