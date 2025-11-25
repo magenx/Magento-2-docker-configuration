@@ -414,39 +414,6 @@ services:
 
 
 # -----------------------------------------------------------------------------------------------------------------------
-#  XHGui graphical interface for XHProf profiling data
-# -----------------------------------------------------------------------------------------------------------------------  
-  xhgui:
-    container_name: xhgui
-    hostname: xhgui
-    build:
-      context: ./xhgui
-      args:
-        - XHGUI_IMAGE
-    environment:
-      - XHGUI_SAVE_HANDLER
-      - XHGUI_PDO_DSN
-      - XHGUI_PDO_USER
-      - XHGUI_PDO_PASS
-    depends_on:
-      mariadb:
-        condition: service_healthy
-    expose:
-      - "8142"
-    networks:
-      - backend
-      - frontend
-    command: >
-      sh -c "nginx -g 'pid /dev/shm/nginx.pid;' && exec php-fpm"
-    user: "8142:8142"
-    restart: unless-stopped
-    cpus: 1
-    mem_limit: 1G
-    mem_reservation: 1G
-    << : [*ulimits, *cap_add, *logger]
-
-
-# -----------------------------------------------------------------------------------------------------------------------
 #  Configure container for magento app
 # -----------------------------------------------------------------------------------------------------------------------    
   magento:
@@ -574,6 +541,42 @@ services:
 
 
 # -----------------------------------------------------------------------------------------------------------------------
+#   Cron job scheduler run arbitrary commands, or "jobs", according to a schedule
+# ----------------------------------------------------------------------------------------------------------------------- 
+  cron:
+    container_name: cron
+    build:
+      context: ./cron
+      args: *magento_arg
+    develop:
+      watch:
+        - path: ./cron
+          action: rebuild
+        - path: ./php/Dockerfile
+          action: rebuild
+        - path: ./php/config/cron
+          action: rebuild
+    environment: *php_env
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - backend
+    volumes:
+      - ${APP_PATH}/public:${ROOT_PATH}/public
+      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
+      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
+      - ${APP_PATH}/releases:${ROOT_PATH}/releases
+    working_dir: "${ROOT_PATH}/public/current"
+    user: "1001:1001"
+    command: ["crond", "-f"]
+    cpus: 1
+    mem_limit: 2G
+    mem_reservation: 1G
+    << : [*ulimits, *logger]
+
+
+# -----------------------------------------------------------------------------------------------------------------------
 #  phpMyAdmin - A web interface for MariaDB
 # -----------------------------------------------------------------------------------------------------------------------  
   phpmyadmin:
@@ -609,42 +612,6 @@ services:
     cpus: 1
     mem_limit: 512m
     mem_reservation: 512m
-    << : [*ulimits, *logger]
-
-
-# -----------------------------------------------------------------------------------------------------------------------
-#   Cron job scheduler run arbitrary commands, or "jobs", according to a schedule
-# ----------------------------------------------------------------------------------------------------------------------- 
-  cron:
-    container_name: cron
-    build:
-      context: ./cron
-      args: *magento_arg
-    develop:
-      watch:
-        - path: ./cron
-          action: rebuild
-        - path: ./php/Dockerfile
-          action: rebuild
-        - path: ./php/config/cron
-          action: rebuild
-    environment: *php_env
-    depends_on:
-      mariadb:
-        condition: service_healthy
-    networks:
-      - backend
-    volumes:
-      - ${APP_PATH}/public:${ROOT_PATH}/public
-      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
-      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
-      - ${APP_PATH}/releases:${ROOT_PATH}/releases
-    working_dir: "${ROOT_PATH}/public/current"
-    user: "1001:1001"
-    command: ["crond", "-f"]
-    cpus: 1
-    mem_limit: 2G
-    mem_reservation: 1G
     << : [*ulimits, *logger]
 
 
@@ -695,6 +662,39 @@ services:
       timeout: 10s
       retries: 3
     << : [*ulimits, *logger]
+
+
+# -----------------------------------------------------------------------------------------------------------------------
+#  XHGui graphical interface for XHProf profiling data
+# -----------------------------------------------------------------------------------------------------------------------  
+  xhgui:
+    container_name: xhgui
+    hostname: xhgui
+    build:
+      context: ./xhgui
+      args:
+        - XHGUI_IMAGE
+    environment:
+      - XHGUI_SAVE_HANDLER
+      - XHGUI_PDO_DSN
+      - XHGUI_PDO_USER
+      - XHGUI_PDO_PASS
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    expose:
+      - "8142"
+    networks:
+      - backend
+      - frontend
+    command: >
+      sh -c "nginx -g 'pid /dev/shm/nginx.pid;' && exec php-fpm"
+    user: "8142:8142"
+    restart: unless-stopped
+    cpus: 1
+    mem_limit: 1G
+    mem_reservation: 1G
+    << : [*ulimits, *cap_add, *logger]
 
 
 # -----------------------------------------------------------------------------------------------------------------------
