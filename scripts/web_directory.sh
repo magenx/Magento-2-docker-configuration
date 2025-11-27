@@ -17,4 +17,4 @@ setfacl -R -m u:${NGINX_UID}:r-X,d:u:${NGINX_UID}:r-X ${APP_PATH}/{shared,releas
 
 cd ${APP_PATH}/public
 ln -snf ../releases/${INSTALLATION_RELEASE} current
-chmod -h ${MAGENTO_UID}:${PHP_UID} current
+chown -h ${MAGENTO_UID}:${PHP_UID} current
