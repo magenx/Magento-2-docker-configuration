@@ -6,6 +6,7 @@ FROM ${BRAND}-php
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
+ARG BRAND
 ARG PHP_USER
 ARG ROOT_PATH
 
