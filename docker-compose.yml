@@ -665,39 +665,6 @@ services:
 
 
 # -----------------------------------------------------------------------------------------------------------------------
-#  XHGui graphical interface for XHProf profiling data
-# -----------------------------------------------------------------------------------------------------------------------  
-  xhgui:
-    container_name: xhgui
-    hostname: xhgui
-    build:
-      context: ./xhgui
-      args:
-        - XHGUI_IMAGE
-    environment:
-      - XHGUI_SAVE_HANDLER
-      - XHGUI_PDO_DSN
-      - XHGUI_PDO_USER
-      - XHGUI_PDO_PASS
-    depends_on:
-      mariadb:
-        condition: service_healthy
-    expose:
-      - "8142"
-    networks:
-      - backend
-      - frontend
-    command: >
-      sh -c "nginx -g 'pid /dev/shm/nginx.pid;' && exec php-fpm"
-    user: "8142:8142"
-    restart: unless-stopped
-    cpus: 1
-    mem_limit: 1G
-    mem_reservation: 1G
-    << : [*ulimits, *cap_add, *logger]
-
-
-# -----------------------------------------------------------------------------------------------------------------------
 #   Named networks list
 # ----------------------------------------------------------------------------------------------------------------------- 
 networks:
