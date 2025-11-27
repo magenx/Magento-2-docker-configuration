@@ -11,8 +11,7 @@ for dir in \
   "opensearch:109200" \
   "mariadb:103306" \
   "phpmyadmin:109001" \
-  "nginx:108080" \
-  "xhgui:108142"
+  "nginx:108080"
 do
   IFS=":" read directory uid <<< "$dir"
   mkdir -p "${DATA_PATH}/${directory}"
