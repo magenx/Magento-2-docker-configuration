@@ -2,6 +2,10 @@
 
 . .env
 
+MAGENTO_UID="10${MAGENTO_UID}"
+PHP_UID="10${PHP_UID}"
+NGINX_UID="10${NGINX_UID}"
+
 INSTALLATION_RELEASE="$(date +'%Y%m%d%H%M')"
 mkdir -p ${APP_PATH}/{shared/{var/tmp,pub/media},releases/${INSTALLATION_RELEASE},public}
 chown -R ${MAGENTO_UID}:${PHP_UID} ${APP_PATH}
