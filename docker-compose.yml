@@ -111,12 +111,12 @@ services:
     restart: unless-stopped
     cpus: 2
     mem_limit: 4G
-    mem_reservation: 2G
+    mem_reservation: 1G
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized", "--innodb_buffer_pool_loaded"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
       retries: 3
     << : [*ulimits, *logger]
 
@@ -163,9 +163,9 @@ services:
     mem_reservation: 1G
     healthcheck:
       test: ["CMD-SHELL", "curl -XGET -u admin:${OPENSEARCH_ADMIN_PASSWORD} 'http://opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=15s' || exit 1"]
-      start_period: 15s
-      interval: 15s
-      timeout: 5s
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
       retries: 3
     << : [*ulimits, *logger]
 
@@ -201,13 +201,13 @@ services:
     user: "6380:6380"
     restart: unless-stopped
     cpus: 1
-    mem_limit: 2G
-    mem_reservation: 512M
+    mem_limit: 1G
+    mem_reservation: 128M
     healthcheck:
       test: ["CMD", "redis-cli", "-h", "cache", "-p", "6380", "-a", "${REDIS_PASSWORD}", "ping"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
       retries: 3
     << : [*ulimits, *logger]
 
@@ -241,12 +241,12 @@ services:
     restart: unless-stopped
     cpus: 1
     mem_limit: 1G
-    mem_reservation: 512M
+    mem_reservation: 128M
     healthcheck:
       test: ["CMD", "redis-cli", "-h", "session", "-p", "6379", "-a", "${REDIS_PASSWORD}", "ping"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
       retries: 3
     << : [*ulimits, *logger]
 
@@ -270,7 +270,7 @@ services:
     restart: unless-stopped
     cpus: 1
     mem_limit: 1G
-    mem_reservation: 512M
+    mem_reservation: 128M
     << : [*ulimits, *logger]
 
 
@@ -296,12 +296,12 @@ services:
     restart: unless-stopped
     cpus: 1
     mem_limit: 1G
-    mem_reservation: 512M
+    mem_reservation: 128M
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
       retries: 3
     << : [*ulimits, *logger]
                 
@@ -345,9 +345,9 @@ services:
     mem_reservation: ${VARNISH_SIZE}
     healthcheck:
       test: ["CMD", "varnishadm", "ping"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
+      start_period: 30s
+      interval: 30s
+      timeout: 10s
       retries: 3
     << : [*ulimits, *logger]
 
@@ -407,9 +407,9 @@ services:
     user: "1001:1001"
     entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
     restart: unless-stopped
-    cpus: 1
+    cpus: 2
     mem_limit: 1G
-    mem_reservation: 1G
+    mem_reservation: 756M
     << : [*ulimits, *cap_add, *logger]
 
 
@@ -443,7 +443,7 @@ services:
     entrypoint: ["/entrypoint.sh"]
     cpus: 2
     mem_limit: 2G
-    mem_reservation: 1G
+    mem_reservation: 756M
     << : [*ulimits, *logger]
 
 
@@ -492,9 +492,9 @@ services:
     working_dir: "${ROOT_PATH}/public/current"
     user: "8080:8080"
     restart: unless-stopped
-    cpus: 2
+    cpus: 1
     mem_limit: 1G
-    mem_reservation: 512m
+    mem_reservation: 128M
     << : [*ulimits, *logger]
 
 
@@ -536,7 +536,7 @@ services:
     entrypoint: ["composer"]
     cpus: 2
     mem_limit: 2G
-    mem_reservation: 1G
+    mem_reservation: 756M
     << : [*ulimits, *logger]
 
 
@@ -572,7 +572,7 @@ services:
     command: ["crond", "-f"]
     cpus: 1
     mem_limit: 2G
-    mem_reservation: 1G
+    mem_reservation: 756M
     << : [*ulimits, *logger]
 
 
@@ -610,8 +610,8 @@ services:
     user: "9001:9001"
     restart: unless-stopped
     cpus: 1
-    mem_limit: 512m
-    mem_reservation: 512m
+    mem_limit: 512M
+    mem_reservation: 512M
     << : [*ulimits, *logger]
 
 
@@ -655,10 +655,11 @@ services:
     restart: unless-stopped
     cpus: 1
     mem_limit: 1G
-    mem_reservation: 512m
+    mem_reservation: 512M
     healthcheck:
       test: ["CMD", "imgproxy", "health"]
-      interval: 10s
+      start_period: 30s
+      interval: 30s
       timeout: 10s
       retries: 3
     << : [*ulimits, *logger]
