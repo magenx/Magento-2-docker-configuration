@@ -336,6 +336,7 @@ services:
         - path: ./php/config
           action: rebuild
     environment: &php_env
+      - COMPOSER_MEMORY_LIMIT
       - MARIADB_DATABASE
       - MARIADB_USER
       - MARIADB_PASSWORD
