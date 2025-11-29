@@ -47,7 +47,7 @@ x-cap_add: &cap_add
 # -----------------------------------------------------------------------------------------------------------------------
 #  Configure healthcheck
 # -----------------------------------------------------------------------------------------------------------------------
-x-healthcheck-default: &healthcheck-default
+x-healthcheck-default: &healthcheck_default
   start_period: ${HEALTHCHECK_START_PERIOD}
   interval: ${HEALTHCHECK_INTERVAL}
   timeout: ${HEALTHCHECK_TIMEOUT}
