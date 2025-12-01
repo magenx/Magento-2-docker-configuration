@@ -7,7 +7,7 @@ import std;
 backend default none;
 probe health_check {
         .request = "GET /health_check.php HTTP/1.1"
-                   "Host: " + std.getenv("DOMAIN")
+                   "Host: ${DOMAIN}"
                    "User-Agent: Varnish backend health check"
                    "Connection: close";
         .timeout = 2s;
