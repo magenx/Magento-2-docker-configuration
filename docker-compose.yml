@@ -331,9 +331,7 @@ services:
         - ALPINE_IMAGE
     develop:
       watch:
-        - path: ./php/Dockerfile
-          action: rebuild
-        - path: ./php/config
+        - path: ./php
           action: rebuild
     environment: &php_env
       - COMPOSER_MEMORY_LIMIT
@@ -377,11 +375,7 @@ services:
       args: *magento_arg
     develop:
       watch:
-        - path: ./magento/Dockerfile
-          action: rebuild
-        - path: ./php/Dockerfile
-          action: rebuild
-        - path: ./php/config/magento
+        - path: ./magento
           action: rebuild
     environment: *php_env
     volumes:
@@ -420,7 +414,7 @@ services:
         - RABBITMQ_PATH
     develop:
       watch:
-        - path: ./nginx/Dockerfile
+        - path: ./nginx
           action: rebuild
     depends_on:
       mariadb:
@@ -455,10 +449,6 @@ services:
     develop:
       watch:
         - path: ./cron
-          action: rebuild
-        - path: ./php/Dockerfile
-          action: rebuild
-        - path: ./php/config/cron
           action: rebuild
     environment: *php_env
     depends_on:
