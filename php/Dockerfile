@@ -14,23 +14,19 @@ ARG PHP_USER
 ARG ROOT_PATH
 ARG TIMEZONE
 
-COPY config/www.conf config/zz-override.ini /tmp/
-
 RUN <<EOF
   apk update
   apk add --update --no-cache \
   bash \
-  curl \
-  strace \
   gettext-envsubst
 EOF
 
+COPY config/www.conf config/zz-override.ini /tmp/
 SHELL ["/bin/bash","-c"]
 
 RUN <<EOF
-  
   _PHP_PACKAGES+=(${PHP_PACKAGES})
-  apk add --update --no-cache php${PHP_VERSION} ${_PHP_PACKAGES[@]/#/php${PHP_VERSION}-}
+  apk add --update --no-cache php${PHP_VERSION} php${PHP_VERSION}-fpm ${_PHP_PACKAGES[@]/#/php${PHP_VERSION}-}
   
   envsubst < /tmp/zz-override.ini >  ${PHP_INI}/zz-override.ini
   envsubst < /tmp/www.conf > ${PHP_FPM_CONFIG}
