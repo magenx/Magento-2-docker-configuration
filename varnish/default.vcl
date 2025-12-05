@@ -8,7 +8,7 @@ backend default none;
 probe health_check {
         .request = "GET /health_check.php HTTP/1.1"
                    "Host: ${DOMAIN}"
-                   "User-Agent: Varnish backend health check"
+                   "User-Agent: Varnish (backend health check)"
                    "Connection: close";
         .timeout = 2s;
         .interval = 5s;
@@ -31,7 +31,7 @@ sub vcl_init {
 }
 
 sub vcl_recv {
-    set req.backend_hint = this.backend("backend");
+    set req.backend_hint = this.backend("nginx", "80");
 
     set req.http.X-Forwarded-Proto = "https";
 	
