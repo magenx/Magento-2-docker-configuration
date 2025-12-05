@@ -25,8 +25,7 @@
   
 **[ ! ]** Check all data, adjust your settings, add configs, edit your variables  
 - [x] Run to pull and build images and start containers:   
-```
-   doco build php --no-cache       
+```      
    doco up -d
 ```
 - [x] Folders structure:   
