@@ -6,10 +6,10 @@ MAGENTO_UID="10${MAGENTO_UID}"
 PHP_UID="10${PHP_UID}"
 NGINX_UID="10${NGINX_UID}"
 
-if [ -d "${APP_PATH}/releases" ] && [ -z "$(ls -A ${APP_PATH}/releases)" ]; then
+if [ ! -d "${APP_PATH}/releases" ] || [ -z "$(ls -A ${APP_PATH}/releases)" ]; then
   INSTALLATION_RELEASE="$(date +'%Y%m%d%H%M')"
   mkdir -p ${APP_PATH}/{shared/{var/tmp,pub/media},releases/${INSTALLATION_RELEASE},public}
-  ln -snf ${APP_PATH}/releases/${INSTALLATION_RELEASE} current
+  ln -snf ${APP_PATH}/releases/${INSTALLATION_RELEASE} ${APP_PATH}/public/current
   chown -h ${MAGENTO_UID}:${PHP_UID} ${APP_PATH}/public/current
 fi
 
