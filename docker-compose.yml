@@ -111,12 +111,12 @@ services:
       --skip-log-bin
       --disable-log-bin
     expose:
-      - "3306"
+      - "${MARIADB_UID}"
     networks:
       - backend
     volumes:
       - ${DATA_PATH}/mariadb:/var/lib/mysql
-    user: "3306:3306"
+    user: "${MARIADB_UID}:${MARIADB_UID}"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized", "--innodb_buffer_pool_loaded"]
@@ -151,17 +151,17 @@ services:
       - OPENSEARCH_JAVA_OPTS=${OPENSEARCH_XMS} ${OPENSEARCH_XMX}
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_ADMIN_PASSWORD}
     expose:
-      - "9200"
+      - "${OPENSEARCH_UID}"
       - "9300"
     networks:
       - frontend
     volumes:
       - ${DATA_PATH}/opensearch:/usr/share/opensearch/data
       - ${DATA_PATH}/opensearch/logs:/usr/share/opensearch/logs
-    user: "9200:9200"
+    user: "${OPENSEARCH_UID}:${OPENSEARCH_UID}"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -XGET -u admin:${OPENSEARCH_ADMIN_PASSWORD} 'http://opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=15s' || exit 1"]
+      test: ["CMD-SHELL", "curl -XGET -u admin:${OPENSEARCH_ADMIN_PASSWORD} 'http://opensearch:${OPENSEARCH_UID}/_cluster/health?wait_for_status=yellow&timeout=15s' || exit 1"]
       <<: *healthcheck_default
     <<: [*ulimits, *logger]
 
@@ -174,9 +174,9 @@ services:
     hostname: cache
     command: >
       --bind cache
-      --port 6380
-      --save ""
-      --appendonly no
+      --port ${REDIS_CACHE_UID}
+      --save 300 10000
+      --appendonly yes
       --activerehashing yes
       --loglevel warning
       --requirepass ${REDIS_PASSWORD}
@@ -188,13 +188,14 @@ services:
       --replica-lazy-flush yes
       --lazyfree-lazy-user-del yes
     expose:
-      - "6380"
+      - "${REDIS_CACHE_UID}"
     networks:
       - frontend
     volumes:
       - ${DATA_PATH}/redis-cache:/data
-    user: "6380:6380"
+    user: "${REDIS_CACHE_UID}:${REDIS_CACHE_UID}"
     restart: unless-stopped
+    mem_limit: ${REDIS_CACHE_SIZE}
     <<: [*ulimits, *logger]
 
 # -----------------------------------------------------------------------------------------------------------------------
@@ -206,8 +207,11 @@ services:
     hostname: session
     command: >
       --bind session
-      --port 6379
-      --save 300 15
+      --port ${REDIS_SESSION_UID}
+      --save 60 100
+      --appendonly yes
+      --activerehashing yes
+      --loglevel warning
       --requirepass ${REDIS_PASSWORD}
       --maxmemory ${REDIS_SESSION_SIZE}
       --maxmemory-policy allkeys-lru
@@ -217,18 +221,16 @@ services:
       --replica-lazy-flush yes
       --lazyfree-lazy-user-del yes
     expose:
-      - "6379"
+      - "${REDIS_SESSION_UID}"
     networks:
       - frontend
     volumes:
       - ${DATA_PATH}/redis-session:/data
-    user: "6379:6379"
+    user: "${REDIS_SESSION_UID}:${REDIS_SESSION_UID}"
     restart: unless-stopped
-    cpus: 1
-    mem_limit: 1G
-    mem_reservation: 128M
+    mem_limit: ${REDIS_SESSION_SIZE}
     healthcheck:
-      test: ["CMD", "redis-cli", "-h", "session", "-p", "6379", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ["CMD", "redis-cli", "-h", "session", "-p", "${REDIS_SESSION_UID}", "-a", "${REDIS_PASSWORD}", "ping"]
       <<: *healthcheck_default
     <<: [*ulimits, *logger]
 
@@ -249,6 +251,7 @@ services:
       - RI_REDIS_PASSWORD=${REDIS_PASSWORD}
     user: "5540:5540"
     restart: unless-stopped
+    mem_limit: 128M
     <<: [*ulimits, *logger]
 
 # -----------------------------------------------------------------------------------------------------------------------
@@ -269,8 +272,9 @@ services:
       - frontend
     volumes:
       - ${DATA_PATH}/rabbitmq:/var/lib/rabbitmq
-    user: "5672:5672"
+    user: "${RABBITMQ_UID}:${RABBITMQ_UID}"
     restart: unless-stopped
+    mem_limit: 1G
     <<: [*ulimits, *logger]
 
 # -----------------------------------------------------------------------------------------------------------------------
@@ -305,8 +309,9 @@ services:
         tmpfs:
           size: 64m
           mode: 1770
-    user: "6082:6082"
+    user: "${VARNISH_UID}:${VARNISH_UID}"
     restart: unless-stopped
+    mem_limit: ${VARNISH_SIZE}
     healthcheck:
       test: ["CMD", "varnishadm", "ping"]
       <<: *healthcheck_default
@@ -363,7 +368,7 @@ services:
       - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
       - ${APP_PATH}/releases:${ROOT_PATH}/releases
     working_dir: "${ROOT_PATH}/public/current"
-    user: "1001:1001"
+    user: "${PHP_UID}:${PHP_UID}"
     entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
     restart: unless-stopped
     <<: [*ulimits, *cap_add, *logger]
@@ -390,7 +395,7 @@ services:
     networks:
       - backend
       - frontend
-    user: "1000:1001"
+    user: "${MAGENTO_UID}:${PHP_UID}"
     entrypoint: ["/entrypoint.sh"]
     <<: [*ulimits, *logger]
 
@@ -437,7 +442,7 @@ services:
       - ${DATA_PATH}/nginx/log:/var/log/nginx
       - ${DATA_PATH}/nginx/cache:/var/cache/nginx
     working_dir: "${ROOT_PATH}/public/current"
-    user: "8080:8080"
+    user: "${NGINX_UID}:${NGINX_UID}"
     restart: unless-stopped
     <<: [*ulimits, *logger]
 
@@ -465,7 +470,7 @@ services:
       - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
       - ${APP_PATH}/releases:${ROOT_PATH}/releases
     working_dir: "${ROOT_PATH}/public/current"
-    user: "1001:1001"
+    user: "${PHP_UID}:${PHP_UID}"
     command: ["crond", "-f"]
     <<: [*ulimits, *logger]
 
@@ -500,7 +505,7 @@ services:
       - frontend
     volumes:
       - ${DATA_PATH}/phpmyadmin:/var/www/html
-    user: "9001:9001"
+    user: "${PMA_UID}:${PMA_UID}"
     restart: unless-stopped
     <<: [*ulimits, *logger]
 
@@ -522,7 +527,7 @@ services:
       - IMGPROXY_AUTO_AVIF=1
       - IMGPROXY_QUALITY=70
       - IMGPROXY_FORMAT_QUALITY=jpeg=70,avif=40,webp=60
-      - IMGPROXY_BIND=0.0.0.0:4593
+      - IMGPROXY_BIND=0.0.0.0:${IMGPROXY_UID}
       - IMGPROXY_USE_ETAG=true
       - IMGPROXY_CONCURRENCY=10
       - IMGPROXY_TIMEOUT=5
@@ -536,11 +541,11 @@ services:
     volumes:
       - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media:ro
     expose:
-      - "4593"
+      - "${IMGPROXY_UID}"
     networks:
       - frontend
     working_dir: "${ROOT_PATH}/shared/pub/media"
-    user: "4593:4593"
+    user: "${IMGPROXY_UID}:${IMGPROXY_UID}"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "imgproxy", "health"]
