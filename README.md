@@ -33,8 +33,6 @@
 root@docker:/opt/magenx# tree -L 3
 .
 ├── data
-│   ├── letsencrypt
-│   │   └── renewal-hooks
 │   ├── mariadb
 │   │   ├── aria_log.00000001
 │   │   ├── aria_log_control
@@ -102,24 +100,6 @@ root@docker:/opt/magenx# tree -L 3
 ```
    tail -f /var/log/syslog
    doco logs -f
-```
-
-<br />
- 
-- [x] To request TLS/SSL certificate with certbot you can run this command [--staging] to test:  
-```
-  doco stop nginx  
-  doco run -p 80:80 --rm certbot certonly \
-  --email ${ADMIN_EMAIL} --agree-tos --register-unsafely-without-email --no-eff-email --standalone -d ${DOMAIN} --staging  
-  doco start nginx  
-```
-> change your nginx configuration to uncomment tls/ssl  
-> remove [--staging] flag to reissue live certificate  
-- [x] To request TLS/SSL certificate with certbot in realtime you can run this command: 
-```
-  doco run --rm certbot certonly \
-  --email ${ADMIN_EMAIL} --agree-tos --register-unsafely-without-email --no-eff-email --webroot -w ${ROOT_PATH} -d ${DOMAIN}  
-  doco restart nginx
 ```
 
 <br />
