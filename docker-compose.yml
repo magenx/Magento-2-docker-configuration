@@ -62,9 +62,12 @@ services:
 #  MariaDB is a high performing open source relational database
 # -----------------------------------------------------------------------------------------------------------------------
   mariadb:
-    image: ${MARIADB_IMAGE}
     container_name: mariadb
     hostname: mariadb
+    build:
+      context: ./mariadb
+      args:
+        - MARIADB_IMAGE
     environment:
       - MARIADB_AUTO_UPGRADE
       - MARIADB_DISABLE_UPGRADE_BACKUP
