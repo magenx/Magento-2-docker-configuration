@@ -142,10 +142,6 @@ doco run --rm magento n98 --version
 n98-magerun2 9.1.0 (commit: 2db94c5) by valantic CEC
 ```
 ```
-doco run --rm composer --version
-Composer version 2.8.10 2025-07-10 19:08:33
-```
-```
 doco run --rm certbot --version
 certbot 5.0.0
 ```
@@ -163,13 +159,11 @@ nginx version: nginx/1.29.1
 [+] Running 14/14
  ✔ Container session     Removed                                                                                                                                                                   0.6s 
  ✔ Container phpmyadmin  Removed                                                                                                                                                                   0.4s 
- ✔ Container composer    Removed                                                                                                                                                                   0.0s 
  ✔ Container magento     Removed                                                                                                                                                                   0.0s 
  ✔ Container cron        Removed                                                                                                                                                                  10.3s 
  ✔ Container opensearch  Removed                                                                                                                                                                   1.0s 
  ✔ Container rabbitmq    Removed                                                                                                                                                                   1.5s 
  ✔ Container varnish     Removed                                                                                                                                                                   0.8s 
- ✔ Container certbot     Removed                                                                                                                                                                   0.0s 
  ✔ Container cache       Removed                                                                                                                                                                   0.5s 
  ✔ Container nginx       Removed                                                                                                                                                                   0.5s 
  ✔ Container php         Removed                                                                                                                                                                   0.4s 
@@ -188,7 +182,6 @@ nginx version: nginx/1.29.1
 - [x] [Redis x2](https://hub.docker.com/r/redis) - Redis is an open source key-value store that functions as a data structure server.
 - [x] [RabbitMQ](https://hub.docker.com/r/rabbitmq) - RabbitMQ is an open source multi-protocol messaging broker.
 - [x] [PHPMyAdmin](https://hub.docker.com/r/phpmyadmin) - phpMyAdmin - A web interface for MySQL and MariaDB.
-- [x] [Certbot](https://hub.docker.com/r/certbot/certbot) - Official build of EFF's Certbot tool for obtaining TLS/SSL certificates from Let's Encrypt.
 - [x] [Cron]
   
 <br />
