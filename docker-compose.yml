@@ -475,41 +475,6 @@ services:
     <<: [*ulimits, *logger]
 
 # -----------------------------------------------------------------------------------------------------------------------
-#  phpMyAdmin - A web interface for MariaDB
-# -----------------------------------------------------------------------------------------------------------------------  
-  phpmyadmin:
-    image: ${PMA_IMAGE}
-    container_name: phpmyadmin
-    hostname: phpmyadmin
-    environment:
-      - PMA_ARBITRARY
-      - HIDE_PHP_VERSION
-      - PMA_HOST
-      - PMA_PORT
-      - MAX_EXECUTION_TIME
-      - MEMORY_LIMIT
-      - UPLOAD_LIMIT
-      - PMA_PMADB
-      - PMA_CONTROLUSER
-      - PMA_CONTROLPASS
-      - TIMEZONE
-    depends_on:
-      mariadb:
-        condition: service_healthy
-      nginx:
-        condition: service_started
-    expose:
-      - "80"
-    networks:
-      - backend
-      - frontend
-    volumes:
-      - ${DATA_PATH}/phpmyadmin:/var/www/html
-    user: "${PMA_UID}:${PMA_UID}"
-    restart: unless-stopped
-    <<: [*ulimits, *logger]
-
-# -----------------------------------------------------------------------------------------------------------------------
 #   Fast and secure standalone server for resizing, processing, and converting images
 # ----------------------------------------------------------------------------------------------------------------------- 
   imgproxy:
