@@ -317,6 +317,7 @@ services:
         - PHP_INI
         - TIMEZONE
         - ALPINE_IMAGE
+        - CURRENT_SYMLINK
     develop:
       watch:
         - path: ./php
