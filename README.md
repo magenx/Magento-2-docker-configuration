@@ -158,7 +158,6 @@ nginx version: nginx/1.29.1
    
 [+] Running 14/14
  ✔ Container session     Removed                                                                                                                                                                   0.6s 
- ✔ Container phpmyadmin  Removed                                                                                                                                                                   0.4s 
  ✔ Container magento     Removed                                                                                                                                                                   0.0s 
  ✔ Container cron        Removed                                                                                                                                                                  10.3s 
  ✔ Container opensearch  Removed                                                                                                                                                                   1.0s 
@@ -181,7 +180,6 @@ nginx version: nginx/1.29.1
 - [x] [OpenSearch](https://hub.docker.com/r/opensearchproject) - Opensearch is a powerful open source search and analytics engine that makes data easy to explore.
 - [x] [Redis x2](https://hub.docker.com/r/redis) - Redis is an open source key-value store that functions as a data structure server.
 - [x] [RabbitMQ](https://hub.docker.com/r/rabbitmq) - RabbitMQ is an open source multi-protocol messaging broker.
-- [x] [PHPMyAdmin](https://hub.docker.com/r/phpmyadmin) - phpMyAdmin - A web interface for MySQL and MariaDB.
 - [x] [Cron]
   
 <br />
