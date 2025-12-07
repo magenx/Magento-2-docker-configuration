@@ -16,12 +16,11 @@ ARG TIMEZONE
 
 RUN <<EOF
   apk update
-  apk add --update --no-cache bash gettext-envsubst
+  apk add --update --no-cache bash gettext-envsubst curl
 EOF
 
 COPY entrypoint.sh /entrypoint.sh
 COPY config/zz-override.ini /tmp/
-ADD https://files.magerun.net/n98-magerun2.phar /usr/local/bin/n98-magerun2
 
 SHELL ["/bin/bash","-c"]
 RUN <<EOF
@@ -40,7 +39,9 @@ RUN <<EOF
   echo ${TIMEZONE} > /etc/timezone
   ln -s /usr/bin/php${PHP_VERSION} /usr/local/bin/php
   
+  curl -o /usr/local/bin/n98-magerun2 https://files.magerun.net/n98-magerun2.phar
   chmod +x /usr/local/bin/n98-magerun2
+  
   chmod +x /entrypoint.sh
   rm -rf /tmp/*
 EOF
