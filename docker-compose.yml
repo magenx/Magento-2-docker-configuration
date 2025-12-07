@@ -235,26 +235,6 @@ services:
     <<: [*ulimits, *logger]
 
 # -----------------------------------------------------------------------------------------------------------------------
-#  Redis Insight lets you visually browse and interact with data
-# -----------------------------------------------------------------------------------------------------------------------
-  redisinsight:
-    image: ${REDISINSIGHT_IMAGE}
-    hostname: redisinsight
-    container_name: redisinsight
-    expose:
-      - "5540"
-    networks:
-      - frontend
-    volumes:
-      - ${DATA_PATH}/redisinsight:/data
-    environment:
-      - RI_REDIS_PASSWORD=${REDIS_PASSWORD}
-    user: "5540:5540"
-    restart: unless-stopped
-    mem_limit: 128M
-    <<: [*ulimits, *logger]
-
-# -----------------------------------------------------------------------------------------------------------------------
 #  RabbitMQ is an open source multi-protocol messaging broker
 # -----------------------------------------------------------------------------------------------------------------------                
   rabbitmq:
