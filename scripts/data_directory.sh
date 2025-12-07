@@ -6,11 +6,9 @@
 for dir in \
   "redis-cache:106380" \
   "redis-session:106379" \
-  "redisinsight:105540" \
   "rabbitmq:105672" \
   "opensearch:109200" \
   "mariadb:103306" \
-  "phpmyadmin:109001" \
   "nginx:108080"
 do
   IFS=":" read directory uid <<< "$dir"
