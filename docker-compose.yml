@@ -398,7 +398,6 @@ services:
         - RESOLVER
         - ROOT_PATH
         - ADMIN_PATH
-        - PHPMYADMIN_PATH
         - RABBITMQ_PATH
     develop:
       watch:
@@ -418,7 +417,6 @@ services:
       - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var:ro
       - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media:ro
       - ${APP_PATH}/releases:${ROOT_PATH}/releases:ro
-      - ${DATA_PATH}/phpmyadmin:/var/www/html:ro
       - ${DATA_PATH}/nginx/log:/var/log/nginx
       - ${DATA_PATH}/nginx/cache:/var/cache/nginx
     working_dir: "${ROOT_PATH}/public/current"
