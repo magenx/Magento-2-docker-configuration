@@ -453,7 +453,7 @@ services:
       - ${APP_PATH}/releases:${ROOT_PATH}/releases
     working_dir: "${ROOT_PATH}/${CURRENT_SYMLINK}"
     user: "${PHP_UID}:${PHP_UID}"
-    command: ["crond", "-f"]
+    command: ["supercronic", "/etc/crontabs/${PHP_USER}"]
     <<: [*ulimits, *logger]
 
 # -----------------------------------------------------------------------------------------------------------------------
