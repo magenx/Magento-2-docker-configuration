@@ -445,6 +445,7 @@ services:
       mariadb:
         condition: service_healthy
     networks:
+      - frontend
       - backend
     volumes:
       - ${APP_PATH}/public:${ROOT_PATH}/public
