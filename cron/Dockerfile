@@ -12,6 +12,7 @@ ARG PHP_INI
 ARG PHP_USER
 ARG ROOT_PATH
 ARG TIMEZONE
+ARG CURRENT_SYMLINK
 
 RUN <<EOF
   apk update
@@ -40,6 +41,6 @@ RUN <<EOF
   
   rm -rf /tmp/*
 
-  echo "* * * * * umask 007; ${ROOT_PATH}/public/bin/magento cron:run 2>&1 | \
-  grep -v 'Ran jobs by schedule' >> ${ROOT_PATH}/public/var/log/magento.cron.log 2>&1" > /etc/crontabs/${PHP_USER}
+  echo "* * * * * umask 007; ${ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1 | \
+  grep -v 'Ran jobs by schedule' >> ${ROOT_PATH}/${CURRENT_SYMLINK}/var/log/magento.cron.log 2>&1" > /etc/crontabs/${PHP_USER}
 EOF
