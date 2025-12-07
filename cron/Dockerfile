@@ -16,13 +16,16 @@ ARG CURRENT_SYMLINK
 
 RUN <<EOF
   apk update
-  apk add --update --no-cache \
-  bash \
-  gettext-envsubst
+  apk add --update --no-cache bash gettext-envsubst curl
 EOF
 
 COPY config/zz-override.ini /tmp/
+
 SHELL ["/bin/bash","-c"]
+
+ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.39/supercronic-linux-386 \
+    SUPERCRONIC_SHA1SUM=2f94144bc5b10ffca1f4020b3fab7cffca869e8e \
+    SUPERCRONIC=supercronic-linux-386
 
 RUN <<EOF
   _PHP_PACKAGES+=(${PHP_PACKAGES})
@@ -38,9 +41,13 @@ RUN <<EOF
   ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
   echo ${TIMEZONE} > /etc/timezone
   ln -s /usr/bin/php${PHP_VERSION} /usr/local/bin/php
+
+  curl -fsSLO "$SUPERCRONIC_URL"
+  echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c -
+  chmod +x "$SUPERCRONIC"
+  mv "$SUPERCRONIC" "/usr/local/bin/supercronic"
+
+  echo "* * * * * umask 007; ${ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1 > /etc/crontabs/${PHP_USER}
   
   rm -rf /tmp/*
-
-  echo "* * * * * umask 007; ${ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1 | \
-  grep -v 'Ran jobs by schedule' >> ${ROOT_PATH}/${CURRENT_SYMLINK}/var/log/magento.cron.log 2>&1" > /etc/crontabs/${PHP_USER}
 EOF
