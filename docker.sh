@@ -80,3 +80,13 @@ bash scripts/get_nginx_config.sh
 
 find /opt/${BRAND}/docker -type d -exec chmod 2770 {} \;
 find /opt/${BRAND}/docker -type f -exec chmod 660 {} \;
+
+cat >> /etc/sysctl.conf <<EOF
+# Session key quota fixes for Docker
+kernel.keys.root_maxkeys=2000000
+kernel.keys.root_maxbytes=20000000
+kernel.keys.maxkeys=2000000
+kernel.keys.maxbytes=20000000
+EOF
+
+sysctl -p
