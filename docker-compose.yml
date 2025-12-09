@@ -472,6 +472,7 @@ services:
     working_dir: "${ROOT_PATH}/${CURRENT_SYMLINK}"
     user: "${PHP_UID}:${PHP_UID}"
     command: ["supercronic", "/etc/crontabs/${PHP_USER}"]
+    restart: unless-stopped
     <<: [*ulimits, *logger]
 
 # -----------------------------------------------------------------------------------------------------------------------
