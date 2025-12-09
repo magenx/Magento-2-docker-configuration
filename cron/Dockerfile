@@ -10,9 +10,14 @@ ARG PHP_PACKAGES
 ARG PHP_VERSION
 ARG PHP_INI
 ARG PHP_USER
+
 ARG ROOT_PATH
 ARG TIMEZONE
 ARG CURRENT_SYMLINK
+
+ARG SUPERCRONIC
+ARG SUPERCRONIC_SHA1SUM
+ARG SUPERCRONIC_URL
 
 RUN <<EOF
   apk update
@@ -22,10 +27,6 @@ EOF
 COPY config/zz-override.ini /tmp/
 
 SHELL ["/bin/bash","-c"]
-
-ENV SUPERCRONIC_URL=https://github.com/aptible/supercronic/releases/download/v0.2.39/supercronic-linux-386 \
-    SUPERCRONIC_SHA1SUM=2f94144bc5b10ffca1f4020b3fab7cffca869e8e \
-    SUPERCRONIC=supercronic-linux-386
 
 RUN <<EOF
   _PHP_PACKAGES+=(${PHP_PACKAGES})
@@ -42,10 +43,10 @@ RUN <<EOF
   echo ${TIMEZONE} > /etc/timezone
   ln -s /usr/bin/php${PHP_VERSION} /usr/local/bin/php
 
-  curl -fsSLO "$SUPERCRONIC_URL"
+  curl -fsSLO "${SUPERCRONIC_URL}"
   echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c -
-  chmod +x "$SUPERCRONIC"
-  mv "$SUPERCRONIC" "/usr/local/bin/supercronic"
+  chmod +x "${SUPERCRONIC}"
+  mv "${SUPERCRONIC}" "/usr/local/bin/supercronic"
 
   echo "* * * * * umask 007; ${ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > /etc/crontabs/${PHP_USER}
   
