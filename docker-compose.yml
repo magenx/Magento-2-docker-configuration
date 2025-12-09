@@ -47,11 +47,52 @@ x-cap_add: &cap_add
 # -----------------------------------------------------------------------------------------------------------------------
 #  Configure healthcheck
 # -----------------------------------------------------------------------------------------------------------------------
-x-healthcheck-default: &healthcheck_default
+x-healthcheck_default: &healthcheck_default
   start_period: ${HEALTHCHECK_START_PERIOD}
   interval: ${HEALTHCHECK_INTERVAL}
   timeout: ${HEALTHCHECK_TIMEOUT}
   retries: ${HEALTHCHECK_RETRIES}
+
+# -----------------------------------------------------------------------------------------------------------------------
+#  Configure php build args
+# -----------------------------------------------------------------------------------------------------------------------
+x-php_args: &php_args
+  PHP_PACKAGES:
+  PHP_VERSION:
+  PHP_FPM_CONFIG:
+  PHP_INI:
+
+# -----------------------------------------------------------------------------------------------------------------------
+#  Configure php env variables
+# -----------------------------------------------------------------------------------------------------------------------
+x-php_env: &php_env
+  COMPOSER_MEMORY_LIMIT:
+  MARIADB_DATABASE:
+  MARIADB_USER:
+  MARIADB_PASSWORD:
+  RABBITMQ_PASSWORD:
+  REDIS_PASSWORD:
+  OPENSEARCH_PASSWORD:
+  BRAND:
+  DOMAIN:
+  ROOT_PATH:
+  ADMIN_PATH:
+  CRYPT_KEY:
+  CURRENT_SYMLINK:
+  GRAPHQL_ID_SALT:
+      
+# -----------------------------------------------------------------------------------------------------------------------
+#  Configure magento build args
+# -----------------------------------------------------------------------------------------------------------------------
+x-magento_arg: &magento_args
+  BRAND:
+  DOMAIN:
+  PHP_USER:
+  ADMIN_PATH:
+  ROOT_PATH:
+  TIMEZONE:
+  ALPINE_IMAGE:
+  CURRENT_SYMLINK:
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Services configuration parameters
@@ -67,15 +108,15 @@ services:
     build:
       context: ./mariadb
       args:
-        - MARIADB_IMAGE
+        MARIADB_IMAGE:
     environment:
-      - MARIADB_AUTO_UPGRADE
-      - MARIADB_DISABLE_UPGRADE_BACKUP
-      - MARIADB_RANDOM_ROOT_PASSWORD
-      - MARIADB_DATABASE
-      - MARIADB_USER
-      - MARIADB_PASSWORD
-      - TIMEZONE
+      MARIADB_AUTO_UPGRADE:
+      MARIADB_DISABLE_UPGRADE_BACKUP:
+      MARIADB_RANDOM_ROOT_PASSWORD:
+      MARIADB_DATABASE:
+      MARIADB_USER:
+      MARIADB_PASSWORD:
+      TIMEZONE:
     command: >
       --key_buffer_size=16M
       --myisam-recover-options=FORCE,BACKUP
@@ -132,7 +173,7 @@ services:
     build:
       context: ./opensearch
       args:
-        - OPENSEARCH_IMAGE
+        OPENSEARCH_IMAGE:
     develop:
       watch:
         - path: ./opensearch
@@ -242,9 +283,9 @@ services:
     container_name: rabbitmq
     hostname: rabbitmq
     environment:
-      - RABBITMQ_DEFAULT_USER=${BRAND}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
-      - RABBITMQ_DEFAULT_VHOST=/${BRAND}
+      RABBITMQ_DEFAULT_USER: ${BRAND}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: /${BRAND}
     expose:
       - "5672"
       - "15672"
@@ -266,16 +307,16 @@ services:
     build:
       context: ./varnish
       args:
-        - VARNISH_IMAGE
-        - VARNISH_SIZE
-        - TIMEZONE
+        VARNISH_IMAGE:
+        VARNISH_SIZE:
+        TIMEZONE:
     develop:
       watch:
         - path: ./varnish
           action: rebuild
     environment:
-      - DOMAIN
-      - PROFILER
+      DOMAIN:
+      PROFILER:
     depends_on:
       - nginx
       - php
@@ -305,38 +346,14 @@ services:
     hostname: php
     build:
       context: ./php
-      args: &magento_arg
-        - BRAND
-        - DOMAIN
-        - PHP_USER
-        - ADMIN_PATH
-        - ROOT_PATH
-        - PHP_PACKAGES
-        - PHP_VERSION
-        - PHP_FPM_CONFIG
-        - PHP_INI
-        - TIMEZONE
-        - ALPINE_IMAGE
-        - CURRENT_SYMLINK
+      args: 
+        <<: [*php_args, *magento_args]
     develop:
       watch:
         - path: ./php
           action: rebuild
-    environment: &php_env
-      - COMPOSER_MEMORY_LIMIT
-      - MARIADB_DATABASE
-      - MARIADB_USER
-      - MARIADB_PASSWORD
-      - RABBITMQ_PASSWORD
-      - REDIS_PASSWORD
-      - OPENSEARCH_PASSWORD
-      - BRAND
-      - DOMAIN
-      - ROOT_PATH
-      - ADMIN_PATH
-      - CRYPT_KEY
-      - CURRENT_SYMLINK
-      - GRAPHQL_ID_SALT
+    environment:
+      <<: *php_env
     depends_on:
       mariadb:
         condition: service_healthy
@@ -363,12 +380,14 @@ services:
     container_name: magento
     build:
       context: ./magento
-      args: *magento_arg
+      args:
+        <<: [*php_args, *magento_args]
     develop:
       watch:
         - path: ./magento
           action: rebuild
-    environment: *php_env
+    environment:
+      <<: *php_env
     volumes:
       - ${APP_PATH}/public:${ROOT_PATH}/public
       - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
@@ -391,18 +410,11 @@ services:
     build:
       context: ./nginx
       args:
-        - NGINX_IMAGE
-        - BRAND
-        - DOMAIN
-        - PHP_USER
-        - PHP_FPM
-        - TIMEZONE
-        - PROFILER
-        - RESOLVER
-        - ROOT_PATH
-        - ADMIN_PATH
-        - RABBITMQ_PATH
-        - CURRENT_SYMLINK
+        <<: *magento_args
+        NGINX_IMAGE:
+        PROFILER:
+        RESOLVER:
+        RABBITMQ_PATH:
     develop:
       watch:
         - path: ./nginx
@@ -435,12 +447,17 @@ services:
     container_name: cron
     build:
       context: ./cron
-      args: *magento_arg
+      args:
+        <<: [*php_args, *magento_args]
+        SUPERCRONIC:
+        SUPERCRONIC_SHA1SUM:
+        SUPERCRONIC_URL:
     develop:
       watch:
         - path: ./cron
           action: rebuild
-    environment: *php_env
+    environment:
+      <<: *php_env
     depends_on:
       mariadb:
         condition: service_healthy
