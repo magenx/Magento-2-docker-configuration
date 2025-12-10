@@ -47,7 +47,7 @@ RUN <<EOF
   chmod +x "${SUPERCRONIC}"
   mv "${SUPERCRONIC}" "/usr/local/bin/supercronic"
 
-  echo "* * * * * umask 007; ${ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > /etc/crontabs/${PHP_USER}
+  echo "* * * * * umask 007; ${ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > ${ROOT_PATH}/crontab_${PHP_USER}
   
   apt-get remove -y curl gettext lsb-release exim4* --purge
   apt-get clean all
