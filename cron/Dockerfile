@@ -38,7 +38,6 @@ RUN <<EOF
   mkdir -p ${ROOT_PATH}
   groupadd -r -g 1001 ${PHP_USER} 
   useradd -r -M -s /sbin/nologin -d ${ROOT_PATH} -g 1001 -u 1001 ${PHP_USER}
-  mkdir -p /run/php && chown -R ${PHP_USER}:${PHP_USER} /run/php
   
   ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
   echo ${TIMEZONE} > /etc/timezone
