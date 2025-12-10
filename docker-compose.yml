@@ -57,10 +57,12 @@ x-healthcheck_default: &healthcheck_default
 #  Configure php build args
 # -----------------------------------------------------------------------------------------------------------------------
 x-php_args: &php_args
+  DEBIAN_IMAGE:
   PHP_PACKAGES:
   PHP_VERSION:
+  PHP_FPM_POOL:
   PHP_FPM_CONFIG:
-  PHP_INI:
+  PHP_INI_PATH:
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Configure php env variables
@@ -410,7 +412,7 @@ services:
     build:
       context: ./nginx
       args:
-        <<: *magento_args
+        <<: [*php_args, *magento_args]
         NGINX_IMAGE:
         PROFILER:
         RESOLVER:
