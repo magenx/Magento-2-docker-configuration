@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:labs
 
-ARG ALPINE_IMAGE
-FROM ${ALPINE_IMAGE}
+ARG  DEBIAN_IMAGE
+FROM ${DEBIAN_IMAGE}
 
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
@@ -9,36 +9,44 @@ LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 ARG PHP_PACKAGES
 ARG PHP_VERSION
 ARG PHP_FPM_CONFIG
-ARG PHP_INI
+ARG PHP_FPM_POOL
+ARG PHP_INI_PATH
 ARG PHP_USER
 ARG ROOT_PATH
+ARG BRAND
+ARG CURRENT_SYMLINK
 ARG TIMEZONE
 
-RUN <<EOF
-  apk update
-  apk add --update --no-cache \
-  bash \
-  gettext-envsubst
-EOF
-
-COPY config/www.conf config/zz-override.ini /tmp/
-SHELL ["/bin/bash","-c"]
+COPY config/* /tmp/
 
 RUN <<EOF
-  _PHP_PACKAGES+=(${PHP_PACKAGES})
-  apk add --update --no-cache php${PHP_VERSION} php${PHP_VERSION}-fpm ${_PHP_PACKAGES[@]/#/php${PHP_VERSION}-}
+  apt-get update
+  apt-get -y install curl bash gettext lsb-release
   
-  envsubst < /tmp/zz-override.ini >  ${PHP_INI}/zz-override.ini
-  envsubst < /tmp/www.conf > ${PHP_FPM_CONFIG}
+  curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
+  echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
+  apt-get update
+  apt-get update && apt-get install -y \
+    php${PHP_VERSION} \
+    php${PHP_VERSION}-fpm \
+    $(echo "$PHP_PACKAGES" | sed "s/ / php${PHP_VERSION}-/g; s/^/php${PHP_VERSION}-/")
+  
+  envsubst < /tmp/zz-override.ini >  ${PHP_INI_PATH}
+  envsubst < /tmp/www.conf > ${PHP_FPM_POOL}
+  envsubst < /tmp/php-fpm.conf > ${PHP_FPM_CONFIG}
   
   mkdir -p ${ROOT_PATH}
-  addgroup -S -g 1001 ${PHP_USER}
-  adduser -D -S -G ${PHP_USER} -h ${ROOT_PATH} -u 1001 ${PHP_USER}
-  chown -R ${PHP_USER} /var/log/php${PHP_VERSION}
+  groupadd -r -g 1001 ${PHP_USER} 
+  useradd -r -M -s /sbin/nologin -d ${ROOT_PATH} -g 1001 -u 1001 ${PHP_USER}
+  mkdir -p /run/php && chown -R ${PHP_USER}:${PHP_USER} /run/php
   
   ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
   echo ${TIMEZONE} > /etc/timezone
-  ln -s /usr/bin/php${PHP_VERSION} /usr/local/bin/php
   
+  apt-get remove -y curl gettext lsb-release exim4* --purge
+  apt-get clean all
+  apt-get clean autoclean
+  apt-get autoremove --purge -y
+  rm -rf /var/lib/{apt,dpkg,cache,log}/
   rm -rf /tmp/*
 EOF
