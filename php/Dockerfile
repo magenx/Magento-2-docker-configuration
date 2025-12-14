@@ -31,15 +31,16 @@ RUN <<EOF
     php${PHP_VERSION} \
     php${PHP_VERSION}-fpm \
     $(echo "$PHP_PACKAGES" | sed "s/ / php${PHP_VERSION}-/g; s/^/php${PHP_VERSION}-/")
-  
-  envsubst < /tmp/zz-override.ini >  ${PHP_INI_PATH}
-  envsubst < /tmp/www.conf > ${PHP_FPM_POOL}
-  envsubst < /tmp/php-fpm.conf > ${PHP_FPM_CONFIG}
-  
+
   mkdir -p ${ROOT_PATH}
   groupadd -r -g 1001 ${PHP_USER} 
   useradd -r -M -s /sbin/nologin -d ${ROOT_PATH} -g 1001 -u 1001 ${PHP_USER}
   mkdir -p /run/php && chown -R ${PHP_USER}:${PHP_USER} /run/php
+
+  export ROOT_PATH="${ROOT_PATH}/${CURRENT_SYMLINK}"
+  envsubst < /tmp/zz-override.ini >  ${PHP_INI_PATH}
+  envsubst < /tmp/www.conf > ${PHP_FPM_POOL}
+  envsubst < /tmp/php-fpm.conf > ${PHP_FPM_CONFIG}
   
   ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
   echo ${TIMEZONE} > /etc/timezone
