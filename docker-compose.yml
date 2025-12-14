@@ -381,6 +381,7 @@ services:
       args:
         <<: [*php_args, *magento_args]
         NGINX_IMAGE:
+        PHP_FPM:
         PROFILER:
         RESOLVER:
         RABBITMQ_PATH:
