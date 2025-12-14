@@ -16,6 +16,7 @@ ARG RESOLVER
 ARG ROOT_PATH
 ARG ADMIN_PATH
 ARG RABBITMQ_PATH
+ARG CURRENT_SYMLINK
 
 USER root
 
@@ -25,6 +26,7 @@ RUN <<EOF
   mkdir -p ${ROOT_PATH}
   ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
+  export ROOT_PATH="${ROOT_PATH}/${CURRENT_SYMLINK}"
   find /tmp/templates -name "*.template" -type f | while read template; do
     relative_path="${template#/tmp/templates/}";
     target_file="/etc/nginx/${relative_path%.template}";
