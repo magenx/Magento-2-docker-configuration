@@ -10,8 +10,9 @@ IMGPROXY_UID="10${IMGPROXY_UID}"
 if [ ! -d "${APP_PATH}/releases" ] || [ -z "$(ls -A ${APP_PATH}/releases)" ]; then
   INSTALLATION_RELEASE="$(date +'%Y%m%d%H%M')"
   mkdir -p ${APP_PATH}/{shared/{var/tmp,pub/media},releases/${INSTALLATION_RELEASE},public}
-  ln -snf ${APP_PATH}/releases/${INSTALLATION_RELEASE} ${APP_PATH}/public/current
-  chown -h ${MAGENTO_UID}:${PHP_UID} ${APP_PATH}/public/current
+  cd ${APP_PATH}/public/
+  ln -snf ../releases/${INSTALLATION_RELEASE} current
+  chown -h ${MAGENTO_UID}:${PHP_UID} current
 fi
 
 chown -R ${MAGENTO_UID}:${PHP_UID} ${APP_PATH}
