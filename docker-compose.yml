@@ -385,6 +385,7 @@ services:
         PROFILER:
         RESOLVER:
         RABBITMQ_PATH:
+        ADMINER_PATH:
     develop:
       watch:
         - path: ./nginx
