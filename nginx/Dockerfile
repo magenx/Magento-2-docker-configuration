@@ -16,6 +16,7 @@ ARG RESOLVER
 ARG ROOT_PATH
 ARG ADMIN_PATH
 ARG RABBITMQ_PATH
+ARG ADMINER_PATH
 ARG CURRENT_SYMLINK
 
 USER root
@@ -32,7 +33,7 @@ RUN <<EOF
     target_file="/etc/nginx/${relative_path%.template}";
     target_dir=$(dirname "$target_file");
     mkdir -p "$target_dir";
-    envsubst '${BRAND} ${DOMAIN} ${PHP_USER} ${PHP_FPM} ${TIMEZONE} ${PROFILER} ${RESOLVER} ${ROOT_PATH} ${ADMIN_PATH} ${RABBITMQ_PATH}' \
+    envsubst '${BRAND} ${DOMAIN} ${PHP_USER} ${PHP_FPM} ${TIMEZONE} ${PROFILER} ${RESOLVER} ${ROOT_PATH} ${ADMIN_PATH} ${RABBITMQ_PATH} ${ADMINER_PATH}' \
     < "$template" > "$target_file";
     echo "Processed: $template -> $target_file";
   done
