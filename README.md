@@ -28,73 +28,6 @@
 ```      
    doco up -d
 ```
-- [x] Folders structure:   
-```
-root@docker:/opt/magenx# tree -L 3
-.
-├── data
-│   ├── mariadb
-│   │   ├── aria_log.00000001
-│   │   ├── aria_log_control
-│   │   ├── ib_buffer_pool
-│   │   ├── ibdata1
-│   │   ├── ib_logfile0
-│   │   ├── magenx
-│   │   ├── mariadb_upgrade_info
-│   │   ├── multi-master.info
-│   │   ├── mysql
-│   │   ├── performance_schema
-│   │   ├── sys
-│   │   ├── undo001
-│   │   ├── undo002
-│   │   └── undo003
-│   ├── opensearch
-│   │   ├── batch_metrics_enabled.conf
-│   │   ├── logging_enabled.conf
-│   │   ├── logs
-│   │   ├── nodes
-│   │   ├── performance_analyzer_enabled.conf
-│   │   ├── rca_enabled.conf
-│   │   └── thread_contention_monitoring_enabled.conf
-│   ├── phpmyadmin
-│   ├── rabbitmq
-│   │   └── mnesia
-│   ├── redis
-│   │   └── dump.rdb
-│   └── ssl
-├── docker
-│   ├── composer
-│   │   └── Dockerfile
-│   ├── cron
-│   │   └── Dockerfile
-│   ├── docker-compose.yml
-│   ├── init.sh
-│   ├── LICENSE
-│   ├── magento
-│   │   ├── Dockerfile
-│   │   └── entrypoint.sh
-│   ├── mariadb
-│   │   └── init.sql.gz
-│   ├── nginx
-│   │   └── Dockerfile
-│   ├── opensearch
-│   │   └── Dockerfile
-│   ├── opensearch.sh
-│   ├── passgen.sh
-│   ├── php
-│   │   ├── Dockerfile
-│   │   ├── www.conf
-│   │   └── zz-override.ini
-│   ├── README.md
-│   └── varnish
-│       ├── default.vcl
-│       └── Dockerfile
-└── magento
-    └── magenx
-        ├── current -> releases/202509182334
-        ├── releases
-        └── shared
-```
 
 - [x] Watch syslog for errors and issues:
 ```
@@ -140,10 +73,6 @@ redis_version:8.0.3
 ```	
 doco run --rm magento n98 --version
 n98-magerun2 9.1.0 (commit: 2db94c5) by valantic CEC
-```
-```
-doco run --rm certbot --version
-certbot 5.0.0
 ```
 ```
 doco run --rm nginx -v
