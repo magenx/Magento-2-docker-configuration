@@ -5,27 +5,24 @@ import dynamic;
 import std;
 
 backend default none;
-probe health_check {
-        .request = "GET /health_check.php HTTP/1.1"
-                   "Host: ${DOMAIN}"
-                   "User-Agent: Varnish (backend health check)"
-                   "Connection: close";
-        .timeout = 2s;
-        .interval = 5s;
-        .window = 10;
-        .threshold = 5;   
+probe default {
+    .url = "/health_check.php";
+    .timeout = 2s;
+    .interval = 5s;
+    .window = 10;
+    .threshold = 5;
 }
 
 acl purge {
     "172.16.0.0/12";
-	"localhost";
-	"127.0.0.1";
+    "localhost";
+    "127.0.0.1";
 }
 
 sub vcl_init {
     new this = dynamic.director(
     port = "80",
-    probe = health_check,
+    host_header = std.getenv("DOMAIN"),
     whitelist = purge,
     ttl = 1m);
 }
