@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+. .env
+
+DOCKER_EXEC="docker compose exec opensearch"
+OS_ENDPOINT="opensearch:9200"
+OS_LOGIN="curl -s -u admin:${OPENSEARCH_ADMIN_PASSWORD}"
+HEADER="Content-Type: application/json"
+
+function get() {
+  local api_path=$1
+  ${DOCKER_EXEC} ${OS_LOGIN} -H "${HEADER}" -X GET "${OS_ENDPOINT}/${api_path}"
+}
+
+function put() {
+  local api_path=$1
+  local data=$2
+  jq . "${data}" | ${DOCKER_EXEC/exec/exec -T} ${OS_LOGIN} -X PUT "${OS_ENDPOINT}/${api_path}" \
+    -H "${HEADER}" \
+    -d @-
+}
+
+function post() {
+  local api_path=$1
+  local data=$2
+  jq . "${data}" | ${DOCKER_EXEC/exec/exec -T} ${OS_LOGIN} -X POST "${OS_ENDPOINT}/${api_path}" \
+    -H "${HEADER}" \
+    -d @-
+}
+
+function delete() {
+  local api_path=$1
+  ${DOCKER_EXEC} ${OS_LOGIN} -X DELETE "${OS_ENDPOINT}/${api_path}" -H "${HEADER}"
+}
+
+function logs() {
+  docker compose logs opensearch -f
+}
+
+function health() {
+  ${DOCKER_EXEC} ${OS_LOGIN} -H "${HEADER}" -X GET "${OS_ENDPOINT}/_cluster/health?human&pretty"
+}
+
+function heap() {
+  ${DOCKER_EXEC} ${OS_LOGIN} -H "${HEADER}" -X GET "${OS_ENDPOINT}/_nodes/stats/jvm?human&pretty" | grep 'heap' -A 20 -B 5
+}
+
+function shard() {
+  ${DOCKER_EXEC} ${OS_LOGIN} -H "${HEADER}" -X GET "${OS_ENDPOINT}/_cluster/allocation/explain?human&pretty"
+}
+
+function index() {
+  ${DOCKER_EXEC} ${OS_LOGIN} -H "${HEADER}" -X GET "${OS_ENDPOINT}/_cat/indices?v&h=index,health,status,uuid,pri,rep,docs.count,docs.deleted,store.size,pri.store.size&s=store.size:desc"
+}
+
+"$@"
+
