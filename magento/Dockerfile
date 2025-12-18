@@ -21,7 +21,7 @@ COPY config/zz-override.ini /tmp/
 
 RUN <<EOF
   apt-get update
-  apt-get install -y --no-install-recommends curl gettext lsb-release
+  apt-get install -y --no-install-recommends ca-certificates curl gettext lsb-release
   
   curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
   echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
