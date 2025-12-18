@@ -10,7 +10,6 @@ ARG PHP_PACKAGES
 ARG PHP_VERSION
 ARG PHP_FPM_CONFIG
 ARG PHP_FPM_POOL
-ARG PHP_INI_PATH
 ARG PHP_USER
 
 ARG ROOT_PATH
@@ -37,7 +36,6 @@ RUN <<EOF
   useradd -r -M -s /sbin/nologin -d ${ROOT_PATH} -g 1001 -u 1001 ${PHP_USER}
   mkdir -p /run/php && chown -R ${PHP_USER}:${PHP_USER} /run/php
 
-  envsubst < /tmp/zz-override.ini >  ${PHP_INI_PATH}
   envsubst < /tmp/www.conf > ${PHP_FPM_POOL}
   envsubst < /tmp/php-fpm.conf > ${PHP_FPM_CONFIG}
   rm -rf /tmp/*
