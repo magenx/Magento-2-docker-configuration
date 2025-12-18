@@ -290,7 +290,7 @@ services:
       - nginx
       - php
     ports:
-      - "${VARNISH_PRIVATE_IP}80:80"
+      - "${VARNISH_PRIVATE_IP}:80"
     networks:
       - frontend
     volumes:
