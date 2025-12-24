@@ -327,7 +327,7 @@ services:
       mariadb:
         condition: service_healthy
     expose:
-      - "9000"
+      - "${PHP_UID}"
     networks:
       - backend
       - frontend
@@ -338,7 +338,7 @@ services:
       - ${APP_PATH}/releases:${ROOT_PATH}/releases
     working_dir: "${ROOT_PATH}/${CURRENT_SYMLINK}"
     user: "${PHP_UID}:${PHP_UID}"
-    entrypoint: ["php-fpm${PHP_VERSION}", "-F"]
+    entrypoint: ["php-fpm", "-F"]
     restart: unless-stopped
     <<: [*ulimits, *cap_add, *logger]
 
