@@ -73,12 +73,12 @@ RUN <<EOF
     echo "=== Building $ext ==="
     if [ -d "ext/$ext" ]; then
     cd "ext/$ext"
-	  extension="PHP_${ext^^}"
+    extension="PHP_${ext^^}"
     options="${!extension}"
-	  phpize
+    phpize
     ${PHP_CONFIGURE} $options
     make
-	  make install
+    make install
     cd ${PHP_SRC_DIR}
     echo "✅ Built $ext";
   else
