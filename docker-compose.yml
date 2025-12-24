@@ -57,12 +57,12 @@ x-healthcheck_default: &healthcheck_default
 #  Configure php build args
 # -----------------------------------------------------------------------------------------------------------------------
 x-php_args: &php_args
-  DEBIAN_IMAGE:
-  PHP_PACKAGES:
-  PHP_VERSION:
-  PHP_FPM_POOL:
-  PHP_FPM_CONFIG:
-  PHP_INI_PATH:
+  PHP_DEV_IMAGE:
+  PHP_FPM_IMAGE:
+  PHP_IMAGE:
+  PHP_EXT:
+  PHP_FPM:
+  PHP_UID:
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Configure php env variables
