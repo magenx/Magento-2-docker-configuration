@@ -1,51 +1,74 @@
 # syntax = docker/dockerfile:labs
-
-ARG  DEBIAN_IMAGE
-FROM ${DEBIAN_IMAGE}
-
-LABEL author="admin@magenx.com"
-LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
-
-ARG PHP_PACKAGES
-ARG PHP_VERSION
-ARG PHP_INI_PATH
+# ============================================
+# STAGE 1: BUILD USING BASE IMAGE
+# ============================================
+# Set variables for build
 ARG PHP_USER
-
 ARG ROOT_PATH
 ARG BRAND
-ARG CURRENT_SYMLINK
-ARG TIMEZONE
+
+# Set hash to pull exact image
+ARG ${BRAND}
+ARG PHP_DEV_IMAGE
+FROM ${PHP_DEV_IMAGE} AS builder
+
+# Set variables for build
+ARG ROOT_PATH
+ARG BRAND
 
 COPY entrypoint.sh /entrypoint.sh
-COPY config/zz-override.ini /tmp/
+COPY ../php/config/zz-cli-override.ini /tmp/
 
 RUN <<EOF
-  apt-get update
-  apt-get install -y --no-install-recommends ca-certificates curl gettext lsb-release
+  # Copy php ini options override
+  envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-override.ini
   
-  curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
-  echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
-  apt-get update
-  apt-get install -y --no-install-recommends \
-    php${PHP_VERSION} \
-    $(echo "${PHP_PACKAGES}" | sed "s/ / php${PHP_VERSION}-/g; s/^/php${PHP_VERSION}-/")
-  
-  envsubst < /tmp/zz-override.ini >  ${PHP_INI_PATH}
-  rm -rf /tmp/*
-    
-  mkdir -p ${ROOT_PATH}
-  groupadd -r -g 1001 ${PHP_USER}
-  useradd -M -s /sbin/nologin -d ${ROOT_PATH} -g 1001 -u 1000 ${BRAND}
-  
+  # Download n98-magerun2
   curl -o /usr/local/bin/n98-magerun2 https://files.magerun.net/n98-magerun2.phar
   chmod +x /usr/local/bin/n98-magerun2
   
+  # Magento entrypoint script
   chmod +x /entrypoint.sh
-  
-  apt-get remove -y curl gettext lsb-release --purge
-  apt-get clean all
-  apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
-  apt-get dist-clean
 EOF
 
+# ============================================
+# STAGE 2: BUILD RUNTIME
+# ============================================
+# Set hash to pull exact image
+ARG {BRAND}
+FROM {BRAND}-php
 
+# Set variables for build
+ARG ROOT_PATH
+ARG BRAND
+
+# Copy php ini options override
+COPY --from=builder ${PHP_INI_DIR}/conf.d/zz-override.ini ${PHP_INI_DIR}/conf.d/zz-override.ini
+
+# Copy magerun tool
+COPY --from=builder /usr/local/bin/n98-magerun2 /usr/local/bin/n98-magerun2
+
+# Copy magento entrypoint
+COPY --from=builder /entrypoint.sh /entrypoint.sh
+
+# Configure isolated user
+# /etc/passwd
+COPY  --chmod=644 <<EOF /etc/passwd
+${BRAND}:x:${MAGENTO_UID}:${MAGENTO_UID}:${BRAND}:/home/${BRAND}:/bin/false
+nobody:x:65534:65534:nobody:/nonexistent:/bin/false
+EOF
+
+# /etc/group
+COPY  --chmod=644 <<EOF /etc/group
+${BRAND}:x:${MAGENTO_UID}:${BRAND}
+shadow:x:42:
+nobody:x:65534:
+EOF
+
+# /etc/shadow
+COPY  --chmod=600 <<EOF /etc/shadow
+${BRAND}:!::0:99999:7:::
+nobody:*::0:99999:7:::
+EOF
+
+# end runtime build
