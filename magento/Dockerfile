@@ -21,7 +21,7 @@ COPY ../php/config/zz-cli-override.ini /tmp/
 
 RUN <<EOF
   # Copy php ini options override
-  envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-override.ini
+  envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
   
   # Download n98-magerun2
   curl -o /usr/local/bin/n98-magerun2 https://files.magerun.net/n98-magerun2.phar
@@ -43,7 +43,7 @@ ARG ROOT_PATH
 ARG BRAND
 
 # Copy php ini options override
-COPY --from=builder ${PHP_INI_DIR}/conf.d/zz-override.ini ${PHP_INI_DIR}/conf.d/zz-override.ini
+COPY --from=builder ${PHP_INI_DIR}/conf.d/zz-cli-override.ini ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
 
 # Copy magerun tool
 COPY --from=builder /usr/local/bin/n98-magerun2 /usr/local/bin/n98-magerun2
