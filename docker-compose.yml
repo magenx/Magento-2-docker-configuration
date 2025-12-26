@@ -59,6 +59,7 @@ x-healthcheck_default: &healthcheck_default
 x-php_args: &php_args
   PHP_DEV_IMAGE:
   PHP_FPM_IMAGE:
+  PHP_USER:
   PHP_IMAGE:
   PHP_EXT:
   PHP_FPM:
@@ -89,7 +90,6 @@ x-php_env: &php_env
 x-magento_args: &magento_args
   BRAND:
   DOMAIN:
-  PHP_USER:
   ADMIN_PATH:
   ROOT_PATH:
   TIMEZONE:
