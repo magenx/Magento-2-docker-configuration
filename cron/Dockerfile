@@ -1,20 +1,23 @@
 # syntax = docker/dockerfile:labs
-
-ARG  DEBIAN_IMAGE
-FROM ${DEBIAN_IMAGE}
-
-LABEL author="admin@magenx.com"
-LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
-
-ARG PHP_PACKAGES
-ARG PHP_VERSION
-ARG PHP_INI_PATH
+# ============================================
+# STAGE 1: BUILD USING BASE IMAGE
+# ============================================
+# Set variables for build
 ARG PHP_USER
+ARG ROOT_PATH
+ARG BRAND
+ARG SUPERCRONIC
 
+# Set hash to pull exact image
+ARG ${BRAND}-php
+ARG PHP_DEV_IMAGE
+FROM ${PHP_DEV_IMAGE} AS builder
+
+# Set variables for build
+ARG PHP_USER
 ARG ROOT_PATH
 ARG BRAND
 ARG CURRENT_SYMLINK
-ARG TIMEZONE
 
 ARG SUPERCRONIC
 ARG SUPERCRONIC_SHA1SUM
@@ -23,35 +26,35 @@ ARG SUPERCRONIC_URL
 COPY config/zz-override.ini /tmp/
 
 RUN <<EOF
-  apt-get update
-  apt-get install -y --no-install-recommends ca-certificates curl gettext lsb-release
-  
-  curl -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
-  echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
-  apt-get update
-  apt-get install -y --no-install-recommends \
-    php${PHP_VERSION} \
-    $(echo "$PHP_PACKAGES" | sed "s/ / php${PHP_VERSION}-/g; s/^/php${PHP_VERSION}-/")
-  
-  envsubst < /tmp/zz-override.ini >  ${PHP_INI_PATH}
-  rm -rf /tmp/*
-  
-  mkdir -p ${ROOT_PATH}
-  groupadd -r -g 1001 ${PHP_USER} 
-  useradd -r -M -s /sbin/nologin -d ${ROOT_PATH} -g 1001 -u 1001 ${PHP_USER}
-  
-  ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
-  echo ${TIMEZONE} > /etc/timezone
-
+  # Copy php ini options override
+  envsubst < /tmp/zz-override.ini >  ${PHP_INI_DIR}/conf.d/zz-override.ini
+  # Download supercronic
   curl -fsSLO "${SUPERCRONIC_URL}"
   echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c -
   chmod +x "${SUPERCRONIC}"
-  mv "${SUPERCRONIC}" "/usr/local/bin/supercronic"
-
-  echo "* * * * * umask 007; ${ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > ${ROOT_PATH}/crontab_${PHP_USER}
-  
-  apt-get remove -y curl gettext lsb-release --purge
-  apt-get clean all
-  apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
-  apt-get dist-clean
+  # Create crontab jobs
+  mkdir -p ${ROOT_PATH}/crontabs/
+  echo "* * * * * umask 007; ${ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > ${ROOT_PATH}/crontabs/${PHP_USER}
 EOF
+
+# ============================================
+# STAGE 2: BUILD RUNTIME
+# ============================================
+# Set hash to pull exact image
+ARG {BRAND}
+FROM {BRAND}-php
+
+# Set variables for build
+ARG SUPERCRONIC
+ARG PHP_USER
+ARG ROOT_PATH
+
+# Copy php ini options override
+COPY --from=builder ${PHP_INI_DIR}/conf.d/zz-override.ini ${PHP_INI_DIR}/conf.d/zz-override.ini
+
+# Copy supercronic
+COPY --from=builder ${SUPERCRONIC} /usr/local/bin/supercronic
+
+# Copy crontabs
+COPY --from=builder ${ROOT_PATH}/crontab/${PHP_USER} ${ROOT_PATH}/crontabs/${PHP_USER}
+
