@@ -9,7 +9,7 @@ ARG BRAND
 ARG SUPERCRONIC
 
 # Set hash to pull exact image
-ARG ${BRAND}-php
+ARG ${BRAND}
 ARG PHP_DEV_IMAGE
 FROM ${PHP_DEV_IMAGE} AS builder
 
