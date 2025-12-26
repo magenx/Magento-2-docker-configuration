@@ -3,7 +3,6 @@
 # STAGE 1: BUILD USING BASE IMAGE
 # ============================================
 # Set variables for build
-ARG PHP_USER
 ARG ROOT_PATH
 ARG BRAND
 
