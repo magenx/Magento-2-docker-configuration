@@ -23,15 +23,17 @@ ARG SUPERCRONIC
 ARG SUPERCRONIC_SHA1SUM
 ARG SUPERCRONIC_URL
 
-COPY config/zz-override.ini /tmp/
+COPY ../php/config/zz-cli-override.ini /tmp/
 
 RUN <<EOF
   # Copy php ini options override
-  envsubst < /tmp/zz-override.ini >  ${PHP_INI_DIR}/conf.d/zz-override.ini
+  envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
+  
   # Download supercronic
   curl -fsSLO "${SUPERCRONIC_URL}"
   echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c -
   chmod +x "${SUPERCRONIC}"
+  
   # Create crontab jobs
   mkdir -p ${ROOT_PATH}/crontabs/
   echo "* * * * * umask 007; ${ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > ${ROOT_PATH}/crontabs/${PHP_USER}
@@ -50,7 +52,7 @@ ARG PHP_USER
 ARG ROOT_PATH
 
 # Copy php ini options override
-COPY --from=builder ${PHP_INI_DIR}/conf.d/zz-override.ini ${PHP_INI_DIR}/conf.d/zz-override.ini
+COPY --from=builder ${PHP_INI_DIR}/conf.d/zz-cli-override.ini ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
 
 # Copy supercronic
 COPY --from=builder ${SUPERCRONIC} /usr/local/bin/supercronic
