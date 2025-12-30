@@ -14,7 +14,7 @@ ARG PHP_DEV_IMAGE
 FROM ${PHP_DEV_IMAGE} AS builder
 
 # Set variables for build
-ARG PHP_EXT
+ARG PHP_EXTENSION
 ARG PHP_USER
 ARG ROOT_PATH
 ARG BRAND
@@ -69,7 +69,7 @@ ARG PHP_CONFIGURE="./configure --with-php-config=${PHP_PREFIX}/bin/php-config"
 
 # Build extensions with their specific configure options
 RUN <<EOF
-  for ext in ${PHP_EXT}; do
+  for ext in ${PHP_EXTENSION}; do
     echo "=== Building $ext ==="
     if [ -d "ext/$ext" ]; then
     cd "ext/$ext"
