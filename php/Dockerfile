@@ -83,6 +83,7 @@ RUN <<EOF
     echo "✅ Built $ext";
   else
     echo "⚠️ $ext not in source";
+	exit 1
   fi;
   done
 EOF
