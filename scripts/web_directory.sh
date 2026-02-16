@@ -16,8 +16,6 @@ if [ ! -d "${APP_PATH}/releases" ] || [ -z "$(ls -A ${APP_PATH}/releases)" ]; th
 fi
 
 chown -R ${MAGENTO_UID}:${PHP_UID} ${APP_PATH}
-chmod 2770 ${APP_PATH}/shared
-chmod 2750 ${APP_PATH}/{releases,public}
 
 find ${APP_PATH}/shared -type d ! -perm 2770 -exec chmod 2770 {} \;
 find ${APP_PATH}/shared -type f ! -perm 660 -exec chmod 660 {} \;
