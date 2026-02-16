@@ -16,12 +16,15 @@ if [ ! -d "${APP_PATH}/releases" ] || [ -z "$(ls -A ${APP_PATH}/releases)" ]; th
 fi
 
 chown -R ${MAGENTO_UID}:${PHP_UID} ${APP_PATH}
-chmod 2770 ${APP_PATH}/{shared,releases,public}
+chmod 2770 ${APP_PATH}/shared
+chmod 2750 ${APP_PATH}/{releases,public}
 
-find ${APP_PATH} -type d ! -perm 2770 -exec chmod 2770 {} \;
-find ${APP_PATH} -type f ! -perm 660 -exec chmod 660 {} \;
+find ${APP_PATH}/shared -type d ! -perm 2770 -exec chmod 2770 {} \;
+find ${APP_PATH}/shared -type f ! -perm 660 -exec chmod 660 {} \;
 
-setfacl -R -m m:r-X,u:${MAGENTO_UID}:rwX,g:${PHP_UID}:r-X,o::-,d:u:${MAGENTO_UID}:rwX,d:g:${PHP_UID}:r-X,d:o::- ${APP_PATH}/releases
-setfacl -R -m u:${MAGENTO_UID}:rwX,g:${PHP_UID}:rwX,o::-,d:u:${MAGENTO_UID}:rwX,d:g:${PHP_UID}:rwX,d:o::- ${APP_PATH}/{shared/{var,pub/media},public}
+find ${APP_PATH}/public ${APP_PATH}/releases -type d ! -perm 2750 -exec chmod 2750 {} \;
+find ${APP_PATH}/public ${APP_PATH}/releases -type f ! -perm 640 -exec chmod 640 {} \;
+
+setfacl -R -m u:${MAGENTO_UID}:rwX,g:${PHP_UID}:r-X,o::-,d:u:${MAGENTO_UID}:rwX,d:g:${PHP_UID}:r-X,d:o::- ${APP_PATH}/releases ${APP_PATH}/public ${APP_PATH}/shared
 setfacl -R -m u:${NGINX_UID}:r-X,d:u:${NGINX_UID}:r-X ${APP_PATH}/{shared,releases,public}
 setfacl -R -m u:${IMGPROXY_UID}:r-X,d:u:${IMGPROXY_UID}:r-X ${APP_PATH}/shared/pub/media
