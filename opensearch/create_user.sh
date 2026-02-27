@@ -6,7 +6,8 @@ docker compose exec -it opensearch curl -XPUT -u admin:${OPENSEARCH_ADMIN_PASSWO
       "cluster_composite_ops_monitor",
       "cluster:monitor/main",
       "cluster:monitor/state",
-      "cluster:monitor/health"
+      "cluster:monitor/health",
+      "cluster:monitor/nodes/info"
     ],
     "index_permissions": [
       {
@@ -20,9 +21,13 @@ docker compose exec -it opensearch curl -XPUT -u admin:${OPENSEARCH_ADMIN_PASSWO
         "fls": [],
         "masked_fields": [],
         "allowed_actions": [
-        "indices:admin/aliases/get",
-        "indices:data/read/search",
-        "indices:admin/get"]
+          "indices:admin/get",
+          "indices:admin/aliases/get",
+          "indices:admin/settings/get",
+          "indices:data/read/search",
+          "indices:monitor/settings/get",
+          "indices:monitor/stats"
+        ]
       }
     ],
     "tenant_permissions": []
