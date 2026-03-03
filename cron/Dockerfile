@@ -8,8 +8,6 @@ ARG ROOT_PATH
 ARG BRAND
 ARG SUPERCRONIC
 
-# Set hash to pull exact image
-ARG ${BRAND}
 ARG PHP_DEV_IMAGE
 FROM ${PHP_DEV_IMAGE} AS builder
 
@@ -43,8 +41,8 @@ EOF
 # STAGE 2: BUILD RUNTIME
 # ============================================
 # Set hash to pull exact image
-ARG {BRAND}
-FROM {BRAND}-php
+ARG BRAND
+FROM ${BRAND}-php
 
 # Set variables for build
 ARG SUPERCRONIC

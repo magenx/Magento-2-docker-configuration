@@ -7,7 +7,7 @@ ARG ROOT_PATH
 ARG BRAND
 
 # Set hash to pull exact image
-ARG ${BRAND}
+ARG BRAND
 ARG PHP_DEV_IMAGE
 FROM ${PHP_DEV_IMAGE} AS builder
 
@@ -23,8 +23,11 @@ RUN <<EOF
   envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
   
   # Download n98-magerun2
-  curl -o /usr/local/bin/n98-magerun2 https://files.magerun.net/n98-magerun2.phar
-  chmod +x /usr/local/bin/n98-magerun2
+  curl -sS -O https://files.magerun.net/n98-magerun2.phar && \
+    curl -sS -o n98-magerun2.phar.sha256 https://files.magerun.net/sha256.php?file=n98-magerun2.phar && \
+	shasum -a 256 -c n98-magerun2.phar.sha256 && mv n98-magerun2.phar /usr/local/bin/n98-magerun2 && \
+	chmod +x /usr/local/bin/n98-magerun2 && rm n98-magerun2.phar.sha256 && \
+	echo "n98 installation successful" || echo "n98 installation failed"
   
   # Magento entrypoint script
   chmod +x /entrypoint.sh
@@ -34,8 +37,8 @@ EOF
 # STAGE 2: BUILD RUNTIME
 # ============================================
 # Set hash to pull exact image
-ARG {BRAND}
-FROM {BRAND}-php
+ARG BRAND
+FROM ${BRAND}-php
 
 # Set variables for build
 ARG ROOT_PATH
