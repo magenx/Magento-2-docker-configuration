@@ -171,7 +171,7 @@ services:
     user: "${OPENSEARCH_UID}:${OPENSEARCH_UID}"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -XGET -u admin:${OPENSEARCH_ADMIN_PASSWORD} 'http://opensearch:${OPENSEARCH_UID}/_cluster/health?wait_for_status=yellow&timeout=15s' || exit 1"]
+      test: ["CMD-SHELL", "curl -s -u 'admin:${OPENSEARCH_ADMIN_PASSWORD}' 'http://opensearch:${OPENSEARCH_UID}/_cluster/health' || exit 1"]
       <<: *healthcheck_default
     <<: [*ulimits, *logger]
 
