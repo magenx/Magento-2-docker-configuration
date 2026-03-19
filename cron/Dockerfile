@@ -21,7 +21,7 @@ ARG SUPERCRONIC
 ARG SUPERCRONIC_SHA1SUM
 ARG SUPERCRONIC_URL
 
-COPY ../php/config/zz-cli-override.ini /tmp/
+COPY config/zz-cli-override.ini /tmp/
 
 RUN <<EOF
   # Copy php ini options override
@@ -56,5 +56,5 @@ COPY --from=builder ${PHP_INI_DIR}/conf.d/zz-cli-override.ini ${PHP_INI_DIR}/con
 COPY --from=builder ${SUPERCRONIC} /usr/local/bin/supercronic
 
 # Copy crontabs
-COPY --from=builder ${ROOT_PATH}/crontab/${PHP_USER} ${ROOT_PATH}/crontabs/${PHP_USER}
+COPY --from=builder ${ROOT_PATH}/crontabs/${PHP_USER} ${ROOT_PATH}/crontabs/${PHP_USER}
 
