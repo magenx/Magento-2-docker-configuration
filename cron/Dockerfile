@@ -21,12 +21,7 @@ ARG SUPERCRONIC
 ARG SUPERCRONIC_SHA1SUM
 ARG SUPERCRONIC_URL
 
-COPY config/zz-cli-override.ini /tmp/
-
 RUN <<EOF
-  # Copy php ini options override
-  envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
-  
   # Download supercronic
   curl -fsSLO "${SUPERCRONIC_URL}"
   echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c -
@@ -48,9 +43,6 @@ FROM ${BRAND}-php
 ARG SUPERCRONIC
 ARG PHP_USER
 ARG ROOT_PATH
-
-# Copy php ini options override
-COPY --from=builder ${PHP_INI_DIR}/conf.d/zz-cli-override.ini ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
 
 # Copy supercronic
 COPY --from=builder ${SUPERCRONIC} /usr/local/bin/supercronic
