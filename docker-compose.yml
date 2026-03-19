@@ -540,7 +540,6 @@ services:
       - dashboard-backend
     networks:
       - frontend
-    user: "node"
     restart: unless-stopped
 
 # -----------------------------------------------------------------------------------------------------------------------
