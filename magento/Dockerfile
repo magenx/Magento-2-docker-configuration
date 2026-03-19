@@ -16,12 +16,8 @@ ARG ROOT_PATH
 ARG BRAND
 
 COPY entrypoint.sh /entrypoint.sh
-COPY config/zz-cli-override.ini /tmp/
 
 RUN <<EOF
-  # Copy php ini options override
-  envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
-  
   # Download n98-magerun2
   mkdir -p /usr/local/bin/
   curl -sS -O https://files.magerun.net/n98-magerun2.phar && \
@@ -44,9 +40,6 @@ FROM ${BRAND}-php
 # Set variables for build
 ARG ROOT_PATH
 ARG BRAND
-
-# Copy php ini options override
-COPY --from=builder ${PHP_INI_DIR}/conf.d/zz-cli-override.ini ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
 
 # Copy magerun tool
 COPY --from=builder /usr/local/bin/n98-magerun2 /usr/local/bin/n98-magerun2
