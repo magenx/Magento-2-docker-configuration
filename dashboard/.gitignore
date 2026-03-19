@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+dist/
+
+# Environment
+.env
+
+# Build artifacts
+*.js.map
+
+# Screenshots / temp preview files
+*.png
+!demo-screenshot.png

@@ -489,6 +489,60 @@ services:
       <<: *healthcheck_default
     <<: [*ulimits, *logger]
 
+
+# -----------------------------------------------------------------------------------------------------------------------
+#   Magento 2 docker webstack dashboard
+# -----------------------------------------------------------------------------------------------------------------------
+  dashboard-backend:
+    build:
+      context: ./dashboard/backend
+      dockerfile: Dockerfile
+    container_name: dashboard-backend
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      REDIS_PASSWORD:
+      OPENSEARCH_ADMIN_PASSWORD:
+      RABBITMQ_USER:
+      RABBITMQ_PASSWORD:
+      MARIADB_USER:
+      MARIADB_PASSWORD:
+      MARIADB_DATABASE:
+    expose:
+      - "3001"
+    volumes:
+      - ${DATA_PATH}/varnish:/var/varnishstat:ro
+      - ${DATA_PATH}/host:/var/host:ro
+      - ${APP_PATH}/shared/var/log:/var/profiler:ro
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+  dashboard-frontend:
+    build:
+      context: ./dashboard/frontend
+      dockerfile: Dockerfile
+    container_name: dashboard-frontend
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    expose:
+      - "8080"
+    depends_on:
+      - dashboard-backend
+    networks:
+      - frontend
+    user: "node"
+    restart: unless-stopped
+
 # -----------------------------------------------------------------------------------------------------------------------
 #   Named networks list
 # ----------------------------------------------------------------------------------------------------------------------- 

@@ -7,7 +7,7 @@
 
 sed -i '0,/## generated passwords for services/!d' .env
 
-for SERVICE in REDIS RABBITMQ MARIADB OPENSEARCH_ADMIN OPENSEARCH XHGUI_PDO
+for SERVICE in REDIS RABBITMQ MARIADB OPENSEARCH_ADMIN OPENSEARCH DASHBOARD
 do
 PASSWORD=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9%&?' | fold -w 32 | head -n 1)
 echo "${SERVICE}_PASSWORD='${PASSWORD}'" >> .env
@@ -20,3 +20,4 @@ echo "${THIS}_PATH='${THIS,,}_${RANDOM_PATH}'" >> .env
 done
 
 echo "PROFILER=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)" >> .env
+echo "DASHBOARD_JWT_SECRET=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)" >> .env

@@ -9,7 +9,9 @@ for dir in \
   "rabbitmq:105672" \
   "opensearch:109200" \
   "mariadb:103306" \
-  "nginx:108080"
+  "nginx:108080" \
+  "varnish:106082" \
+  "host:100000"
 do
   IFS=":" read directory uid <<< "$dir"
   mkdir -p "${DATA_PATH}/${directory}"
