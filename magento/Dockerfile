@@ -16,13 +16,14 @@ ARG ROOT_PATH
 ARG BRAND
 
 COPY entrypoint.sh /entrypoint.sh
-COPY ../php/config/zz-cli-override.ini /tmp/
+COPY config/zz-cli-override.ini /tmp/
 
 RUN <<EOF
   # Copy php ini options override
   envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
   
   # Download n98-magerun2
+  mkdir -p /usr/local/bin/
   curl -sS -O https://files.magerun.net/n98-magerun2.phar && \
     curl -sS -o n98-magerun2.phar.sha256 https://files.magerun.net/sha256.php?file=n98-magerun2.phar && \
 	shasum -a 256 -c n98-magerun2.phar.sha256 && mv n98-magerun2.phar /usr/local/bin/n98-magerun2 && \
