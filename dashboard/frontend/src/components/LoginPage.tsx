@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 interface LoginPageProps {
-  onLogin: (token: string) => void;
+  onLogin: () => void;
 }
 
 const API_BASE = import.meta.env.VITE_API_URL
@@ -22,14 +22,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Login failed.');
       } else {
-        localStorage.setItem('dashboard_token', data.token);
-        onLogin(data.token);
+        onLogin();
       }
     } catch (err) {
       console.error('[LoginPage] login request failed:', err);

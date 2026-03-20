@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 import redisRouter from './routes/redis';
 import opensearchRouter from './routes/opensearch';
 import rabbitmqRouter from './routes/rabbitmq';
@@ -22,8 +23,15 @@ dotenv.config();
 const app = express();
 const PORT = process.env.DASHBOARD_PORT || 3001;
 
+// Trust the first proxy hop so req.ip reflects the real client IP in audit logs
+// (safe when the backend is only reachable from a trusted reverse proxy)
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet());
+
+// Parse cookies (required for httpOnly session cookie)
+app.use(cookieParser());
 
 // Restrict CORS to a configurable origin; defaults to same-origin (no extra header)
 const corsOrigin = process.env.DASHBOARD_CORS_ORIGIN;

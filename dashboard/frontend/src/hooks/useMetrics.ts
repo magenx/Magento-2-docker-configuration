@@ -25,14 +25,9 @@ export function useMetrics<T>(
   const fetchData = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true }));
     try {
-      const token = localStorage.getItem('dashboard_token');
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      const res = await fetch(`${API_BASE}${endpoint}`, { headers });
+      // Credentials: 'include' ensures the httpOnly session cookie is sent with every request
+      const res = await fetch(`${API_BASE}${endpoint}`, { credentials: 'include' });
       if (res.status === 401) {
-        localStorage.removeItem('dashboard_token');
         window.dispatchEvent(new Event('dashboard:unauthorized'));
         throw new Error('Session expired. Please log in again.');
       }

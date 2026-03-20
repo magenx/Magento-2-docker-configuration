@@ -1,18 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-if (!process.env.DASHBOARD_JWT_SECRET) {
-  console.warn(
-    '[auth] WARNING: DASHBOARD_JWT_SECRET is not set. ' +
-    'Using insecure default — set this variable before deployment.'
+const rawSecret = process.env.DASHBOARD_JWT_SECRET;
+if (!rawSecret) {
+  console.error(
+    '[auth] FATAL: DASHBOARD_JWT_SECRET is not set. ' +
+    'Set this environment variable before starting the server.'
   );
+  process.exit(1);
 }
 
-const JWT_SECRET = process.env.DASHBOARD_JWT_SECRET || 'changeme-set-DASHBOARD_JWT_SECRET';
+export const JWT_SECRET: string = rawSecret;
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const token = (req.cookies as Record<string, string | undefined>).dashboard_token;
 
   if (!token) {
     res.status(401).json({ error: 'Unauthorized' });
@@ -26,5 +27,3 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
     res.status(401).json({ error: 'Unauthorized' });
   }
 }
-
-export { JWT_SECRET };

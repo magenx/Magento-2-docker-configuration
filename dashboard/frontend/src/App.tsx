@@ -13,6 +13,9 @@ import LoginPage from './components/LoginPage';
 import DemoDashboard from './demo/DemoDashboard';
 
 const REFRESH_INTERVAL = 30000; // 30 seconds
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
 
 function formatTime(date: Date): string {
   return date.toLocaleTimeString(undefined, {
@@ -23,24 +26,36 @@ function formatTime(date: Date): string {
 }
 
 function MainDashboard() {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('dashboard_token'));
+  // null = checking auth state; true = authenticated; false = not authenticated
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
 
-  const handleLogin = useCallback((newToken: string) => {
-    setToken(newToken);
+  // On mount, verify whether an existing session cookie is still valid
+  useEffect(() => {
+    fetch(`${API_BASE}/auth/check`, { credentials: 'include' })
+      .then((res) => setIsAuthenticated(res.ok))
+      .catch(() => setIsAuthenticated(false));
   }, []);
 
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem('dashboard_token');
-    setToken(null);
+  const handleLogin = useCallback(() => {
+    setIsAuthenticated(true);
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+    } catch {
+      // Ignore network errors — clear client state regardless
+    }
+    setIsAuthenticated(false);
   }, []);
 
   // Listen for 401 events dispatched by useMetrics
   useEffect(() => {
-    const onUnauthorized = () => setToken(null);
+    const onUnauthorized = () => setIsAuthenticated(false);
     window.addEventListener('dashboard:unauthorized', onUnauthorized);
     return () => window.removeEventListener('dashboard:unauthorized', onUnauthorized);
   }, []);
@@ -67,7 +82,12 @@ function MainDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  if (!token) {
+  if (isAuthenticated === null) {
+    // Still checking the session cookie — render nothing to avoid flash
+    return null;
+  }
+
+  if (!isAuthenticated) {
     return <LoginPage onLogin={handleLogin} />;
   }
 
