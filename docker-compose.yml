@@ -125,7 +125,6 @@ services:
       - backend
     volumes:
       - ${DATA_PATH}/mariadb:/var/lib/mysql
-      - ./mariadb/config:/etc/mysql/conf.d:ro
     user: "${MARIADB_UID}:${MARIADB_UID}"
     restart: unless-stopped
     healthcheck:
