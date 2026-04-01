@@ -504,7 +504,7 @@ services:
       - /tmp
     environment:
       REDIS_PASSWORD:
-      OPENSEARCH_ADMIN_PASSWORD:
+      OPENSEARCH_PASSWORD:
       RABBITMQ_USER:
       RABBITMQ_PASSWORD:
       MARIADB_USER:
