@@ -6,7 +6,7 @@ const router = Router();
 const OS_HOST = process.env.OPENSEARCH_HOST || 'opensearch';
 const OS_PORT = process.env.OPENSEARCH_PORT || '9200';
 const OS_USER = process.env.OPENSEARCH_USER || 'admin';
-const OS_PASS = process.env.OPENSEARCH_ADMIN_PASSWORD || '';
+const OS_PASS = process.env.OPENSEARCH_PASSWORD || '';
 const BASE_URL = `http://${OS_HOST}:${OS_PORT}`;
 
 const osAxios = axios.create({
