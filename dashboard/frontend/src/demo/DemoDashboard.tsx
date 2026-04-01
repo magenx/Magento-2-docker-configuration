@@ -163,11 +163,11 @@ const PHPFPM_SAMPLE = {
   max_children_reached: 0,
   slow_requests: 0,
   processes: [
-    { pid: 4201, state: 'Running', requests: 18421, 'request duration': 120400, 'request method': 'GET', 'request uri': '/catalogsearch/result/?q=shoes', 'last request cpu': 12.4, 'last request memory': 4194304 },
-    { pid: 4202, state: 'Running', requests: 14820, 'request duration': 84210, 'request method': 'POST', 'request uri': '/checkout/cart/add/uenc/', 'last request cpu': 8.2, 'last request memory': 3145728 },
-    { pid: 4203, state: 'Idle', requests: 21042, 'request duration': 0, 'request method': 'GET', 'request uri': '/', 'last request cpu': 4.1, 'last request memory': 2097152 },
-    { pid: 4204, state: 'Idle', requests: 9841, 'request duration': 0, 'request method': 'GET', 'request uri': '/catalog/category/view/id/12', 'last request cpu': 3.8, 'last request memory': 2097152 },
-    { pid: 4205, state: 'Running', requests: 12483, 'request duration': 64100, 'request method': 'GET', 'request uri': '/customer/account/', 'last request cpu': 6.9, 'last request memory': 3670016 },
+    { pid: 4201, state: 'Running', requests: 18421, 'request duration': 120400, 'request method': 'GET', 'request uri': '/catalogsearch/result/?q=shoes', 'last request cpu': 12.4, 'last request memory': 4194304, user: 'www-data', script: '/var/www/html/index.php' },
+    { pid: 4202, state: 'Running', requests: 14820, 'request duration': 84210, 'request method': 'POST', 'request uri': '/checkout/cart/add/uenc/', 'last request cpu': 8.2, 'last request memory': 3145728, user: 'www-data', script: '/var/www/html/index.php' },
+    { pid: 4203, state: 'Idle', requests: 21042, 'request duration': 0, 'request method': 'GET', 'request uri': '/', 'last request cpu': 4.1, 'last request memory': 2097152, user: 'www-data', script: '/var/www/html/index.php' },
+    { pid: 4204, state: 'Idle', requests: 9841, 'request duration': 0, 'request method': 'GET', 'request uri': '/catalog/category/view/id/12', 'last request cpu': 3.8, 'last request memory': 2097152, user: 'www-data', script: '/var/www/html/index.php' },
+    { pid: 4205, state: 'Running', requests: 12483, 'request duration': 64100, 'request method': 'GET', 'request uri': '/customer/account/', 'last request cpu': 6.9, 'last request memory': 3670016, user: 'www-data', script: '/var/www/html/index.php' },
   ],
 };
 
@@ -759,13 +759,19 @@ function DemoPhpFpmCard() {
       <div className="section-heading">Processes</div>
       <div className="scrollable-table">
         <table className="data-table">
-          <thead><tr><th>PID</th><th>State</th><th>Reqs</th><th>Last URI</th></tr></thead>
+          <thead><tr><th>PID</th><th>State</th><th>Reqs</th><th>Method</th><th>Duration (ms)</th><th>CPU %</th><th>Memory</th><th>User</th><th>Script</th><th>Last URI</th></tr></thead>
           <tbody>
             {d.processes.map(proc => (
               <tr key={proc.pid}>
                 <td>{proc.pid}</td>
                 <td><span className={`badge ${proc.state === 'Idle' ? 'green' : proc.state === 'Running' ? 'blue' : 'gray'}`}>{proc.state}</span></td>
                 <td>{proc.requests}</td>
+                <td>{proc['request method'] || '—'}</td>
+                <td>{proc['request duration'] > 0 ? (proc['request duration'] / 1000).toFixed(1) : '—'}</td>
+                <td>{proc['last request cpu'] > 0 ? `${proc['last request cpu'].toFixed(2)}%` : '—'}</td>
+                <td>{proc['last request memory'] > 0 ? formatBytes(proc['last request memory']) : '—'}</td>
+                <td>{proc.user || '—'}</td>
+                <td title={proc.script}>{proc.script ? proc.script.split('/').pop() : '—'}</td>
                 <td title={proc['request uri']}>{proc['request uri'] || '—'}</td>
               </tr>
             ))}

@@ -31,10 +31,15 @@ interface PhpFpmData {
   processes?: Array<{
     pid: number;
     state: string;
+    start_time?: number;
+    start_since?: number;
     requests: number;
     'request duration': number;
     'request method': string;
     'request uri': string;
+    'content length'?: number;
+    user?: string;
+    script?: string;
     'last request cpu': number;
     'last request memory': number;
   }>;
@@ -113,6 +118,13 @@ function NginxMetrics({ data }: { data: NginxData }) {
       )}
     </div>
   );
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
 }
 
 function PhpFpmMetrics({ data }: { data: PhpFpmData }) {
@@ -227,6 +239,12 @@ function PhpFpmMetrics({ data }: { data: PhpFpmData }) {
                       <th>PID</th>
                       <th>State</th>
                       <th>Reqs</th>
+                      <th>Method</th>
+                      <th>Duration (ms)</th>
+                      <th>CPU %</th>
+                      <th>Memory</th>
+                      <th>User</th>
+                      <th>Script</th>
                       <th>Last URI</th>
                     </tr>
                   </thead>
@@ -240,6 +258,12 @@ function PhpFpmMetrics({ data }: { data: PhpFpmData }) {
                           </span>
                         </td>
                         <td>{proc.requests}</td>
+                        <td>{proc['request method'] || '—'}</td>
+                        <td>{proc['request duration'] > 0 ? (proc['request duration'] / 1000).toFixed(1) : '—'}</td>
+                        <td>{proc['last request cpu'] > 0 ? `${proc['last request cpu'].toFixed(2)}%` : '—'}</td>
+                        <td>{proc['last request memory'] > 0 ? formatBytes(proc['last request memory']) : '—'}</td>
+                        <td>{proc.user || '—'}</td>
+                        <td title={proc.script}>{proc.script ? proc.script.split('/').pop() : '—'}</td>
                         <td title={proc['request uri']}>{proc['request uri'] || '—'}</td>
                       </tr>
                     ))}
