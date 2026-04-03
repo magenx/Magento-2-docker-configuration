@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:labs
-
+# Security Scan and Remediation
 FROM node:24-alpine AS security-scan
 WORKDIR /app
 COPY package*.json ./
@@ -10,7 +10,6 @@ RUN osv-scanner fix \
     --non-interactive \
     --max-depth=3 \
     --min-severity=5 \
-    --ignore-dev \
     --strategy=in-place \
     -L package-lock.json
 
