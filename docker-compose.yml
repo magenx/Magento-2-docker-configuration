@@ -503,13 +503,26 @@ services:
     tmpfs:
       - /tmp
     environment:
+      DASHBOARD_JWT_SECRET:
+      DASHBOARD_USERNAME:
+      DASHBOARD_PASSWORD:
+      DASHBOARD_UI_PORT:
+      DASHBOARD_PORT:
+      NGINX_STATUS_URL:
+      PHPFPM_STATUS_URL:
+      REDIS_CACHE_HOST:
+      REDIS_SESSION_HOST:
       REDIS_PASSWORD:
+      OPENSEARCH_HOST:
+      OPENSEARCH_USER:
       OPENSEARCH_PASSWORD:
       RABBITMQ_USER:
+      RABBITMQ_HOST:
       RABBITMQ_PASSWORD:
       MARIADB_USER:
       MARIADB_PASSWORD:
       MARIADB_DATABASE:
+      MARIADB_HOST:
     expose:
       - "3001"
     volumes:
