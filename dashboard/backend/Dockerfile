@@ -4,14 +4,16 @@ FROM node:24-alpine AS security-scan
 WORKDIR /app
 COPY package*.json ./
 # Install osv-scanner
-RUN npm install -g @google/osv-scanner@latest
-# Scan and fix the lockfile for high-severity, non-dev vulnerabilities
-RUN osv-scanner fix \
+RUN <<EOF
+  apk add osv-scanner
+  # Scan and fix the lockfile for high-severity vulnerabilities
+  osv-scanner fix \
     --non-interactive \
     --max-depth=3 \
     --min-severity=5 \
     --strategy=in-place \
     -L package-lock.json
+EOF
 
 # Build using secure lockfile from security-scan
 FROM node:24-alpine AS builder
