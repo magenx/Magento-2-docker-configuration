@@ -61,7 +61,7 @@ x-php_args: &php_args
   PHP_FPM_IMAGE:
   PHP_USER:
   PHP_IMAGE:
-  PHP_EXT:
+  PHP_EXTENSION:
   PHP_FPM:
   PHP_UID:
 
