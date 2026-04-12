@@ -25,6 +25,7 @@ ARG TIMEZONE
 RUN <<EOF
   apt-get update
   apt-get install -y --no-install-recommends \
+  tzdata \
   wget \
   unzip \
   git \
@@ -116,8 +117,10 @@ RUN <<EOF
   }
   # Start with PHP and extensions
   for so_file in ${PHP_PREFIX}/lib/php/extensions/no-debug-non-zts-*/*.so; do
-      copy_deps "$so_file"
-	  echo "extension=$so_file" > ${PHP_INI_DIR}/conf.d/$(basename "${so_file%.*}").ini
+    copy_deps "$so_file"
+    if [[ "$(basename "$so_file")" == "opcache.so" ]]; then
+        echo "zend_extension=$so_file" > ${PHP_INI_DIR}/conf.d/opcache.ini
+    fi
   done
   # Also copy specific critical libraries
   for lib in \
@@ -129,12 +132,6 @@ RUN <<EOF
       /usr/lib/x86_64-linux-gnu/libbz2*.so*; do
       cp $lib /tmp/runtime-libs/ 2>/dev/null || true;
   done
-EOF
-
-# Build list all the libs
-RUN <<EOF
-  ls -ltr /tmp/runtime-libs
-  ls -ltr ${PHP_PREFIX}/lib/php/extensions/no-debug-non-zts-*/
 EOF
 
 # Copy PHP-FPM config files
@@ -149,7 +146,7 @@ RUN <<EOF
   
   touch ${PHP_PREFIX}/etc/php-fpm.d/{zz-docker.conf,docker.conf}
   
-  ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+  cp /usr/share/zoneinfo/${TIMEZONE} /tmp/localtime
   echo ${TIMEZONE} > /etc/timezone
 EOF
 
@@ -181,6 +178,7 @@ COPY --from=builder ${PHP_INI_DIR}/conf.d/ ${PHP_INI_DIR}/conf.d/
 
 # Copy timezone
 COPY --from=builder /etc/timezone /etc/timezone
+COPY --from=builder /tmp/localtime /etc/localtime
 
 # Copy required libs
 COPY --from=builder /tmp/runtime-libs/ /usr/lib/x86_64-linux-gnu/
