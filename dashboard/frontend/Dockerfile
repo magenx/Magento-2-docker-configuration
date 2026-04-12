@@ -5,13 +5,10 @@ WORKDIR /app
 COPY package*.json ./
 # Install osv-scanner
 RUN <<EOF
+  set -e
   apk add osv-scanner
-  # Scan and fix the lockfile for high-severity vulnerabilities
-  osv-scanner fix \
-    --non-interactive \
-    --max-depth=3 \
-    --min-severity=5 \
-    --strategy=in-place \
+  # Scan and capture output
+  osv-scanner scan source \
     -L package-lock.json
 EOF
 
