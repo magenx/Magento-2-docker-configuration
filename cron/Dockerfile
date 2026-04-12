@@ -140,17 +140,20 @@ EOF
 COPY config/* /tmp/
 # Configure PHP
 RUN <<EOF
+  set -e
   mkdir -p ${ROOT_PATH}
   envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
-  ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+  cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
   echo ${TIMEZONE} > /etc/timezone
-EOF
-
-RUN <<EOF
+  
   # Download supercronic
-  curl -fsSLO "${SUPERCRONIC_URL}"
-  echo "${SUPERCRONIC_SHA1SUM}  ${SUPERCRONIC}" | sha1sum -c -
-  chmod +x "${SUPERCRONIC}"
+  curl -fsSL "${SUPERCRONIC_URL}" -o /tmp/${SUPERCRONIC}
+  # Verify checksum
+  if ! echo "${SUPERCRONIC_SHA1SUM}  /tmp/${SUPERCRONIC}" | sha1sum -c -; then
+    echo "ERROR: Checksum mismatch for /tmp/${SUPERCRONIC}" >&2
+    exit 1
+  fi
+  chmod +x "/tmp/${SUPERCRONIC}"
   
   # Create crontab jobs
   mkdir -p ${ROOT_PATH}/crontabs/
@@ -182,12 +185,13 @@ COPY --from=builder ${PHP_INI_DIR}/conf.d/ ${PHP_INI_DIR}/conf.d/
 
 # Copy timezone
 COPY --from=builder /etc/timezone /etc/timezone
+COPY --from=builder /etc/localtime /etc/localtime
 
 # Copy required libs
 COPY --from=builder /tmp/runtime-libs/ /usr/lib/x86_64-linux-gnu/
 
 # Copy supercronic
-COPY --from=builder ${SUPERCRONIC} /usr/local/bin/supercronic
+COPY --from=builder /tmp/${SUPERCRONIC} /usr/local/bin/supercronic
 
 # Copy crontabs
 COPY --from=builder ${ROOT_PATH}/crontabs/${PHP_USER} ${ROOT_PATH}/crontabs/${PHP_USER}
