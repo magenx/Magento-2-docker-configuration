@@ -1,24 +1,16 @@
 # syntax = docker/dockerfile:labs
-# Security Scan and Remediation
-FROM node:24-alpine AS security-scan
+# Build using secure lockfile
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 # Install osv-scanner
 RUN <<EOF
+  set -e
   apk add osv-scanner
-  # Scan and fix the lockfile for high-severity vulnerabilities
-  osv-scanner fix \
-    --non-interactive \
-    --max-depth=3 \
-    --min-severity=5 \
-    --strategy=in-place \
+  # Scan and capture output
+  osv-scanner scan source \
     -L package-lock.json
 EOF
-
-# Build using secure lockfile from security-scan
-FROM node:24-alpine AS builder
-WORKDIR /app
-COPY --from=security-scan /app/package*.json ./
 RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npm run build
