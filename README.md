@@ -25,8 +25,11 @@
   
 **[ ! ]** Check all data, adjust your settings, add configs, edit your variables  
 - [x] Run to pull and build images and start containers:   
-```      
-   doco up -d
+```
+   https://app.docker.com/accounts/<YOUR DOCKERHUB USERANME>/settings/personal-access-tokens
+   docker login -u <YOUR DOCKERHUB USERANME>
+   [Enter PAT]
+   doco up -d --build
 ```
 
 - [x] Watch syslog for errors and issues:
