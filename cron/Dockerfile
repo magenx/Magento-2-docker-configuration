@@ -32,6 +32,7 @@ ARG SUPERCRONIC_URL
 RUN <<EOF
   apt-get update
   apt-get install -y --no-install-recommends \
+  tzdata \
   wget \
   unzip \
   git \
