@@ -19,7 +19,7 @@ EOF
 FROM node:24-alpine AS builder
 WORKDIR /app
 COPY --from=security-scan /app/package*.json ./
-RUN npm ci --only=production=false --no-audit --no-fund
+RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npm run build
 
