@@ -143,7 +143,7 @@ RUN <<EOF
   set -e
   mkdir -p ${ROOT_PATH}
   envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
-  cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+  cp /usr/share/zoneinfo/${TIMEZONE} /tmp/localtime
   echo ${TIMEZONE} > /etc/timezone
   
   # Download supercronic
@@ -185,7 +185,7 @@ COPY --from=builder ${PHP_INI_DIR}/conf.d/ ${PHP_INI_DIR}/conf.d/
 
 # Copy timezone
 COPY --from=builder /etc/timezone /etc/timezone
-COPY --from=builder /etc/localtime /etc/localtime
+COPY --from=builder /tmp/localtime /etc/localtime
 
 # Copy required libs
 COPY --from=builder /tmp/runtime-libs/ /usr/lib/x86_64-linux-gnu/
