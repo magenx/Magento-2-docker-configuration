@@ -24,7 +24,7 @@ RUN <<EOF
   cat /proc/sys/kernel/random/uuid > /etc/varnish/secret
 EOF
 
-COPY default.vcl /etc/varnish/
+COPY --chmod=644 default.vcl /etc/varnish/
 
 RUN <<EOF cat > /usr/local/bin/docker-varnish-entrypoint
 #!/bin/sh
