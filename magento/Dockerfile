@@ -92,7 +92,7 @@ EOF
 
 
 # Use PIE to install extensions
-COPY --from=ghcr.io/php/pie:bin /pie /usr/local/bin/pie
+COPY --from=ghcr.io/php/pie:bin@sha256:66e2a1274ec15f1dda597ea716685bdeec44e9438eb9060901c0e7833a7f159a /pie /usr/local/bin/pie
 RUN <<EOF
   pie install kjdev/lz4
   pie install apcu/apcu
