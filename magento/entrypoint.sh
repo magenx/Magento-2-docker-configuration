@@ -9,4 +9,4 @@ if [ "$1" = "n98" ]; then
 fi
 
 # For any other command, default to bin/magento
-exec php bin/magento "$@"
+php bin/magento "$@"
