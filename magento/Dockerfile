@@ -45,17 +45,14 @@ RUN <<EOF
   libpng-dev \
   libwebp-dev \
   default-libmysqlclient-dev \
-  libldap2-dev \
   libxslt1-dev \
   libzip-dev \
   libcurl4-openssl-dev \
-  libgettextpo-dev \
   libicu-dev \
   libonig-dev \
   libpcre2-dev \
   libssl-dev \
   libxml2-dev \
-  libffi-dev \
   liblz4-dev \
   zlib1g-dev
   rm -rf /var/lib/apt/lists/*
@@ -82,10 +79,12 @@ RUN <<EOF
     ${PHP_CONFIGURE} $options
     make
     make install
+    php_api_version=$(php -i | grep "PHP API =" | awk '{print $NF}')
+    echo "extension=${PHP_PREFIX}/lib/php/extensions/no-debug-non-zts-${php_api_version}/${ext}.so" > ${PHP_INI_DIR}/conf.d/${ext}.ini
     cd ${PHP_SRC_DIR}
-    echo "✅ Built $ext";
+    echo "=== Built $ext ===";
   else
-    echo "⚠️ $ext not in source";
+    echo "=== $ext not in source ===";
 	exit 1
   fi;
   done
@@ -97,8 +96,6 @@ COPY --from=ghcr.io/php/pie:bin /pie /usr/local/bin/pie
 RUN <<EOF
   pie install kjdev/lz4
   pie install apcu/apcu
-  # Use PECL to install extensions
-  pecl install oauth
 EOF
 
 # Collect required runtime libraries
@@ -119,15 +116,9 @@ RUN <<EOF
   # Start with PHP and extensions
   for so_file in ${PHP_PREFIX}/lib/php/extensions/no-debug-non-zts-*/*.so; do
     copy_deps "$so_file"
-    if [[ "$(basename "$so_file")" == "opcache.so" ]]; then
-        echo "zend_extension=$so_file" > ${PHP_INI_DIR}/conf.d/opcache.ini
-    fi
   done
   # Also copy specific critical libraries
   for lib in \
-      /usr/lib/x86_64-linux-gnu/libldap*.so* \
-      /usr/lib/x86_64-linux-gnu/liblber*.so* \
-      /usr/lib/x86_64-linux-gnu/libffi*.so* \
       /usr/lib/x86_64-linux-gnu/libgcrypt*.so* \
       /usr/lib/x86_64-linux-gnu/libgpg-error*.so* \
       /usr/lib/x86_64-linux-gnu/libbz2*.so*; do
