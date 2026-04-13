@@ -104,6 +104,11 @@ nginx version: nginx/1.29.1
   
 <br />
 
+# :newspaper: Webstack Dashboard
+<img width="958" height="1978" alt="magento_docker_stack_dashboard" src="https://github.com/user-attachments/assets/694c3331-fbe3-4612-94df-cecd61907255" />  
+  
+<br />
+
 # :hammer_and_wrench: Stack components in use:  
 - [x] [MariaDB](https://hub.docker.com/r/mariadb) - MariaDB Server is a high performing open source relational database, forked from MySQL.
 - [x] [Nginx](https://hub.docker.com/r/nginx) - Official build of Nginx.
