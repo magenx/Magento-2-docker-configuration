@@ -53,7 +53,6 @@ RUN <<EOF
   libxslt1-dev \
   libzip-dev \
   libcurl4-openssl-dev \
-  libgettextpo-dev \
   libicu-dev \
   libonig-dev \
   libpcre2-dev \
