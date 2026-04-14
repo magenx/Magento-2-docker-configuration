@@ -23,6 +23,5 @@ find ${APP_PATH}/shared -type f ! -perm 660 -exec chmod 660 {} \;
 find ${APP_PATH}/public ${APP_PATH}/releases -type d ! -perm 2750 -exec chmod 2750 {} \;
 find ${APP_PATH}/public ${APP_PATH}/releases -type f ! -perm 640 -exec chmod 640 {} \;
 
-setfacl -R -m u:${MAGENTO_UID}:rwX,g:${PHP_UID}:r-X,o::-,d:u:${MAGENTO_UID}:rwX,d:g:${PHP_UID}:r-X,d:o::- ${APP_PATH}/releases ${APP_PATH}/public ${APP_PATH}/shared
-setfacl -R -m u:${NGINX_UID}:r-X,d:u:${NGINX_UID}:r-X ${APP_PATH}/{shared,releases,public}
+setfacl -R -m u:${NGINX_UID}:r-X,d:u:${NGINX_UID}:r-X ${APP_PATH}/{releases,public,shared}
 setfacl -R -m u:${IMGPROXY_UID}:r-X,d:u:${IMGPROXY_UID}:r-X ${APP_PATH}/shared/pub/media
