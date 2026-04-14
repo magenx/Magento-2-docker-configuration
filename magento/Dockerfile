@@ -126,8 +126,12 @@ RUN <<EOF
   done
 EOF
 
+# Copy entrypoint
+COPY entrypoint.sh /entrypoint.sh
+
 # Copy PHP config files
 COPY config/* /tmp/
+
 # Configure PHP
 RUN <<EOF
   mkdir -p ${ROOT_PATH}
@@ -147,6 +151,7 @@ RUN <<EOF
   php -r "unlink('composer-setup.php');"
 
   mv composer.phar /usr/local/bin/composer
+  chmod +x /entrypoint.sh
 
   cp /usr/share/zoneinfo/${TIMEZONE} /tmp/localtime
   echo ${TIMEZONE} > /etc/timezone
@@ -186,6 +191,9 @@ COPY --from=builder /usr/local/bin/n98-magerun2 /usr/local/bin/n98-magerun2
 
 # Copy composer
 COPY --from=builder /usr/local/bin/composer /usr/local/bin/composer
+
+# Copy entrypoint
+COPY --from=builder /entrypoint.sh /entrypoint.sh
 
 # Lets use busybox
 COPY --from=busybox:stable-glibc /bin/busybox /bin/busybox
