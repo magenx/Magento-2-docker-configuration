@@ -366,7 +366,7 @@ services:
       - backend
       - frontend
     user: "${MAGENTO_UID}:${PHP_UID}"
-    entrypoint: ["/entrypoint.sh"]
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
     <<: [*ulimits, *logger]
 
 # -----------------------------------------------------------------------------------------------------------------------
