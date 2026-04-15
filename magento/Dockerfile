@@ -196,7 +196,7 @@ EOF
 
 # /etc/group
 COPY  --chmod=644 <<EOF /etc/group
-${PHP_USER}:x:${PHP_UID}:${PHP_USER}
+${PHP_USER}:x:${PHP_UID}:
 shadow:x:42:
 nobody:x:65534:
 EOF
