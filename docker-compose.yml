@@ -441,7 +441,8 @@ services:
       - ${APP_PATH}/releases:${ROOT_PATH}/releases
     working_dir: "${ROOT_PATH}/${CURRENT_SYMLINK}"
     user: "${PHP_UID}:${PHP_UID}"
-    command: ["supercronic", "${ROOT_PATH}/crontab_${PHP_USER}"]
+    entrypoint: ["/usr/local/bin/supercronic"]
+    command: ["${ROOT_PATH}/crontabs/${PHP_USER}"]
     restart: unless-stopped
     <<: [*ulimits, *logger]
 
