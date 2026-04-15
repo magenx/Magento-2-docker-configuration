@@ -126,9 +126,6 @@ RUN <<EOF
   done
 EOF
 
-# Copy entrypoint
-COPY entrypoint.sh /entrypoint.sh
-
 # Copy PHP config files
 COPY config/* /tmp/
 
@@ -143,15 +140,7 @@ RUN <<EOF
     curl -sS -o n98-magerun2.phar.sha256 https://files.magerun.net/sha256.php?file=n98-magerun2.phar && \
 	shasum -a 256 -c n98-magerun2.phar.sha256 && mv n98-magerun2.phar /usr/local/bin/n98-magerun2 && \
 	chmod +x /usr/local/bin/n98-magerun2 && rm n98-magerun2.phar.sha256 && \
-	echo "n98 installation successful" || echo "n98 installation failed"  
-
-  php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-  php -r "if (hash_file('sha384', 'composer-setup.php') === 'c8b085408188070d5f52bcfe4ecfbee5f727afa458b2573b8eaaf77b3419b0bf2768dc67c86944da1544f06fa544fd47') { echo 'Installer verified'.PHP_EOL; } else { echo 'Installer corrupt'.PHP_EOL; unlink('composer-setup.php'); exit(1); }"
-  php composer-setup.php
-  php -r "unlink('composer-setup.php');"
-
-  mv composer.phar /usr/local/bin/composer
-  chmod +x /entrypoint.sh
+	echo "n98 installation successful" || echo "n98 installation failed"
 
   cp /usr/share/zoneinfo/${TIMEZONE} /tmp/localtime
   echo ${TIMEZONE} > /etc/timezone
@@ -188,12 +177,6 @@ COPY --from=builder /tmp/runtime-libs/ /usr/lib/x86_64-linux-gnu/
 
 # Copy magerun tool
 COPY --from=builder /usr/local/bin/n98-magerun2 /usr/local/bin/n98-magerun2
-
-# Copy composer
-COPY --from=builder /usr/local/bin/composer /usr/local/bin/composer
-
-# Copy entrypoint
-COPY --from=builder /entrypoint.sh /entrypoint.sh
 
 # Lets use busybox
 COPY --from=busybox:stable-glibc /bin/busybox /bin/busybox
