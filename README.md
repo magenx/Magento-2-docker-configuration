@@ -1,8 +1,7 @@
 ## Docker Configuration for Magento 2  
 > Deploy secure and flexible docker infrastructure for Magento 2 in a matter of seconds.
 
-<img title="Magento 2" alt="Magento 2" src="https://user-images.githubusercontent.com/1591200/117845471-7abda280-b278-11eb-8c88-db3fa307ae40.jpeg" width="200" height="140"> <img width="110" height="110" title="Hetzner Cloud" alt="Hetzner Cloud" src="https://github.com/user-attachments/assets/941d358e-785d-4d5c-9903-720255e10c52"> <img title="Docker" alt="Docker" src="https://user-images.githubusercontent.com/1591200/139601566-f4a62101-1ead-462e-a360-6397437de5cb.png" width="175" height="145"> <img title="Debian 13" alt="Debian 13" src="https://user-images.githubusercontent.com/1591200/130320410-91749ce8-5af1-4802-af25-ffb36e7ded98.png" width="100" height="115">
-
+![Magento 2](https://user-images.githubusercontent.com/1591200/117845471-7abda280-b278-11eb-8c88-db3fa307ae40.jpeg) ![Hetzner Cloud](https://github.com/user-attachments/assets/941d358e-785d-4d5c-9903-720255e10c52)![Docker](https://user-images.githubusercontent.com/1591200/139601566-f4a62101-1ead-462e-a360-6397437de5cb.png)![Debian 13](https://user-images.githubusercontent.com/1591200/130320410-91749ce8-5af1-4802-af25-ffb36e7ded98.png)
 
 <br />
 
@@ -101,12 +100,11 @@ nginx version: nginx/1.29.1
  ✔ Container mariadb     Removed                                                                                                                                                                   0.5s 
  ✔ Network magenx        Removed
 ```
-  
 <br />
 
-# :newspaper: Webstack Dashboard
-<img width="958" height="1978" alt="magento_docker_stack_dashboard" src="https://github.com/user-attachments/assets/694c3331-fbe3-4612-94df-cecd61907255" />  
-  
+# :newspaper: Webstack Dashboard  
+<img width="958" height="1978" alt="magento_docker_stack_dashboard" src="https://github.com/user-attachments/assets/694c3331-fbe3-4612-94df-cecd61907255"/>
+
 <br />
 
 # :hammer_and_wrench: Stack components in use:  
@@ -120,4 +118,3 @@ nginx version: nginx/1.29.1
 - [x] [Cron]
   
 <br />
-  
