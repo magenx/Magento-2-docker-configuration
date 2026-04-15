@@ -197,7 +197,7 @@ COPY --from=busybox:stable-glibc /bin/sh /bin/sh
 # Configure isolated user
 # /etc/passwd
 COPY  --chmod=644 <<EOF /etc/passwd
-${PHP_USER}:x:${PHP_UID}:${PHP_UID}:${PHP_USER}:/home/${BRAND}:/bin/false
+${PHP_USER}:x:${PHP_UID}:${PHP_UID}:${PHP_USER}:${ROOT_PATH}:/bin/false
 nobody:x:65534:65534:nobody:/nonexistent:/bin/false
 EOF
 
