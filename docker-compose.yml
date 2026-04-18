@@ -92,7 +92,6 @@ x-magento_args: &magento_args
   ADMIN_PATH:
   MAGENTO_ROOT_PATH:
   TIMEZONE:
-  ALPINE_IMAGE:
   CURRENT_SYMLINK:
 
 # -----------------------------------------------------------------------------------------------------------------------
