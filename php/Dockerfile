@@ -30,18 +30,14 @@ RUN <<EOF
   unzip \
   git \
   automake \
-  gettext \
-  libfreetype6 \
-  libjpeg62-turbo \
-  libpng16-16 \
-  libwebp7 \
-  libxslt1.1 \
   build-essential \
-  libargon2-dev \
-  libfreetype-dev \
   libjpeg-dev \
-  libpng-dev \
   libwebp-dev \
+  libfreetype-dev \
+  libpng-dev \
+  libavif-dev \
+  libxslt1.1 \
+  libargon2-dev \
   default-libmysqlclient-dev \
   libxslt1-dev \
   libzip-dev \
@@ -65,6 +61,11 @@ WORKDIR ${PHP_SRC_DIR}
 # PHP config path
 ARG PHP_CONFIGURE="./configure --with-php-config=${PHP_PREFIX}/bin/php-config"
 
+# Extensions options
+ARG PHP_GD="--with-freetype --with-jpeg --with-webp --with-avif"
+ARG PHP_XSL="--with-xsl"
+ARG PHP_ZIP="--with-libzip"
+
 # Build extensions with their specific configure options
 RUN <<EOF
   for ext in ${PHP_EXTENSION}; do
@@ -87,7 +88,6 @@ RUN <<EOF
   fi;
   done
 EOF
-
 
 # Use PIE to install extensions
 COPY --from=ghcr.io/php/pie:bin@sha256:66e2a1274ec15f1dda597ea716685bdeec44e9438eb9060901c0e7833a7f159a /pie /usr/local/bin/pie
