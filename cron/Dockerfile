@@ -151,7 +151,7 @@ RUN <<EOF
   
   # Create crontab jobs
   mkdir -p ${MAGENTO_ROOT_PATH}/crontabs/
-  echo "* * * * * umask 007; ${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > ${MAGENTO_ROOT_PATH}/crontabs/${PHP_USER}
+  echo "* * * * * php ${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > ${MAGENTO_ROOT_PATH}/crontabs/${PHP_USER}
 EOF
 
 # ============================================
