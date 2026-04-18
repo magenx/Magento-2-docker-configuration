@@ -216,7 +216,6 @@ volumes:
 - `DOCKER_CONFIG_ROOT`: `/opt/magenx` (default)
 - `CONTAINER_DATA_PATH`: `${DOCKER_CONFIG_ROOT}/data`
 - `MAGENTO_ROOT_PATH`: `${DOCKER_CONFIG_ROOT}/magento`
-- `MAGENTO_ROOT_PATH`: `/home/magenx` (container internal path)
 - `CURRENT_SYMLINK`: `public/current` (active deployment)
 
 ### Security Tokens
