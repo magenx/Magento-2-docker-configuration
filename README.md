@@ -1,7 +1,8 @@
 ## Docker Configuration for Magento 2  
 > Deploy secure and flexible docker infrastructure for Magento 2 in a matter of seconds.
 
-![Magento 2](https://user-images.githubusercontent.com/1591200/117845471-7abda280-b278-11eb-8c88-db3fa307ae40.jpeg) ![Hetzner Cloud](https://github.com/user-attachments/assets/941d358e-785d-4d5c-9903-720255e10c52)![Docker](https://user-images.githubusercontent.com/1591200/139601566-f4a62101-1ead-462e-a360-6397437de5cb.png)![Debian 13](https://user-images.githubusercontent.com/1591200/130320410-91749ce8-5af1-4802-af25-ffb36e7ded98.png)
+
+<img width="124" height="" src="https://user-images.githubusercontent.com/1591200/117845471-7abda280-b278-11eb-8c88-db3fa307ae40.jpeg"/> <img width="112" height="" src="https://github.com/user-attachments/assets/941d358e-785d-4d5c-9903-720255e10c52"/> <img width="112" height="" src="https://user-images.githubusercontent.com/1591200/139601566-f4a62101-1ead-462e-a360-6397437de5cb.png"/> <img width="112" height="" src="https://user-images.githubusercontent.com/1591200/130320410-91749ce8-5af1-4802-af25-ffb36e7ded98.png"/>
 
 <br />
 
