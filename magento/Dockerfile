@@ -6,7 +6,7 @@
 ARG PHP_USER
 ARG PHP_UID
 ARG MAGENTO_UID
-ARG ROOT_PATH
+ARG MAGENTO_ROOT_PATH
 ARG BRAND
 ARG PHP_IMAGE
 ARG PHP_EXTENSION
@@ -18,7 +18,7 @@ FROM ${PHP_DEV_IMAGE} AS builder
 # Set variables for build
 ARG PHP_EXTENSION
 ARG PHP_USER
-ARG ROOT_PATH
+ARG MAGENTO_ROOT_PATH
 ARG BRAND
 ARG CURRENT_SYMLINK
 ARG TIMEZONE
@@ -131,7 +131,7 @@ COPY config/* /tmp/
 
 # Configure PHP
 RUN <<EOF
-  mkdir -p ${ROOT_PATH}
+  mkdir -p ${MAGENTO_ROOT_PATH}
   envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
   
   # Download n98-magerun2
@@ -155,12 +155,12 @@ FROM ${PHP_IMAGE}
 # Set variables for build
 ARG PHP_USER
 ARG PHP_UID
-ARG ROOT_PATH
+ARG MAGENTO_ROOT_PATH
 ARG MAGENTO_UID
 ARG BRAND
 
 # Copy user home
-COPY --from=builder ${ROOT_PATH} ${ROOT_PATH}
+COPY --from=builder ${MAGENTO_ROOT_PATH} ${MAGENTO_ROOT_PATH}
 
 # Copy all compiled extensions to final image
 COPY --from=builder ${PHP_PREFIX}/lib/php/extensions/ ${PHP_PREFIX}/lib/php/extensions/

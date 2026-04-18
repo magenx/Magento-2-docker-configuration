@@ -130,72 +130,72 @@ Containers monitored with health checks:
 #### PHP Container
 ```yaml
 volumes:
-  - ${APP_PATH}/public:${ROOT_PATH}/public:ro           # Read-only code
-  - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var      # Read-write runtime
-  - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media  # Read-write media
-  - ${APP_PATH}/releases:${ROOT_PATH}/releases          # Read-write releases
+  - ${MAGENTO_ROOT_PATH}/public:${MAGENTO_ROOT_PATH}/public:ro           # Read-only code
+  - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var      # Read-write runtime
+  - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media  # Read-write media
+  - ${MAGENTO_ROOT_PATH}/releases:${MAGENTO_ROOT_PATH}/releases          # Read-write releases
 ```
 
 #### Nginx Container
 ```yaml
 volumes:
-  - ${APP_PATH}/public:${ROOT_PATH}/public:ro           # Read-only code
-  - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var:ro   # Read-only runtime
-  - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media:ro  # Read-only media
-  - ${APP_PATH}/releases:${ROOT_PATH}/releases:ro       # Read-only releases
-  - ${DATA_PATH}/nginx/log:/var/log/nginx               # Logs
-  - ${DATA_PATH}/nginx/cache:/var/cache/nginx           # Cache
+  - ${MAGENTO_ROOT_PATH}/public:${MAGENTO_ROOT_PATH}/public:ro           # Read-only code
+  - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var:ro   # Read-only runtime
+  - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media:ro  # Read-only media
+  - ${MAGENTO_ROOT_PATH}/releases:${MAGENTO_ROOT_PATH}/releases:ro       # Read-only releases
+  - ${CONTAINER_DATA_PATH}/nginx/log:/var/log/nginx               # Logs
+  - ${CONTAINER_DATA_PATH}/nginx/cache:/var/cache/nginx           # Cache
 ```
 
 #### Magento Container (CLI/Deployment)
 ```yaml
 volumes:
-  - ${APP_PATH}/public:${ROOT_PATH}/public              # Read-write code
-  - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var      # Read-write runtime
-  - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media  # Read-write media
-  - ${APP_PATH}/releases:${ROOT_PATH}/releases          # Read-write releases
+  - ${MAGENTO_ROOT_PATH}/public:${MAGENTO_ROOT_PATH}/public              # Read-write code
+  - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var      # Read-write runtime
+  - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media  # Read-write media
+  - ${MAGENTO_ROOT_PATH}/releases:${MAGENTO_ROOT_PATH}/releases          # Read-write releases
 ```
 
 #### Cron Container
 ```yaml
 volumes:
-  - ${APP_PATH}/public:${ROOT_PATH}/public              # Read-write code
-  - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var      # Read-write runtime
-  - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media  # Read-write media
-  - ${APP_PATH}/releases:${ROOT_PATH}/releases          # Read-write releases
+  - ${MAGENTO_ROOT_PATH}/public:${MAGENTO_ROOT_PATH}/public              # Read-write code
+  - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var      # Read-write runtime
+  - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media  # Read-write media
+  - ${MAGENTO_ROOT_PATH}/releases:${MAGENTO_ROOT_PATH}/releases          # Read-write releases
 ```
 
 #### ImgProxy Container
 ```yaml
 volumes:
-  - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media:ro  # Read-only media
+  - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media:ro  # Read-only media
 ```
 
 #### MariaDB Container
 ```yaml
 volumes:
-  - ${DATA_PATH}/mariadb:/var/lib/mysql                 # Database files
+  - ${CONTAINER_DATA_PATH}/mariadb:/var/lib/mysql                 # Database files
   - ./mariadb/config:/etc/mysql/conf.d:ro               # Read-only config
 ```
 
 #### OpenSearch Container
 ```yaml
 volumes:
-  - ${DATA_PATH}/opensearch:/usr/share/opensearch/data  # Data files
-  - ${DATA_PATH}/opensearch/logs:/usr/share/opensearch/logs  # Logs
+  - ${CONTAINER_DATA_PATH}/opensearch:/usr/share/opensearch/data  # Data files
+  - ${CONTAINER_DATA_PATH}/opensearch/logs:/usr/share/opensearch/logs  # Logs
 ```
 
 #### Redis (Cache/Session) Containers
 ```yaml
 volumes:
-  - ${DATA_PATH}/redis-cache:/data                      # Cache persistence
-  - ${DATA_PATH}/redis-session:/data                    # Session persistence
+  - ${CONTAINER_DATA_PATH}/redis-cache:/data                      # Cache persistence
+  - ${CONTAINER_DATA_PATH}/redis-session:/data                    # Session persistence
 ```
 
 #### RabbitMQ Container
 ```yaml
 volumes:
-  - ${DATA_PATH}/rabbitmq:/var/lib/rabbitmq             # Queue data
+  - ${CONTAINER_DATA_PATH}/rabbitmq:/var/lib/rabbitmq             # Queue data
 ```
 
 #### Varnish Container
@@ -214,9 +214,8 @@ volumes:
 
 ### Paths
 - `DOCKER_CONFIG_ROOT`: `/opt/magenx` (default)
-- `DATA_PATH`: `${DOCKER_CONFIG_ROOT}/data`
-- `APP_PATH`: `${DOCKER_CONFIG_ROOT}/magento`
-- `ROOT_PATH`: `/home/magenx` (container internal path)
+- `CONTAINER_DATA_PATH`: `${DOCKER_CONFIG_ROOT}/data`
+- `MAGENTO_ROOT_PATH`: `${DOCKER_CONFIG_ROOT}/magento`
 - `CURRENT_SYMLINK`: `public/current` (active deployment)
 
 ### Security Tokens

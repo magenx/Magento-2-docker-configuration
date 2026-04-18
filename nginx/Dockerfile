@@ -13,7 +13,7 @@ ARG PHP_FPM
 ARG TIMEZONE
 ARG PROFILER
 ARG RESOLVER
-ARG ROOT_PATH
+ARG MAGENTO_ROOT_PATH
 ARG ADMIN_PATH
 ARG RABBITMQ_PATH
 ARG ADMINER_PATH
@@ -24,16 +24,16 @@ USER root
 COPY ./templates /tmp/templates
 
 RUN <<EOF
-  mkdir -p ${ROOT_PATH}
+  mkdir -p ${MAGENTO_ROOT_PATH}
   ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
-  export ROOT_PATH="${ROOT_PATH}/${CURRENT_SYMLINK}"
+  export MAGENTO_ROOT_PATH="${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
   find /tmp/templates -name "*.template" -type f | while read template; do
     relative_path="${template#/tmp/templates/}";
     target_file="/etc/nginx/${relative_path%.template}";
     target_dir=$(dirname "$target_file");
     mkdir -p "$target_dir";
-    envsubst '${BRAND} ${DOMAIN} ${PHP_USER} ${PHP_FPM} ${TIMEZONE} ${PROFILER} ${RESOLVER} ${ROOT_PATH} ${ADMIN_PATH} ${RABBITMQ_PATH} ${ADMINER_PATH}' \
+    envsubst '${BRAND} ${DOMAIN} ${PHP_USER} ${PHP_FPM} ${TIMEZONE} ${PROFILER} ${RESOLVER} ${MAGENTO_ROOT_PATH} ${ADMIN_PATH} ${RABBITMQ_PATH} ${ADMINER_PATH}' \
     < "$template" > "$target_file";
     echo "Processed: $template -> $target_file";
   done

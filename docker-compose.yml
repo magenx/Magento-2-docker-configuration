@@ -78,7 +78,7 @@ x-php_env: &php_env
   OPENSEARCH_PASSWORD:
   BRAND:
   DOMAIN:
-  ROOT_PATH:
+  MAGENTO_ROOT_PATH:
   ADMIN_PATH:
   CRYPT_KEY:
   CURRENT_SYMLINK:
@@ -91,7 +91,7 @@ x-magento_args: &magento_args
   BRAND:
   DOMAIN:
   ADMIN_PATH:
-  ROOT_PATH:
+  MAGENTO_ROOT_PATH:
   TIMEZONE:
   ALPINE_IMAGE:
   CURRENT_SYMLINK:
@@ -124,7 +124,7 @@ services:
     networks:
       - backend
     volumes:
-      - ${DATA_PATH}/mariadb:/var/lib/mysql
+      - ${CONTAINER_DATA_PATH}/mariadb:/var/lib/mysql
     user: "${MARIADB_UID}:${MARIADB_UID}"
     restart: unless-stopped
     healthcheck:
@@ -165,8 +165,8 @@ services:
     networks:
       - frontend
     volumes:
-      - ${DATA_PATH}/opensearch:/usr/share/opensearch/data
-      - ${DATA_PATH}/opensearch/logs:/usr/share/opensearch/logs
+      - ${CONTAINER_DATA_PATH}/opensearch:/usr/share/opensearch/data
+      - ${CONTAINER_DATA_PATH}/opensearch/logs:/usr/share/opensearch/logs
     user: "${OPENSEARCH_UID}:${OPENSEARCH_UID}"
     restart: unless-stopped
     healthcheck:
@@ -201,7 +201,7 @@ services:
     networks:
       - frontend
     volumes:
-      - ${DATA_PATH}/redis-cache:/data
+      - ${CONTAINER_DATA_PATH}/redis-cache:/data
     user: "${REDIS_CACHE_UID}:${REDIS_CACHE_UID}"
     restart: unless-stopped
     mem_limit: ${REDIS_CACHE_SIZE}
@@ -234,7 +234,7 @@ services:
     networks:
       - frontend
     volumes:
-      - ${DATA_PATH}/redis-session:/data
+      - ${CONTAINER_DATA_PATH}/redis-session:/data
     user: "${REDIS_SESSION_UID}:${REDIS_SESSION_UID}"
     restart: unless-stopped
     mem_limit: ${REDIS_SESSION_SIZE}
@@ -260,7 +260,7 @@ services:
     networks:
       - frontend
     volumes:
-      - ${DATA_PATH}/rabbitmq:/var/lib/rabbitmq
+      - ${CONTAINER_DATA_PATH}/rabbitmq:/var/lib/rabbitmq
     user: "${RABBITMQ_UID}:${RABBITMQ_UID}"
     restart: unless-stopped
     mem_limit: 1G
@@ -331,11 +331,11 @@ services:
       - backend
       - frontend
     volumes:
-      - ${APP_PATH}/public:${ROOT_PATH}/public:ro
-      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
-      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
-      - ${APP_PATH}/releases:${ROOT_PATH}/releases
-    working_dir: "${ROOT_PATH}/${CURRENT_SYMLINK}"
+      - ${MAGENTO_ROOT_PATH}/public:${MAGENTO_ROOT_PATH}/public:ro
+      - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var
+      - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media
+      - ${MAGENTO_ROOT_PATH}/releases:${MAGENTO_ROOT_PATH}/releases
+    working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
     user: "${PHP_UID}:${PHP_UID}"
     entrypoint: ["php-fpm", "-F"]
     restart: unless-stopped
@@ -357,11 +357,11 @@ services:
     environment:
       <<: *php_env
     volumes:
-      - ${APP_PATH}/public:${ROOT_PATH}/public
-      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
-      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
-      - ${APP_PATH}/releases:${ROOT_PATH}/releases
-    working_dir: "${ROOT_PATH}/${CURRENT_SYMLINK}"
+      - ${MAGENTO_ROOT_PATH}/public:${MAGENTO_ROOT_PATH}/public
+      - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var
+      - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media
+      - ${MAGENTO_ROOT_PATH}/releases:${MAGENTO_ROOT_PATH}/releases
+    working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
     networks:
       - backend
       - frontend
@@ -399,13 +399,13 @@ services:
     networks:
       - frontend 
     volumes:
-      - ${APP_PATH}/public:${ROOT_PATH}/public:ro
-      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var:ro
-      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media:ro
-      - ${APP_PATH}/releases:${ROOT_PATH}/releases:ro
-      - ${DATA_PATH}/nginx/log:/var/log/nginx
-      - ${DATA_PATH}/nginx/cache:/var/cache/nginx
-    working_dir: "${ROOT_PATH}/${CURRENT_SYMLINK}"
+      - ${MAGENTO_ROOT_PATH}/public:${MAGENTO_ROOT_PATH}/public:ro
+      - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var:ro
+      - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media:ro
+      - ${MAGENTO_ROOT_PATH}/releases:${MAGENTO_ROOT_PATH}/releases:ro
+      - ${CONTAINER_DATA_PATH}/nginx/log:/var/log/nginx
+      - ${CONTAINER_DATA_PATH}/nginx/cache:/var/cache/nginx
+    working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
     user: "${NGINX_UID}:${NGINX_UID}"
     restart: unless-stopped
     <<: [*ulimits, *logger]
@@ -435,14 +435,14 @@ services:
       - frontend
       - backend
     volumes:
-      - ${APP_PATH}/public:${ROOT_PATH}/public
-      - ${APP_PATH}/shared/var:${ROOT_PATH}/shared/var
-      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media
-      - ${APP_PATH}/releases:${ROOT_PATH}/releases
-    working_dir: "${ROOT_PATH}/${CURRENT_SYMLINK}"
+      - ${MAGENTO_ROOT_PATH}/public:${MAGENTO_ROOT_PATH}/public
+      - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var
+      - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media
+      - ${MAGENTO_ROOT_PATH}/releases:${MAGENTO_ROOT_PATH}/releases
+    working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
     user: "${PHP_UID}:${PHP_UID}"
     entrypoint: ["/usr/local/bin/supercronic"]
-    command: ["${ROOT_PATH}/crontabs/${PHP_USER}"]
+    command: ["${MAGENTO_ROOT_PATH}/crontabs/${PHP_USER}"]
     restart: unless-stopped
     <<: [*ulimits, *logger]
 
@@ -455,9 +455,9 @@ services:
     environment:
       - IMGPROXY_ALLOW_INSECURE=true
       - IMGPROXY_ALLOWED_SOURCES=local://,http://127.0.0.1/
-      - IMGPROXY_LOCAL_FILESYSTEM_ROOT=${ROOT_PATH}/shared/pub/media
-      #- IMGPROXY_FALLBACK_IMAGE_PATH=${ROOT_PATH}/shared/pub/media/catalog/product/placeholder/default/placeholder.jpg
-      #- IMGPROXY_WATERMARK_PATH=${ROOT_PATH}/shared/pub/media/catalog/product/placeholder/default/watermark.jpg
+      - IMGPROXY_LOCAL_FILESYSTEM_ROOT=${MAGENTO_ROOT_PATH}/shared/pub/media
+      #- IMGPROXY_FALLBACK_IMAGE_PATH=${MAGENTO_ROOT_PATH}/shared/pub/media/catalog/product/placeholder/default/placeholder.jpg
+      #- IMGPROXY_WATERMARK_PATH=${MAGENTO_ROOT_PATH}/shared/pub/media/catalog/product/placeholder/default/watermark.jpg
       - IMGPROXY_MAX_REDIRECTS=1
       - IMGPROXY_TTL=31536000
       - IMGPROXY_AUTO_WEBP=1
@@ -476,12 +476,12 @@ services:
       nginx:
          condition: service_started
     volumes:
-      - ${APP_PATH}/shared/pub/media:${ROOT_PATH}/shared/pub/media:ro
+      - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media:ro
     expose:
       - "${IMGPROXY_UID}"
     networks:
       - frontend
-    working_dir: "${ROOT_PATH}/shared/pub/media"
+    working_dir: "${MAGENTO_ROOT_PATH}/shared/pub/media"
     user: "${IMGPROXY_UID}:${IMGPROXY_UID}"
     restart: unless-stopped
     healthcheck:
@@ -527,9 +527,9 @@ services:
     expose:
       - "3001"
     volumes:
-      - ${DATA_PATH}/varnish:/var/varnishstat:ro
-      - ${DATA_PATH}/host:/var/host:ro
-      - ${APP_PATH}/shared/var/log:/var/profiler:ro
+      - ${CONTAINER_DATA_PATH}/varnish:/var/varnishstat:ro
+      - ${CONTAINER_DATA_PATH}/host:/var/host:ro
+      - ${MAGENTO_ROOT_PATH}/shared/var/log:/var/profiler:ro
     networks:
       - frontend
       - backend
