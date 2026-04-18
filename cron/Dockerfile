@@ -6,7 +6,7 @@
 ARG PHP_USER
 ARG PHP_UID
 ARG MAGENTO_UID
-ARG ROOT_PATH
+ARG MAGENTO_ROOT_PATH
 ARG BRAND
 ARG PHP_IMAGE
 ARG PHP_EXTENSION
@@ -19,7 +19,7 @@ FROM ${PHP_DEV_IMAGE} AS builder
 # Set variables for build
 ARG PHP_EXTENSION
 ARG PHP_USER
-ARG ROOT_PATH
+ARG MAGENTO_ROOT_PATH
 ARG BRAND
 ARG CURRENT_SYMLINK
 ARG TIMEZONE
@@ -135,7 +135,7 @@ COPY config/* /tmp/
 # Configure PHP
 RUN <<EOF
   set -e
-  mkdir -p ${ROOT_PATH}
+  mkdir -p ${MAGENTO_ROOT_PATH}
   envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
   cp /usr/share/zoneinfo/${TIMEZONE} /tmp/localtime
   echo ${TIMEZONE} > /etc/timezone
@@ -150,8 +150,8 @@ RUN <<EOF
   chmod +x "/tmp/${SUPERCRONIC}"
   
   # Create crontab jobs
-  mkdir -p ${ROOT_PATH}/crontabs/
-  echo "* * * * * umask 007; ${ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > ${ROOT_PATH}/crontabs/${PHP_USER}
+  mkdir -p ${MAGENTO_ROOT_PATH}/crontabs/
+  echo "* * * * * umask 007; ${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > ${MAGENTO_ROOT_PATH}/crontabs/${PHP_USER}
 EOF
 
 # ============================================
@@ -163,13 +163,13 @@ FROM ${PHP_IMAGE}
 # Set variables for build
 ARG PHP_USER
 ARG PHP_UID
-ARG ROOT_PATH
+ARG MAGENTO_ROOT_PATH
 ARG MAGENTO_UID
 ARG BRAND
 ARG SUPERCRONIC
 
 # Copy user home
-COPY --from=builder ${ROOT_PATH} ${ROOT_PATH}
+COPY --from=builder ${MAGENTO_ROOT_PATH} ${MAGENTO_ROOT_PATH}
 
 # Copy all compiled extensions to final image
 COPY --from=builder ${PHP_PREFIX}/lib/php/extensions/ ${PHP_PREFIX}/lib/php/extensions/
@@ -188,7 +188,7 @@ COPY --from=builder /tmp/runtime-libs/ /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /tmp/${SUPERCRONIC} /usr/local/bin/supercronic
 
 # Copy crontabs
-COPY --from=builder ${ROOT_PATH}/crontabs/${PHP_USER} ${ROOT_PATH}/crontabs/${PHP_USER}
+COPY --from=builder ${MAGENTO_ROOT_PATH}/crontabs/${PHP_USER} ${MAGENTO_ROOT_PATH}/crontabs/${PHP_USER}
 
 # Lets use busybox
 COPY --from=busybox:stable-glibc /bin/busybox /bin/busybox
@@ -197,7 +197,7 @@ COPY --from=busybox:stable-glibc /bin/sh /bin/sh
 # Configure isolated user
 # /etc/passwd
 COPY  --chmod=644 <<EOF /etc/passwd
-${PHP_USER}:x:${PHP_UID}:${PHP_UID}:${PHP_USER}:${ROOT_PATH}:/bin/false
+${PHP_USER}:x:${PHP_UID}:${PHP_UID}:${PHP_USER}:${MAGENTO_ROOT_PATH}:/bin/false
 nobody:x:65534:65534:nobody:/nonexistent:/bin/false
 EOF
 

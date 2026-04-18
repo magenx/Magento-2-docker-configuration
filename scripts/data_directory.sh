@@ -14,8 +14,8 @@ for dir in \
   "host:100000"
 do
   IFS=":" read directory uid <<< "$dir"
-  mkdir -p "${DATA_PATH}/${directory}"
-  chown -R "${uid}:${uid}" "${DATA_PATH}/${directory}"
-  chmod 2770 "${DATA_PATH}/${directory}"
-  setfacl -R -m u:${uid}:rwX,g:${uid}:rwX,o::-,d:u:${uid}:rwX,d:g:${uid}:rwX,d:o::- ${DATA_PATH}/${directory}
+  mkdir -p "${CONTAINER_DATA_PATH}/${directory}"
+  chown -R "${uid}:${uid}" "${CONTAINER_DATA_PATH}/${directory}"
+  chmod 2770 "${CONTAINER_DATA_PATH}/${directory}"
+  setfacl -R -m u:${uid}:rwX,g:${uid}:rwX,o::-,d:u:${uid}:rwX,d:g:${uid}:rwX,d:o::- ${CONTAINER_DATA_PATH}/${directory}
 done
