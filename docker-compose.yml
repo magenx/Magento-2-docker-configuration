@@ -69,7 +69,6 @@ x-php_args: &php_args
 #  Configure php env variables
 # -----------------------------------------------------------------------------------------------------------------------
 x-php_env: &php_env
-  COMPOSER_MEMORY_LIMIT:
   MARIADB_DATABASE:
   MARIADB_USER:
   MARIADB_PASSWORD:
