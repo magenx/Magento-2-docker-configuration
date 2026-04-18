@@ -15,6 +15,13 @@
 # [website url]: https://www.magenx.com
 
 # -----------------------------------------------------------------------------------------------------------------------
+#  Configure image labels
+# -----------------------------------------------------------------------------------------------------------------------
+x-build-labels: &build_labels
+  org.opencontainers.image.authors: "admin@magenx.com"
+  org.opencontainers.image.source: "https://github.com/magenx/Magento-2-docker-configuration"
+
+# -----------------------------------------------------------------------------------------------------------------------
 #  Configure logger driver
 # -----------------------------------------------------------------------------------------------------------------------
 x-logger: &logger
@@ -107,6 +114,8 @@ services:
     hostname: mariadb
     build:
       context: ./mariadb
+      labels:
+        <<: *build_labels
       args:
         MARIADB_IMAGE:
     environment:
@@ -138,6 +147,8 @@ services:
     hostname: opensearch
     build:
       context: ./opensearch
+      labels:
+        <<: *build_labels
       args:
         OPENSEARCH_IMAGE:
     develop:
@@ -272,6 +283,8 @@ services:
     hostname: varnish
     build:
       context: ./varnish
+      labels:
+        <<: *build_labels
       args:
         VARNISH_IMAGE:
         VARNISH_SIZE:
@@ -312,6 +325,8 @@ services:
     hostname: php
     build:
       context: ./php
+      labels:
+        <<: *build_labels
       args: 
         <<: [*php_args, *magento_args]
     develop:
@@ -346,6 +361,8 @@ services:
     container_name: magento
     build:
       context: ./magento
+      labels:
+        <<: *build_labels
       args:
         <<: [*php_args, *magento_args]
     develop:
@@ -375,6 +392,8 @@ services:
     hostname: nginx
     build:
       context: ./nginx
+      labels:
+        <<: *build_labels
       args:
         <<: [*php_args, *magento_args]
         NGINX_IMAGE:
@@ -415,6 +434,8 @@ services:
     container_name: cron
     build:
       context: ./cron
+      labels:
+        <<: *build_labels
       args:
         <<: [*php_args, *magento_args]
         SUPERCRONIC:
@@ -494,6 +515,8 @@ services:
   dashboard-backend:
     build:
       context: ./dashboard/backend
+      labels:
+        <<: *build_labels
       dockerfile: Dockerfile
     container_name: dashboard-backend
     security_opt:
@@ -536,6 +559,8 @@ services:
   dashboard-frontend:
     build:
       context: ./dashboard/frontend
+      labels:
+        <<: *build_labels
       dockerfile: Dockerfile
     container_name: dashboard-frontend
     security_opt:
