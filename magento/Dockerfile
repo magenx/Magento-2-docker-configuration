@@ -130,10 +130,11 @@ EOF
 
 # Copy PHP config files
 COPY config/* /tmp/
-
-# Configure PHP
 RUN <<EOF
+  set -e
   mkdir -p ${MAGENTO_ROOT_PATH}
+  
+  # Configure PHP
   envsubst < /tmp/zz-cli-override.ini >  ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
   
   # Download n98-magerun2
@@ -144,6 +145,7 @@ RUN <<EOF
 	chmod +x /usr/local/bin/n98-magerun2 && rm n98-magerun2.phar.sha256 && \
 	echo "n98 installation successful" || echo "n98 installation failed"
 
+  # Configuree timezone
   cp /usr/share/zoneinfo/${TIMEZONE} /tmp/localtime
   echo ${TIMEZONE} > /etc/timezone
 EOF
@@ -177,7 +179,7 @@ COPY --from=builder /tmp/localtime /etc/localtime
 # Copy required libs
 COPY --from=builder /tmp/runtime-libs/ /usr/lib/x86_64-linux-gnu/
 
-# Copy magerun tool
+# Copy n98-magerun2 tool
 COPY --from=builder /usr/local/bin/n98-magerun2 /usr/local/bin/n98-magerun2
 
 # Lets use busybox
@@ -188,6 +190,7 @@ COPY --from=busybox:stable-glibc /bin/cat /bin/cat
 COPY --from=busybox:stable-glibc /bin/echo /bin/echo
 COPY --from=busybox:stable-glibc /bin/unzip /bin/unzip
 COPY --from=busybox:stable-glibc /bin/tar /bin/tar
+COPY --from=busybox:stable-glibc /bin/env /bin/env
 
 # Configure isolated user
 # /etc/passwd
