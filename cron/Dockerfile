@@ -37,6 +37,7 @@ RUN <<EOF
   unzip \
   git \
   automake \
+  gettext-base \
   build-essential \
   libjpeg-dev \
   libwebp-dev \
