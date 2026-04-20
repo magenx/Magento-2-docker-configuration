@@ -183,7 +183,7 @@ COPY --from=builder /tmp/runtime-libs/ /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/local/bin/n98-magerun2 /usr/local/bin/n98-magerun2
 
 # Copy composer tool | 2.9 | Apr 17, 2026 at 8:13 pm
-COPY --from=composer:latest@sha256:dc292c5c0f95f526b051d4c341bf08e7e2b18504c74625e3203d7f123050e318 /usr/bin/composer /usr/local/bin/composer
+COPY --from=composer:2.9@sha256:dc292c5c0f95f526b051d4c341bf08e7e2b18504c74625e3203d7f123050e318 /usr/bin/composer /usr/local/bin/composer
 
 # Lets use busybox | Mar 24, 2026 at 8:59 pm
 COPY --from=busybox:stable-glibc@sha256:7e567dff0fbaa48cddc5f52ae5201a7f417436aa20e70c8750814692043dfa38 /bin/busybox /bin/busybox
