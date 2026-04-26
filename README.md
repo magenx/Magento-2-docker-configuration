@@ -43,7 +43,8 @@
 - [x] Get random mariadb root password from log:  
 ```
 doco logs mariadb 2>&1 | grep GENERATED
-magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT PASSWORD: xxxxxxxx
+> magenx-mariadb   | 2021-11-16 08:48:17-05:00 [Note] [Entrypoint]: GENERATED ROOT PASSWORD: xxxxxxxx
+doco logs mariadb 2>&1 | grep "GENERATED ROOT PASSWORD:" | awk '{print $NF}'
 ```
 
 <br />
