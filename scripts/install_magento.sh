@@ -20,6 +20,7 @@ docker compose run --rm magento composer install
 echo ""
 read -e -p "  [?] Execute magento setup:install? [y/n][n]: " INSTALL_MAGENTO
 if [ "${INSTALL_MAGENTO}" == "y" ]; then
+MAGENTO_ADMIN_PASSWORD=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9%&?' | fold -w 12 | head -n 1)
 docker compose run --rm magento setup:install --base-url=https://\${DOMAIN}/ \
  --db-host=mariadb:3306 \
  --db-name=\${MARIADB_DATABASE} \
@@ -29,7 +30,7 @@ docker compose run --rm magento setup:install --base-url=https://\${DOMAIN}/ \
  --admin-lastname=admin \
  --admin-email=admin@\${DOMAIN} \
  --admin-user=admin \
- --admin-password=\${MAGENTO_ADMIN_PASSWORD} \
+ --admin-password=${MAGENTO_ADMIN_PASSWORD} \
  --language=en_US \
  --currency=EUR \
  --timezone=\${TIMEZONE} \
