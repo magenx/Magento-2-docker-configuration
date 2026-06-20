@@ -133,6 +133,9 @@ RUN <<EOF
   mkdir -p ${PHP_PREFIX}/etc/php-fpm.d
   envsubst < /tmp/www.conf > ${PHP_PREFIX}/etc/php-fpm.d/www.conf
   envsubst < /tmp/php-fpm.conf > ${PHP_PREFIX}/etc/php-fpm.conf
+
+  cp /tmp/zz_override.ini ${PHP_INI_DIR}/conf.d/zz_override.ini
+  chmod 644 ${PHP_INI_DIR}/conf.d/zz_override.ini
   
   touch ${PHP_PREFIX}/etc/php-fpm.d/{zz-docker.conf,docker.conf}
   
