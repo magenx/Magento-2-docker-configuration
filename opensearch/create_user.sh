@@ -7,6 +7,7 @@ docker compose exec -it opensearch curl -XPUT -u admin:${OPENSEARCH_ADMIN_PASSWO
       "cluster:monitor/main",
       "cluster:monitor/state",
       "cluster:monitor/health",
+      "cluster:monitor/shards",
       "cluster:monitor/nodes/info"
     ],
     "index_permissions": [
