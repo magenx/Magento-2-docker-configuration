@@ -6,11 +6,5 @@ FROM ${MARIADB_IMAGE}
 LABEL author="admin@magenx.com"
 LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
 
-COPY config/my.cnf /etc/mysql/conf.d/
+COPY --chmod=0644 config/my.cnf /etc/mysql/conf.d/
 
-RUN <<EOF
-  apt-get update
-  apt-get install -y libdbd-mysql-perl libterm-readkey-perl --no-install-recommends
-  apt-get clean
-  rm -rf /var/lib/apt/lists/*
-EOF
