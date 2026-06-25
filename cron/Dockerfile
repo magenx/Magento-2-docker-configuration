@@ -98,10 +98,9 @@ RUN <<EOF
 EOF
 
 # Use PIE to install extensions
-COPY --from=ghcr.io/php/pie:bin@sha256:66e2a1274ec15f1dda597ea716685bdeec44e9438eb9060901c0e7833a7f159a /pie /usr/local/bin/pie
+COPY --from=ghcr.io/php/pie:1.4.7-bin /pie /usr/local/bin/pie
 RUN <<EOF
-  pie install kjdev/lz4
-  pie install apcu/apcu
+  pie install kjdev/lz4:master#bf27b2c13922b6fbeb2eac5251be4e8a95d01e36
 EOF
 
 # Collect required runtime libraries
@@ -193,8 +192,8 @@ COPY --from=builder /tmp/${SUPERCRONIC} /usr/local/bin/supercronic
 COPY --from=builder ${MAGENTO_ROOT_PATH}/crontabs/${PHP_USER} ${MAGENTO_ROOT_PATH}/crontabs/${PHP_USER}
 
 # Lets use busybox
-COPY --from=busybox:stable-glibc /bin/busybox /bin/busybox
-COPY --from=busybox:stable-glibc /bin/sh /bin/sh
+COPY --from=busybox:stable-glibc@sha256:7e567dff0fbaa48cddc5f52ae5201a7f417436aa20e70c8750814692043dfa38 /bin/busybox /bin/busybox
+COPY --from=busybox:stable-glibc@sha256:7e567dff0fbaa48cddc5f52ae5201a7f417436aa20e70c8750814692043dfa38 /bin/sh /bin/sh
 
 # Configure isolated user
 # /etc/passwd
