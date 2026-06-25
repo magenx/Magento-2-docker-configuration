@@ -4,8 +4,8 @@
 . .env
 
 for dir in \
-  "redis-cache:106380" \
-  "redis-session:106379" \
+  "valkey-cache:106380" \
+  "valkey-session:106379" \
   "rabbitmq:105672" \
   "opensearch:109200" \
   "mariadb:103306" \
