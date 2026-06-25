@@ -139,18 +139,18 @@ services:
 #  Redis is an open source key-value store that functions as a data structure server.
 # -----------------------------------------------------------------------------------------------------------------------
   cache:
-    image: &redis_image ${REDIS_IMAGE}
+    image: &valkey_image ${VALKEY_IMAGE}
     container_name: cache
     hostname: cache
     command: >
       --bind cache
-      --port ${REDIS_CACHE_UID}
+      --port ${VALKEY_CACHE_UID}
       --save 300 10000
       --appendonly yes
       --activerehashing yes
       --loglevel warning
-      --requirepass ${REDIS_PASSWORD}
-      --maxmemory ${REDIS_CACHE_SIZE}
+      --requirepass ${VALKEY_PASSWORD}
+      --maxmemory ${VALKEY_CACHE_SIZE}
       --maxmemory-policy allkeys-lru
       --lazyfree-lazy-eviction yes
       --lazyfree-lazy-expire yes
@@ -158,32 +158,32 @@ services:
       --replica-lazy-flush yes
       --lazyfree-lazy-user-del yes
     expose:
-      - "${REDIS_CACHE_UID}"
+      - "${VALKEY_CACHE_UID}"
     networks:
       - frontend
     volumes:
-      - ${CONTAINER_DATA_PATH}/redis-cache:/data
-    user: "${REDIS_CACHE_UID}:${REDIS_CACHE_UID}"
+      - ${CONTAINER_DATA_PATH}/valkey-cache:/data
+    user: "${VALKEY_CACHE_UID}:${VALKEY_CACHE_UID}"
     restart: unless-stopped
-    mem_limit: ${REDIS_CACHE_SIZE}
+    mem_limit: ${VALKEY_CACHE_SIZE}
     <<: [*ulimits, *logger]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Redis is an open source key-value store that functions as a data structure server.
 # -----------------------------------------------------------------------------------------------------------------------
   session:
-    image: *redis_image
+    image: *valkey_image
     container_name: session
     hostname: session
     command: >
       --bind session
-      --port ${REDIS_SESSION_UID}
+      --port ${VALKEY_SESSION_UID}
       --save 60 100
       --appendonly yes
       --activerehashing yes
       --loglevel warning
-      --requirepass ${REDIS_PASSWORD}
-      --maxmemory ${REDIS_SESSION_SIZE}
+      --requirepass ${VALKEY_PASSWORD}
+      --maxmemory ${VALKEY_SESSION_SIZE}
       --maxmemory-policy allkeys-lru
       --lazyfree-lazy-eviction yes
       --lazyfree-lazy-expire yes
@@ -191,16 +191,16 @@ services:
       --replica-lazy-flush yes
       --lazyfree-lazy-user-del yes
     expose:
-      - "${REDIS_SESSION_UID}"
+      - "${VALKEY_SESSION_UID}"
     networks:
       - frontend
     volumes:
-      - ${CONTAINER_DATA_PATH}/redis-session:/data
-    user: "${REDIS_SESSION_UID}:${REDIS_SESSION_UID}"
+      - ${CONTAINER_DATA_PATH}/valkey-session:/data
+    user: "${VALKEY_SESSION_UID}:${VALKEY_SESSION_UID}"
     restart: unless-stopped
-    mem_limit: ${REDIS_SESSION_SIZE}
+    mem_limit: ${VALKEY_SESSION_SIZE}
     healthcheck:
-      test: ["CMD", "redis-cli", "-h", "session", "-p", "${REDIS_SESSION_UID}", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ["CMD", "valkey-cli", "-h", "session", "-p", "${VALKEY_SESSION_UID}", "-a", "${VALKEY_PASSWORD}", "ping"]
       <<: *healthcheck_default
     <<: [*ulimits, *logger]
 
@@ -302,7 +302,7 @@ services:
       MARIADB_USER:
       MARIADB_PASSWORD:
       RABBITMQ_PASSWORD:
-      REDIS_PASSWORD:
+      VALKEY_PASSWORD:
       OPENSEARCH_PASSWORD:
       BRAND:
       DOMAIN:
