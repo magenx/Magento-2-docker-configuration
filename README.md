@@ -102,10 +102,6 @@ nginx version: nginx/1.29.1
  ✔ Container mariadb     Removed                                                                                                                                                                   0.5s 
  ✔ Network magenx        Removed
 ```
-<br />
-
-# :newspaper: Webstack Dashboard  
-<img width="958" height="1978" alt="magento_docker_stack_dashboard" src="https://github.com/user-attachments/assets/694c3331-fbe3-4612-94df-cecd61907255"/>
 
 <br />
 
