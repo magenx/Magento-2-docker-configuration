@@ -1,22 +1,26 @@
 # syntax = docker/dockerfile:labs
 
 ARG OPENSEARCH_IMAGE
+ARG OPENSEARCH_DEV_IMAGE
+
+FROM ${OPENSEARCH_DEV_IMAGE} AS build
+USER root
+RUN <<EOF
+/usr/share/opensearch/bin/opensearch-plugin install --batch analysis-icu
+/usr/share/opensearch/bin/opensearch-plugin install --batch analysis-phonetic
+EOF
+
 FROM ${OPENSEARCH_IMAGE}
 
-LABEL author="admin@magenx.com"
-LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
-
-USER root
-
-RUN <<EOF
-  groupmod --gid 9200 opensearch
-  usermod --uid 9200 opensearch
-  chown -R opensearch:opensearch /usr/share/opensearch
+COPY --chmod=644 <<EOF /etc/passwd
+opensearch:x:9200:9200:opensearch:/home/opensearch:/bin/sh
+nobody:x:65534:65534:nobody:/nonexistent:/bin/sh
 EOF
 
-RUN <<EOF
-  /usr/share/opensearch/bin/opensearch-plugin install analysis-icu
-  /usr/share/opensearch/bin/opensearch-plugin install analysis-phonetic
+COPY --chmod=644 <<EOF /etc/group
+opensearch:x:9200:opensearch
+shadow:x:42:
+nobody:x:65534:
 EOF
 
-USER opensearch
+COPY --from=build --chown=9200:9200 /usr/share/opensearch /usr/share/opensearch
