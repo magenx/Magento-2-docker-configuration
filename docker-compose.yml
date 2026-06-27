@@ -103,6 +103,7 @@ services:
         <<: *build_labels
       args:
         OPENSEARCH_IMAGE:
+        OPENSEARCH_DEV_IMAGE:
     develop:
       watch:
         - path: ./opensearch
