@@ -120,7 +120,7 @@ services:
       - discovery.type=single-node
       - cluster.routing.allocation.enable=all
       - bootstrap.memory_lock=true
-      - plugins.security.ssl.transport.enforce_hostname_verification=false
+      - transport.ssl.enforce_hostname_verification=false
       - plugins.security.ssl.http.enabled=false
       - plugins.security.allow_unsafe_democertificates=true
       - plugins.security.allow_default_init_securityindex=true
@@ -228,6 +228,8 @@ services:
       - frontend
     volumes:
       - ${CONTAINER_DATA_PATH}/rabbitmq:/var/lib/rabbitmq
+      - ${CONTAINER_DATA_PATH}/rabbitmq/log:/var/log/rabbitmq
+      - ./rabbitmq/config/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
     user: "${RABBITMQ_UID}:${RABBITMQ_UID}"
     restart: unless-stopped
     mem_limit: 1G
@@ -262,7 +264,7 @@ services:
     networks:
       - frontend
     tmpfs:
-      - /var/lib/varnish/varnishd:exec,mode=1770,size=67108864
+      - /var/lib/varnish/varnishd:exec,uid=${VARNISH_UID},gid=${VARNISH_UID},mode=1770,size=128m
     user: "${VARNISH_UID}:${VARNISH_UID}"
     restart: unless-stopped
     mem_limit: ${VARNISH_SIZE}
