@@ -80,10 +80,15 @@ services:
       TIMEZONE:
     expose:
       - "${MARIADB_UID}"
+    ports:
+      - "127.0.0.1:${MARIADB_UID}:${MARIADB_UID}"
     networks:
       - backend
+    tmpfs:
+      - /run/mariadb:uid=${MARIADB_UID},gid=${MARIADB_UID},mode=0700
     volumes:
       - ${CONTAINER_DATA_PATH}/mariadb:/var/lib/mysql
+      - ./mariadb/config:/etc/mysql/conf.d:ro
     user: "${MARIADB_UID}:${MARIADB_UID}"
     restart: unless-stopped
     healthcheck:
@@ -257,11 +262,7 @@ services:
     networks:
       - frontend
     volumes:
-      - type: tmpfs
-        target: /var/lib/varnish/varnishd:exec
-        tmpfs:
-          size: 64m
-          mode: 1770
+      - /var/lib/varnish/varnishd:exec,mode=1770,size=67108864
     user: "${VARNISH_UID}:${VARNISH_UID}"
     restart: unless-stopped
     mem_limit: ${VARNISH_SIZE}
