@@ -7,7 +7,7 @@
 
 sed -i '0,/## generated passwords for services/!d' .env
 
-for SERVICE in VALKEY RABBITMQ MARIADB OPENSEARCH_ADMIN OPENSEARCH DASHBOARD
+for SERVICE in VALKEY RABBITMQ MARIADB MARIADB_ROOT OPENSEARCH_ADMIN OPENSEARCH DASHBOARD
 do
 PASSWORD=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9%&?' | fold -w 32 | head -n 1)
 echo "${SERVICE}_PASSWORD='${PASSWORD}'" >> .env
