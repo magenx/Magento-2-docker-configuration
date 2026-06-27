@@ -261,7 +261,7 @@ services:
       - "${VARNISH_PRIVATE_IP}:80"
     networks:
       - frontend
-    volumes:
+    tmpfs:
       - /var/lib/varnish/varnishd:exec,mode=1770,size=67108864
     user: "${VARNISH_UID}:${VARNISH_UID}"
     restart: unless-stopped
