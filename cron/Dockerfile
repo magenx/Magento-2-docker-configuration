@@ -100,7 +100,7 @@ EOF
 # Use PIE to install extensions
 COPY --from=ghcr.io/php/pie:1.4.7-bin /pie /usr/local/bin/pie
 RUN <<EOF
-  pie install kjdev/lz4:master#bf27b2c13922b6fbeb2eac5251be4e8a95d01e36
+  pie install kjdev/lz4:dev-master#bf27b2c13922b6fbeb2eac5251be4e8a95d01e36
 EOF
 
 # Collect required runtime libraries
