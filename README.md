@@ -27,7 +27,8 @@
 - [x] Run to pull and build images and start containers:   
 ```
    https://app.docker.com/accounts/<YOUR DOCKERHUB USERANME>/settings/personal-access-tokens
-   docker login -u <YOUR DOCKERHUB USERANME>
+   docker login dhi.io
+   [YOUR DOCKERHUB USERANME]
    [Enter PAT]
    doco up -d --build
 ```
