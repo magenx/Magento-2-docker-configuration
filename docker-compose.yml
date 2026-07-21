@@ -151,17 +151,16 @@ services:
     command: >
       --bind cache
       --port ${VALKEY_CACHE_UID}
-      --save 300 10000
-      --appendonly yes
+      --save ""
       --activerehashing yes
       --loglevel warning
       --requirepass ${VALKEY_PASSWORD}
       --maxmemory ${VALKEY_CACHE_SIZE}
       --maxmemory-policy allkeys-lru
+      --replica-lazy-flush yes
       --lazyfree-lazy-eviction yes
       --lazyfree-lazy-expire yes
       --lazyfree-lazy-server-del yes
-      --replica-lazy-flush yes
       --lazyfree-lazy-user-del yes
     expose:
       - "${VALKEY_CACHE_UID}"
@@ -184,17 +183,28 @@ services:
     command: >
       --bind session
       --port ${VALKEY_SESSION_UID}
-      --save 60 100
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --dbfilename session.rdb
+      --rdbcompression yes
       --appendonly yes
+      --appendfsync everysec
+      --appendfilename session.aof
+      --aof-load-truncated yes
+      --aof-use-rdb-preamble yes
+      --no-appendfsync-on-rewrite no
+      --auto-aof-rewrite-percentage 100
+      --auto-aof-rewrite-min-size 64mb
       --activerehashing yes
       --loglevel warning
       --requirepass ${VALKEY_PASSWORD}
       --maxmemory ${VALKEY_SESSION_SIZE}
       --maxmemory-policy allkeys-lru
+      --replica-lazy-flush yes
       --lazyfree-lazy-eviction yes
       --lazyfree-lazy-expire yes
       --lazyfree-lazy-server-del yes
-      --replica-lazy-flush yes
       --lazyfree-lazy-user-del yes
     expose:
       - "${VALKEY_SESSION_UID}"
