@@ -91,10 +91,10 @@ RUN <<EOF
 EOF
 
 # Use PIE to install extensions
-COPY --from=ghcr.io/php/pie:1.4.7-bin /pie /usr/local/bin/pie
+COPY --from=ghcr.io/php/pie:1.4.9-bin /pie /usr/local/bin/pie
 RUN <<EOF
   pie install kjdev/lz4
-  pie install apcu/apcu:dev-master#819fce90c469a5666b1706036cd66120af419f1f
+  pie install igbinary/igbinary:3.2.17RC1
 EOF
 
 # Collect required runtime libraries
