@@ -335,9 +335,9 @@ services:
       - frontend
     volumes:
       - ${MAGENTO_ROOT_PATH}/public:${MAGENTO_ROOT_PATH}/public:ro
+      - ${MAGENTO_ROOT_PATH}/releases:${MAGENTO_ROOT_PATH}/releases:ro
       - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var
       - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media
-      - ${MAGENTO_ROOT_PATH}/releases:${MAGENTO_ROOT_PATH}/releases
     working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
     user: "${PHP_UID}:${PHP_UID}"
     entrypoint: ["php-fpm", "-F"]
