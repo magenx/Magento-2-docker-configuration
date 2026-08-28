@@ -39,7 +39,7 @@ RUN <<EOF
   cd nginx-zstd-module
   git checkout e76020af03f8de500695719344e00309b2e04fc7
   
-  cd nginx-${NGINX_VERSION}
+  cd /build/nginx-${NGINX_VERSION}
   ./configure --with-compat --add-dynamic-module=/build/nginx-zstd-module
   make -j"$(nproc)" modules
 EOF
