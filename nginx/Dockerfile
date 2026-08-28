@@ -1,10 +1,8 @@
 # syntax = docker/dockerfile:labs
 
 ARG NGINX_IMAGE
-FROM ${NGINX_IMAGE}
-
-LABEL author="admin@magenx.com"
-LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
+ARG NGINX_DEV_IMAGE
+FROM ${NGINX_DEV_IMAGE} AS builder
 
 ARG BRAND
 ARG DOMAIN
@@ -19,11 +17,48 @@ ARG RABBITMQ_PATH
 ARG ADMINER_PATH
 ARG CURRENT_SYMLINK
 
-USER root
+ARG NGINX_VERSION
 
-COPY ./templates /tmp/templates
-
+# Install build essential
 RUN <<EOF
+  apt-get update
+  apt-get install -y --no-install-recommends \
+  build-essential gettext tar gzip git wget ca-certificates libzstd-dev libpcre2-dev zlib1g-dev
+  rm -rf /var/lib/apt/lists/*
+EOF
+
+# Build workdir
+WORKDIR /build
+
+# Download nginx version and build module
+RUN <<EOF
+  set -e
+  wget https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
+  ls -ltra
+  tar -xzf nginx-${NGINX_VERSION}.tar.gz
+  git clone --no-checkout https://github.com/myguard-labs/nginx-zstd-module.git
+  cd nginx-zstd-module
+  git checkout e76020af03f8de500695719344e00309b2e04fc7
+  
+  cd nginx-${NGINX_VERSION}
+  ./configure --with-compat --add-dynamic-module=/build/nginx-zstd-module
+  make -j"$(nproc)" modules
+EOF
+
+# Copy modules
+RUN <<EOF
+  set -e
+  ls -la /build/nginx-${NGINX_VERSION}/objs/*.so
+  ldd /build/nginx-${NGINX_VERSION}/objs/ngx_http_zstd_filter_module.so
+  mkdir -p /out/modules /out/lib
+  cp /build/nginx-${NGINX_VERSION}/objs/ngx_http_zstd_filter_module.so /out/modules/
+  cp -a /usr/lib/x86_64-linux-gnu/*zstd* /out/lib/
+EOF
+
+# Build nginx configurations
+COPY ./templates /tmp/templates
+RUN <<EOF
+  set -e
   mkdir -p ${MAGENTO_ROOT_PATH}
   ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
 
@@ -47,3 +82,10 @@ RUN <<EOF
   sed -i '/user  nginx;/d' /etc/nginx/nginx.conf
 EOF
 
+
+# Final runtime
+FROM ${NGINX_IMAGE}
+# Copy all libs and configurations
+COPY --from=builder /out/modules/ /usr/lib/nginx/modules/
+COPY --from=builder /out/lib/ /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /etc/nginx /etc/nginx
