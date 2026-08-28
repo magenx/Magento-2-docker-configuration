@@ -388,6 +388,7 @@ services:
       args:
         <<: *php_magento_args
         NGINX_IMAGE:
+        NGINX_DEV_IMAGE:
         PHP_FPM:
         PROFILER:
         RESOLVER:
