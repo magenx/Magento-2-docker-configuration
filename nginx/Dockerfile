@@ -21,7 +21,7 @@ ARG CURRENT_SYMLINK
 RUN <<EOF
   apt-get update
   apt-get install -y --no-install-recommends \
-  build-essential gettext tar gzip git wget ca-certificates libzstd-dev libpcre2-dev zlib1g-dev
+  build-essential gzip git wget libzstd-dev libpcre2-dev zlib1g-dev
   rm -rf /var/lib/apt/lists/*
 EOF
 
