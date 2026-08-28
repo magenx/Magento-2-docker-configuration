@@ -17,8 +17,6 @@ ARG RABBITMQ_PATH
 ARG ADMINER_PATH
 ARG CURRENT_SYMLINK
 
-ARG NGINX_VERSION
-
 # Install build essential
 RUN <<EOF
   apt-get update
@@ -36,6 +34,7 @@ RUN <<EOF
   wget https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
   ls -ltra
   tar -xzf nginx-${NGINX_VERSION}.tar.gz
+  
   git clone --no-checkout https://github.com/myguard-labs/nginx-zstd-module.git
   cd nginx-zstd-module
   git checkout e76020af03f8de500695719344e00309b2e04fc7
