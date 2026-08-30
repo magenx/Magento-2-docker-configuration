@@ -300,6 +300,8 @@ services:
         PHP_EXTENSION:
         PHP_FPM:
         PHP_UID:
+        PIE_IMAGE:
+        PIE_MODULES:
         BRAND:
         DOMAIN:
         ADMIN_PATH:
@@ -354,6 +356,8 @@ services:
         <<: *build_labels
       args:
         <<: *php_magento_args
+        BUSYBOX_IMAGE:
+        COMPOSER_IMAGE:
     develop:
       watch:
         - path: ./magento
