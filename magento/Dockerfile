@@ -11,8 +11,19 @@ ARG BRAND
 ARG PHP_IMAGE
 ARG PHP_EXTENSION
 
-# Set hash to pull exact image
+ARG BUSYBOX_IMAGE
+ARG COMPOSER_IMAGE
+ARG PIE_IMAGE
+
+# Set hash to pull exact php dev image
 ARG PHP_DEV_IMAGE
+
+# From images tools
+FROM ${PIE_IMAGE} AS pie
+FROM ${BUSYBOX_IMAGE} AS busybox
+FROM ${COMPOSER_IMAGE} AS composer
+
+# Build stage
 FROM ${PHP_DEV_IMAGE} AS builder
 
 # Set variables for build
@@ -26,6 +37,9 @@ ARG TIMEZONE
 # Install ONLY missing build dependencies for Magento extensions
 RUN <<EOF
   apt-get update
+  apt --fix-broken install -y
+  apt clean
+  apt update --fix-missing
   apt-get install -y --no-install-recommends \
   tzdata \
   wget \
@@ -71,6 +85,7 @@ ARG PHP_ZIP="--with-libzip"
 
 # Build extensions with their specific configure options
 RUN <<EOF
+  set -e
   for ext in ${PHP_EXTENSION}; do
     echo "=== Building $ext ==="
     if [ -d "ext/$ext" ]; then
@@ -92,16 +107,18 @@ RUN <<EOF
   done
 EOF
 
-
+ARG PIE_MODULES
 # Use PIE to install extensions
-COPY --from=ghcr.io/php/pie:1.4.9-bin /pie /usr/local/bin/pie
+COPY --from=pie /pie /usr/local/bin/pie
 RUN <<EOF
-  pie install kjdev/lz4
-  pie install igbinary/igbinary:3.2.17RC1
+  for pie_module in ${PIE_MODULES}
+    do pie install $pie_module
+  done
 EOF
 
 # Collect required runtime libraries
 RUN <<EOF
+  set -e
   mkdir -p /tmp/runtime-libs
   # Copy dependencies recursively
   copy_deps() {
@@ -157,7 +174,7 @@ EOF
 # ============================================
 # STAGE 2: BUILD RUNTIME
 # ============================================
-# Set hash to pull exact image
+# Set hash to pull exact runtime image
 FROM ${PHP_IMAGE}
 
 # Set variables for build
@@ -186,21 +203,21 @@ COPY --from=builder /tmp/runtime-libs/ /usr/lib/x86_64-linux-gnu/
 # Copy n98-magerun2 tool
 COPY --from=builder /usr/local/bin/n98-magerun2 /usr/local/bin/n98-magerun2
 
-# Copy composer tool | 2.10.3 | 2026-08-28T21:55:43Z
-COPY --from=dhi.io/composer:2-debian-php8.5-dev@sha256:d5750804a44fd3506ed7b6647b671654b6e5b1e72867c49360788aa2ba92da23 /usr/local/bin/composer.phar /usr/local/bin/composer
+# Copy composer tool
+COPY --from=composer /usr/local/bin/composer.phar /usr/local/bin/composer
 
 # Copy entrypoint
 COPY --chmod=755 --from=builder /entrypoint.sh /entrypoint.sh
 
-# Lets use busybox | Mar 24, 2026 at 8:59 pm
-COPY --from=busybox:stable-glibc@sha256:7e567dff0fbaa48cddc5f52ae5201a7f417436aa20e70c8750814692043dfa38 /bin/busybox /bin/busybox
-COPY --from=busybox:stable-glibc@sha256:7e567dff0fbaa48cddc5f52ae5201a7f417436aa20e70c8750814692043dfa38 /bin/sh /bin/sh
-COPY --from=busybox:stable-glibc@sha256:7e567dff0fbaa48cddc5f52ae5201a7f417436aa20e70c8750814692043dfa38 /bin/ls /bin/ls
-COPY --from=busybox:stable-glibc@sha256:7e567dff0fbaa48cddc5f52ae5201a7f417436aa20e70c8750814692043dfa38 /bin/cat /bin/cat
-COPY --from=busybox:stable-glibc@sha256:7e567dff0fbaa48cddc5f52ae5201a7f417436aa20e70c8750814692043dfa38 /bin/echo /bin/echo
-COPY --from=busybox:stable-glibc@sha256:7e567dff0fbaa48cddc5f52ae5201a7f417436aa20e70c8750814692043dfa38 /bin/unzip /bin/unzip
-COPY --from=busybox:stable-glibc@sha256:7e567dff0fbaa48cddc5f52ae5201a7f417436aa20e70c8750814692043dfa38 /bin/tar /bin/tar
-COPY --from=busybox:stable-glibc@sha256:7e567dff0fbaa48cddc5f52ae5201a7f417436aa20e70c8750814692043dfa38 /bin/env /bin/env
+# Lets use busybox
+COPY --from=busybox /bin/busybox /bin/busybox
+COPY --from=busybox /bin/sh /bin/sh
+COPY --from=busybox /bin/ls /bin/ls
+COPY --from=busybox /bin/cat /bin/cat
+COPY --from=busybox /bin/echo /bin/echo
+COPY --from=busybox /bin/unzip /bin/unzip
+COPY --from=busybox /bin/tar /bin/tar
+COPY --from=busybox /bin/env /bin/env
 
 # Configure isolated user
 # /etc/passwd
