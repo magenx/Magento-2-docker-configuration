@@ -187,7 +187,7 @@ COPY --from=builder /tmp/runtime-libs/ /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/local/bin/n98-magerun2 /usr/local/bin/n98-magerun2
 
 # Copy composer tool | 2.9 | Apr 17, 2026 at 8:13 pm
-COPY --from=composer:2.9@sha256:dc292c5c0f95f526b051d4c341bf08e7e2b18504c74625e3203d7f123050e318 /usr/bin/composer /usr/local/bin/composer
+COPY --from=dhi.io/composer:2-debian-php8.5-dev@sha256:d5750804a44fd3506ed7b6647b671654b6e5b1e72867c49360788aa2ba92da23 /usr/local/bin/composer.phar /usr/local/bin/composer
 
 # Copy entrypoint
 COPY --chmod=755 --from=builder /entrypoint.sh /entrypoint.sh
