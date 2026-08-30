@@ -186,7 +186,7 @@ COPY --from=builder /tmp/runtime-libs/ /usr/lib/x86_64-linux-gnu/
 # Copy n98-magerun2 tool
 COPY --from=builder /usr/local/bin/n98-magerun2 /usr/local/bin/n98-magerun2
 
-# Copy composer tool | 2.9 | Apr 17, 2026 at 8:13 pm
+# Copy composer tool | 2.10.3 | 2026-08-28T21:55:43Z
 COPY --from=dhi.io/composer:2-debian-php8.5-dev@sha256:d5750804a44fd3506ed7b6647b671654b6e5b1e72867c49360788aa2ba92da23 /usr/local/bin/composer.phar /usr/local/bin/composer
 
 # Copy entrypoint
