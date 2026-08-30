@@ -10,7 +10,15 @@ ARG BRAND
 
 # Set hash to pull exact image
 ARG PHP_FPM_IMAGE
+ARG PIE_IMAGE
+
+# Set hash to pull exact php dev image
 ARG PHP_DEV_IMAGE
+
+# From images tools
+FROM ${PIE_IMAGE} AS pie
+
+# Build stage
 FROM ${PHP_DEV_IMAGE} AS builder
 
 # Set variables for build
@@ -24,6 +32,9 @@ ARG TIMEZONE
 # Install ONLY missing build dependencies for Magento extensions
 RUN <<EOF
   apt-get update
+  apt --fix-broken install -y
+  apt clean
+  apt update --fix-missing
   apt-get install -y --no-install-recommends \
   tzdata \
   wget \
@@ -69,6 +80,7 @@ ARG PHP_ZIP="--with-libzip"
 
 # Build extensions with their specific configure options
 RUN <<EOF
+  set -e
   for ext in ${PHP_EXTENSION}; do
     echo "=== Building $ext ==="
     if [ -d "ext/$ext" ]; then
@@ -90,15 +102,18 @@ RUN <<EOF
   done
 EOF
 
+ARG PIE_MODULES
 # Use PIE to install extensions
-COPY --from=ghcr.io/php/pie:1.4.9-bin /pie /usr/local/bin/pie
+COPY --from=pie /pie /usr/local/bin/pie
 RUN <<EOF
-  pie install kjdev/lz4
-  pie install igbinary/igbinary:3.2.17RC1
+  for pie_module in ${PIE_MODULES}
+    do pie install $pie_module
+  done
 EOF
 
 # Collect required runtime libraries
 RUN <<EOF
+  set -e
   mkdir -p /tmp/runtime-libs
   # Copy dependencies recursively
   copy_deps() {
