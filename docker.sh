@@ -32,7 +32,7 @@ echo ""
 echo "Docker installation"
 export DEBIAN_FRONTEND=noninteractive 
 apt update && apt upgrade -y
-apt-get -y install ca-certificates screen vim syslog-ng-core git ufw apache2-utils
+apt-get -y install ca-certificates screen vim syslog-ng-core git ufw apache2-utils acl
 install -m 0755 -d /etc/apt/keyrings
 
 . /etc/os-release
