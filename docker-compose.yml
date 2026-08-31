@@ -141,26 +141,27 @@ services:
     <<: [*ulimits, *logger]
 
 # -----------------------------------------------------------------------------------------------------------------------
-#  Redis is an open source key-value store that functions as a data structure server.
+#  Valkey is an open source key-value store that functions as a data structure server.
 # -----------------------------------------------------------------------------------------------------------------------
   cache:
-    image: &valkey_image ${VALKEY_IMAGE}
     container_name: cache
     hostname: cache
-    command: >
-      --bind cache
-      --port ${VALKEY_CACHE_UID}
-      --save ""
-      --activerehashing yes
-      --loglevel warning
-      --requirepass ${VALKEY_PASSWORD}
-      --maxmemory ${VALKEY_CACHE_SIZE}
-      --maxmemory-policy allkeys-lru
-      --replica-lazy-flush yes
-      --lazyfree-lazy-eviction yes
-      --lazyfree-lazy-expire yes
-      --lazyfree-lazy-server-del yes
-      --lazyfree-lazy-user-del yes
+    build: &valkey_build
+      context: ./valkey
+      labels:
+        <<: *build_labels
+      args:
+        VALKEY_IMAGE:
+    command:
+      - /etc/valkey/cache.conf
+      - --bind
+      - cache
+      - --port
+      - "${VALKEY_CACHE_UID}"
+      - --maxmemory
+      - "${VALKEY_CACHE_SIZE}"
+      - --requirepass
+      - "${VALKEY_PASSWORD}"
     expose:
       - "${VALKEY_CACHE_UID}"
     networks:
@@ -173,38 +174,22 @@ services:
     <<: [*ulimits, *logger]
 
 # -----------------------------------------------------------------------------------------------------------------------
-#  Redis is an open source key-value store that functions as a data structure server.
+#  Valkey is an open source key-value store that functions as a data structure server.
 # -----------------------------------------------------------------------------------------------------------------------
   session:
-    image: *valkey_image
     container_name: session
     hostname: session
-    command: >
-      --bind session
-      --port ${VALKEY_SESSION_UID}
-      --save 900 1
-      --save 300 10
-      --save 60 10000
-      --dbfilename session.rdb
-      --rdbcompression yes
-      --appendonly yes
-      --appendfsync everysec
-      --appendfilename session.aof
-      --aof-load-truncated yes
-      --aof-use-rdb-preamble yes
-      --no-appendfsync-on-rewrite no
-      --auto-aof-rewrite-percentage 100
-      --auto-aof-rewrite-min-size 64mb
-      --activerehashing yes
-      --loglevel warning
-      --requirepass ${VALKEY_PASSWORD}
-      --maxmemory ${VALKEY_SESSION_SIZE}
-      --maxmemory-policy allkeys-lru
-      --replica-lazy-flush yes
-      --lazyfree-lazy-eviction yes
-      --lazyfree-lazy-expire yes
-      --lazyfree-lazy-server-del yes
-      --lazyfree-lazy-user-del yes
+    build: *valkey_build
+    command:
+      - /etc/valkey/session.conf
+      - --bind
+      - session
+      - --port
+      - "${VALKEY_SESSION_UID}"
+      - --maxmemory
+      - "${VALKEY_SESSION_SIZE}"
+      - --requirepass
+      - "${VALKEY_PASSWORD}"
     expose:
       - "${VALKEY_SESSION_UID}"
     networks:
@@ -223,9 +208,14 @@ services:
 #  RabbitMQ is an open source multi-protocol messaging broker
 # -----------------------------------------------------------------------------------------------------------------------                
   rabbitmq:
-    image: ${RABBITMQ_IMAGE}
     container_name: rabbitmq
     hostname: rabbitmq
+    build:
+      context: ./rabbitmq
+      labels:
+        <<: *build_labels
+      args:
+        RABBITMQ_IMAGE:
     environment:
       RABBITMQ_DEFAULT_USER: ${BRAND}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
@@ -238,7 +228,6 @@ services:
     volumes:
       - ${CONTAINER_DATA_PATH}/rabbitmq:/var/lib/rabbitmq
       - ${CONTAINER_DATA_PATH}/rabbitmq/log:/var/log/rabbitmq
-      - ./rabbitmq/config/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
     user: "${RABBITMQ_UID}:${RABBITMQ_UID}"
     restart: unless-stopped
     mem_limit: 1G
