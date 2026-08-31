@@ -107,13 +107,14 @@ nginx version: nginx/1.29.1
 <br />
 
 # :hammer_and_wrench: Stack components in use:  
-- [x] [MariaDB](https://hub.docker.com/r/mariadb) - MariaDB Server is a high performing open source relational database, forked from MySQL.
-- [x] [Nginx](https://hub.docker.com/r/nginx) - Official build of Nginx.
-- [x] [PHP](https://hub.docker.com/r/php) - PHP scripting language.
+Docker Hardened Images - https://hub.docker.com/hardened-images/catalog
+- [x] [MariaDB](https://hub.docker.com/hardened-images/catalog/dhi/mariadb) - MariaDB Server is a high performing open source relational database, forked from MySQL.
+- [x] [Nginx](https://hub.docker.com/hardened-images/catalog/dhi/nginx) - Official build of Nginx.
+- [x] [PHP](https://hub.docker.com/hardened-images/catalog/dhi/php) - PHP scripting language.
 - [x] [Varnish](https://hub.docker.com/r/varnish) - Varnish is an HTTP accelerator designed for content-heavy dynamic web sites as well as APIs.
-- [x] [OpenSearch](https://hub.docker.com/r/opensearchproject) - Opensearch is a powerful open source search and analytics engine that makes data easy to explore.
-- [x] [Redis x2](https://hub.docker.com/r/redis) - Redis is an open source key-value store that functions as a data structure server.
-- [x] [RabbitMQ](https://hub.docker.com/r/rabbitmq) - RabbitMQ is an open source multi-protocol messaging broker.
-- [x] [Cron]
+- [x] [OpenSearch](https://hub.docker.com/hardened-images/catalog/dhi/opensearch) - Opensearch is a powerful open source search and analytics engine that makes data easy to explore.
+- [x] [Valkey](https://hub.docker.com/hardened-images/catalog/dhi/valkey) - Valkey is an open source key-value store that functions as a data structure server.
+- [x] [RabbitMQ](https://hub.docker.com/hardened-images/catalog/dhi/rabbitmq) - RabbitMQ is an open source multi-protocol messaging broker.
+- [x] [Cron](https://github.com/aptible/supercronic) - Supercronic is a crontab-compatible job runner, designed specifically to run in containers.
   
 <br />
