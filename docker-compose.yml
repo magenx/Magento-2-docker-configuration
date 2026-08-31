@@ -290,6 +290,7 @@ services:
     hostname: php
     build:
       context: ./php
+      target: php
       labels:
         <<: *build_labels
       args: &php_magento_args
@@ -306,6 +307,7 @@ services:
         DOMAIN:
         ADMIN_PATH:
         MAGENTO_ROOT_PATH:
+        MAGENTO_UID:
         TIMEZONE:
         CURRENT_SYMLINK:
     develop:
@@ -351,7 +353,8 @@ services:
   magento:
     container_name: magento
     build:
-      context: ./magento
+      context: ./php
+      target: magento
       labels:
         <<: *build_labels
       args:
@@ -429,7 +432,8 @@ services:
   cron:
     container_name: cron
     build:
-      context: ./cron
+      context: ./php
+      target: cron
       labels:
         <<: *build_labels
       args:
