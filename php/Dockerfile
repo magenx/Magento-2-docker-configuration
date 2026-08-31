@@ -104,7 +104,9 @@ COPY --from=pie /pie /usr/local/bin/pie
 RUN <<EOF
   set -e
   for pie_module in ${PIE_MODULES}; do
-    pie install "$pie_module"
+    phpredis=' --enable-redis-igbinary --enable-redis-lz4 --with-liblz4=/usr/'
+    pie_module_options="${pie_module%/*}"
+    pie install "$pie_module" ${!pie_module_options}
   done
 EOF
 
