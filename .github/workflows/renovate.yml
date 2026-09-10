@@ -1,0 +1,29 @@
+name: renovate
+ 
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+ 
+permissions: {}
+ 
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+ 
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: renovate
+    steps:
+      - uses: renovatebot/github-action@37beffda261423addd537c33f2d126df7f6ffbab # v46.2.6
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
+        env:
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          RENOVATE_ONBOARDING: "false"
+          RENOVATE_REQUIRE_CONFIG: "required"
+          RENOVATE_CONFIG_FILE_NAMES: '[".github/renovate/config.json"]'
+          RENOVATE_HOST_RULES: '[{"hostType":"docker","matchHost":"dhi.io","username":"${{ secrets.DHI_USER }}","password":"${{ secrets.DHI_PAT }}"}]'
+          LOG_LEVEL: info
