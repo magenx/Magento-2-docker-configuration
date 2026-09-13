@@ -322,12 +322,12 @@ COPY --from=busybox /bin/tar   /bin/tar
 COPY --from=busybox /bin/env   /bin/env
 
 COPY --chmod=644 <<EOF /etc/passwd
-${BRAND}:x:${MAGENTO_UID}:${PHP_UID}:${PHP_USER}:/home/${BRAND}:/bin/false
+${BRAND}:x:${MAGENTO_UID}:${MAGENTO_UID}:${BRAND}:/home/${BRAND}:/bin/false
 nobody:x:65534:65534:nobody:/nonexistent:/bin/false
 EOF
 
 COPY --chmod=644 <<EOF /etc/group
-${PHP_USER}:x:${PHP_UID}:
+${BRAND}:x:${MAGENTO_UID}:
 shadow:x:42:
 nobody:x:65534:
 EOF
