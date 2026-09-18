@@ -7,6 +7,22 @@
 
 set -e
 
+YELLOW="\e[33;40m"
+RESET="\e[0m"
+
+YELLOWTXT () {
+        MESSAGE=${@:-"${RESET}Error: No message passed"}
+        echo -e "  ${YELLOW}${MESSAGE}${RESET}"
+}
+
+_echo () {
+  echo -en "  $@"
+}
+_space() {
+    local count=${1:-1}
+    printf '%0.s\n' $(seq 1 $count)
+}
+
 # Check root
 if [ "$EUID" -ne 0 ]; then
     echo "Please run as root"
@@ -14,6 +30,31 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 BRAND=$1
+
+_space 1
+YELLOWTXT "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+_space 1
+YELLOWTXT "BY INSTALLING ANY SOFTWARE AND BY USING ANY CONFIGURATIONS"
+YELLOWTXT "PROVIDED BY THIS SCRIPT YOU ACKNOWLEDGE AND AGREE:"
+_space 1
+YELLOWTXT "ALL SOFTWARE AND ALL CONFIGURATIONS PROVIDED AS IS"
+YELLOWTXT "UNSUPPORTED AND WE ARE NOT RESPONSIBLE FOR ANY DAMAGE."
+YELLOWTXT "CONFIGURING YOUR OWN SERVER MEANS YOU ARE RESPONSIBLE FOR"
+YELLOWTXT "PERMISSIONS, UPGRADES, PATCHES AND SECURITY MONITORING."
+_space 1
+YELLOWTXT "THIS SCRIPT IS JUST A TEMPLATE AND COULD CONTAIN MISTAKES."
+_space 1
+YELLOWTXT "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+_space 2
+_echo "[?] Do you agree to these terms ?  [y/n][y]: "
+read terms_agree
+if [ "${terms_agree}" == "y" ]; then
+  # set terms agreed
+  else
+  echo "Going out."
+  _space 1
+  exit 1
+fi
 
 echo "Configuring /etc/docker/daemon.json"
 mkdir -p /etc/docker/
