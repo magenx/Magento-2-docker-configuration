@@ -148,6 +148,7 @@ services:
     hostname: cache
     build: &valkey_build
       context: ./valkey
+      target: cache
       labels:
         <<: *build_labels
       args:
@@ -179,7 +180,9 @@ services:
   session:
     container_name: session
     hostname: session
-    build: *valkey_build
+    build:
+      <<: *valkey_build
+      target: session
     command:
       - /etc/valkey/session.conf
       - --bind
