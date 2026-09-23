@@ -49,10 +49,10 @@ _space 2
 _echo "[?] Do you agree to these terms ?  [y/n][y]: "
 read terms_agree
 if [ "${terms_agree}" == "y" ]; then
-  # set terms agreed
+    terms_agreed=true
   else
-  echo "Going out."
-  _space 1
+    echo "Going out."
+    _space 1
   exit 1
 fi
 
