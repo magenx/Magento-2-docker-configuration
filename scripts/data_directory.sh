@@ -27,7 +27,5 @@ do
   mkdir -p "$path"
   chown -R "${hostuid}:${hostuid}" "$path"
   chmod 2770 "$path"
-  setfacl -R -m \
-    u:${hostuid}:rwX,g:${hostuid}:rwX,o::-,\
-    d:u:${hostuid}:rwX,d:g:${hostuid}:rwX,d:o::- "$path"
+  setfacl -R -m u:${hostuid}:rwX,g:${hostuid}:rwX,o::-,d:u:${hostuid}:rwX,d:g:${hostuid}:rwX,d:o::- "$path"
 done
