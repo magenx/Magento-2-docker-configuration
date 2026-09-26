@@ -1,51 +1,21 @@
 # syntax = docker/dockerfile:labs
 
 ARG VARNISH_IMAGE
-FROM ${VARNISH_IMAGE}
-
-LABEL author="admin@magenx.com"
-LABEL source="https://github.com/magenx/Magento-2-docker-configuration"
+ARG VARNISH_DEV_IMAGE
+FROM ${VARNISH_DEV_IMAGE} as build
 
 ARG TIMEZONE
 ARG VARNISH_SIZE
 
-USER root
-
 RUN <<EOF
-  apk add --no-cache shadow
-  groupmod -g 6082 varnish
-  usermod -u 6082 varnish
-  apk del shadow
-
-  chown :6082 /etc/varnish /var/lib/varnish
-
-  ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
+  cp /usr/share/zoneinfo/${TIMEZONE} /tmp/localtime
   echo ${TIMEZONE} > /etc/timezone
   cat /proc/sys/kernel/random/uuid > /etc/varnish/secret
 EOF
 
-COPY --chmod=644 default.vcl /etc/varnish/
+FROM ${VARNISH_IMAGE}
 
-RUN <<EOF cat > /usr/local/bin/docker-varnish-entrypoint
-#!/bin/sh
-    exec varnishd \\
-            -F \\
-            -a varnish:80 \\
-            -T varnish:6082 \\
-            -f /etc/varnish/default.vcl \\
-            -S /etc/varnish/secret \\
-            -s malloc,${VARNISH_SIZE} \\
-            -p thread_pool_min=200 \\
-            -p thread_pool_max=4000 \\
-            -p thread_pool_add_delay=2 \\
-            -p cli_timeout=25 \\
-            -p syslog_cli_traffic=off \\
-            -p feature=+esi_ignore_https \\
-            -p feature=+esi_disable_xml_check \\
-            -p feature=+esi_ignore_other_elements \\
-            -p vcc_allow_inline_c=on \\
-            -p http_resp_hdr_len=65536 \\
-            -p timeout_linger=100
-EOF
-
-USER varnish
+COPY --chmod=644 config/ /etc/varnish/
+COPY --chmod=640 --from=build /etc/varnish/secret /etc/varnish/secret
+COPY --from=build /etc/timezone  /etc/timezone
+COPY --from=build /tmp/localtime  /etc/localtime

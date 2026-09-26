@@ -23,10 +23,9 @@ FROM ${COMPOSER_IMAGE} AS composer
 # ---------------------------------------------------------------------
 #  SHARED BUILDER php compiled once, consumed by all three targets
 # ---------------------------------------------------------------------
-FROM ${PHP_DEV_IMAGE} AS builder
+FROM ${PHP_DEV_IMAGE} AS build
 
 ARG PHP_EXTENSION
-ARG PHP_USER
 ARG MAGENTO_ROOT_PATH
 ARG BRAND
 ARG CURRENT_SYMLINK
@@ -148,10 +147,10 @@ EOF
 #  PER-TARGET BUILD STAGES
 # ---------------------------------------------------------------------
 # php
-FROM builder AS build-php
+FROM build AS build-php
 
-ARG PHP_USER
 ARG MAGENTO_ROOT_PATH
+ARG DHI_STACK_UID
 ARG CURRENT_SYMLINK
 ARG BRAND
 
@@ -167,9 +166,8 @@ RUN <<EOF
 EOF
 
 # magento
-FROM builder AS build-magento
+FROM build AS build-magento
 
-ARG PHP_USER
 ARG MAGENTO_ROOT_PATH
 ARG CURRENT_SYMLINK
 ARG BRAND
@@ -191,9 +189,8 @@ RUN <<EOF
 EOF
 
 # cron
-FROM builder AS build-cron
+FROM build AS build-cron
 
-ARG PHP_USER
 ARG MAGENTO_ROOT_PATH
 ARG CURRENT_SYMLINK
 ARG BRAND
@@ -211,9 +208,7 @@ RUN <<EOF
   echo "${SUPERCRONIC_SHA1SUM}  /tmp/${SUPERCRONIC}" | sha1sum -c -
   chmod +x "/tmp/${SUPERCRONIC}"
 
-  mkdir -p ${MAGENTO_ROOT_PATH}/crontabs/
-  echo "* * * * * php ${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" \
-    > ${MAGENTO_ROOT_PATH}/crontabs/${PHP_USER}
+  echo "* * * * * php ${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > ${MAGENTO_ROOT_PATH}/crontab
 EOF
 
 # =====================================================================
@@ -221,8 +216,6 @@ EOF
 # =====================================================================
 FROM ${PHP_FPM_IMAGE} AS php
 
-ARG PHP_USER
-ARG PHP_UID
 ARG MAGENTO_ROOT_PATH
 ARG BRAND
 
@@ -235,31 +228,15 @@ COPY --from=build-php /etc/timezone                         /etc/timezone
 COPY --from=build-php /tmp/localtime                        /etc/localtime
 COPY --from=build-php /tmp/runtime-libs/                    /usr/lib/x86_64-linux-gnu/
 
-COPY --chmod=644 <<EOF /etc/passwd
-${PHP_USER}:x:${PHP_UID}:${PHP_UID}:${PHP_USER}:/home/${BRAND}:/bin/false
-nobody:x:65534:65534:nobody:/nonexistent:/bin/false
-EOF
-
-COPY --chmod=644 <<EOF /etc/group
-${PHP_USER}:x:${PHP_UID}:${PHP_USER}
-shadow:x:42:
-nobody:x:65534:
-EOF
-
-COPY --chmod=600 <<EOF /etc/shadow
-${PHP_USER}:!::0:99999:7:::
-nobody:*::0:99999:7:::
-EOF
-
 # =====================================================================
 #  RUNTIME: shared base for magento + cron
 # =====================================================================
 FROM ${PHP_IMAGE} AS magento-base
 
-COPY --from=builder ${PHP_PREFIX}/lib/php/extensions/ ${PHP_PREFIX}/lib/php/extensions/
-COPY --from=builder /etc/timezone                     /etc/timezone
-COPY --from=builder /tmp/localtime                    /etc/localtime
-COPY --from=builder /tmp/runtime-libs/                /usr/lib/x86_64-linux-gnu/
+COPY --from=build ${PHP_PREFIX}/lib/php/extensions/ ${PHP_PREFIX}/lib/php/extensions/
+COPY --from=build /etc/timezone                     /etc/timezone
+COPY --from=build /tmp/localtime                    /etc/localtime
+COPY --from=build /tmp/runtime-libs/                /usr/lib/x86_64-linux-gnu/
 
 COPY --from=busybox /bin/busybox /bin/busybox
 COPY --from=busybox /bin/sh      /bin/sh
@@ -269,8 +246,6 @@ COPY --from=busybox /bin/sh      /bin/sh
 # =====================================================================
 FROM magento-base AS cron
 
-ARG PHP_USER
-ARG PHP_UID
 ARG MAGENTO_ROOT_PATH
 ARG SUPERCRONIC
 
@@ -278,30 +253,11 @@ COPY --from=build-cron ${PHP_INI_DIR}/conf.d/                       ${PHP_INI_DI
 COPY --from=build-cron ${MAGENTO_ROOT_PATH}                         ${MAGENTO_ROOT_PATH}
 COPY --from=build-cron /tmp/${SUPERCRONIC}                          /usr/local/bin/supercronic
 
-COPY --chmod=644 <<EOF /etc/passwd
-${PHP_USER}:x:${PHP_UID}:${PHP_UID}:${PHP_USER}:${MAGENTO_ROOT_PATH}:/bin/false
-nobody:x:65534:65534:nobody:/nonexistent:/bin/false
-EOF
-
-COPY --chmod=644 <<EOF /etc/group
-${PHP_USER}:x:${PHP_UID}:${PHP_USER}
-shadow:x:42:
-nobody:x:65534:
-EOF
-
-COPY --chmod=600 <<EOF /etc/shadow
-${PHP_USER}:!::0:99999:7:::
-nobody:*::0:99999:7:::
-EOF
-
 # =====================================================================
 #  RUNTIME: magento  (service magento) default target
 # =====================================================================
 FROM magento-base AS magento
 
-ARG PHP_USER
-ARG PHP_UID
-ARG MAGENTO_UID
 ARG MAGENTO_ROOT_PATH
 ARG BRAND
 
@@ -320,19 +276,3 @@ COPY --from=busybox /bin/echo  /bin/echo
 COPY --from=busybox /bin/unzip /bin/unzip
 COPY --from=busybox /bin/tar   /bin/tar
 COPY --from=busybox /bin/env   /bin/env
-
-COPY --chmod=644 <<EOF /etc/passwd
-${BRAND}:x:${MAGENTO_UID}:${MAGENTO_UID}:${BRAND}:/home/${BRAND}:/bin/false
-nobody:x:65534:65534:nobody:/nonexistent:/bin/false
-EOF
-
-COPY --chmod=644 <<EOF /etc/group
-${BRAND}:x:${MAGENTO_UID}:
-shadow:x:42:
-nobody:x:65534:
-EOF
-
-COPY --chmod=600 <<EOF /etc/shadow
-${BRAND}:!::0:99999:7:::
-nobody:*::0:99999:7:::
-EOF

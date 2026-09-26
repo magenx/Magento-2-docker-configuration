@@ -71,9 +71,7 @@ echo "##########################################################################
 
 echo ""
 echo "Docker installation"
-export DEBIAN_FRONTEND=noninteractive 
-apt update && apt upgrade -y
-apt-get -y install ca-certificates screen vim syslog-ng-core git ufw apache2-utils acl
+export DEBIAN_FRONTEND=noninteractive
 install -m 0755 -d /etc/apt/keyrings
 
 . /etc/os-release
@@ -82,8 +80,8 @@ chmod a+r /etc/apt/keyrings/docker.asc
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/${ID} \
   ${VERSION_CODENAME} stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-apt-get update
-apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+apt-get update && apt-get upgrade -y
+apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin screen vim syslog-ng-core git ufw apache2-utils acl
 
 echo ""
 echo "Update docker compose alias"
@@ -106,10 +104,6 @@ vim .env
 echo ""
 echo "Generating random passwords and paths"
 bash scripts/random_generator.sh
-
-echo ""
-echo "Generating data directory"
-bash scripts/data_directory.sh
 
 echo ""
 echo "Generating app web directory"

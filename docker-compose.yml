@@ -70,6 +70,7 @@ services:
         <<: *build_labels
       args:
         MARIADB_IMAGE:
+        MARIADB_DEV_IMAGE:
     environment:
       MARIADB_AUTO_UPGRADE:
       MARIADB_DISABLE_UPGRADE_BACKUP:
@@ -79,16 +80,13 @@ services:
       MARIADB_PASSWORD:
       TIMEZONE:
     expose:
-      - "${MARIADB_UID}"
+      - "${MARIADB_PORT}"
     ports:
-      - "127.0.0.1:${MARIADB_UID}:${MARIADB_UID}"
+      - "127.0.0.1:${MARIADB_PORT}:${MARIADB_PORT}"
     networks:
       - backend
-    tmpfs:
-      - /run/mariadb:uid=${MARIADB_UID},gid=${MARIADB_UID},mode=0700
     volumes:
-      - ${CONTAINER_DATA_PATH}/mariadb:/var/lib/mysql
-    user: "${MARIADB_UID}:${MARIADB_UID}"
+      - mariadb:/var/lib/mysql
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized", "--innodb_buffer_pool_loaded"]
@@ -126,17 +124,15 @@ services:
       - OPENSEARCH_JAVA_OPTS=${OPENSEARCH_XMS} ${OPENSEARCH_XMX}
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_ADMIN_PASSWORD}
     expose:
-      - "${OPENSEARCH_UID}"
-      - "9300"
+      - "${OPENSEARCH_PORT}"
     networks:
       - frontend
     volumes:
-      - ${CONTAINER_DATA_PATH}/opensearch:/usr/share/opensearch/data
-      - ${CONTAINER_DATA_PATH}/opensearch/logs:/usr/share/opensearch/logs
-    user: "${OPENSEARCH_UID}:${OPENSEARCH_UID}"
+      - opensearch:/usr/share/opensearch/data
+      - opensearch-logs:/usr/share/opensearch/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -s -u 'admin:${OPENSEARCH_ADMIN_PASSWORD}' 'http://opensearch:${OPENSEARCH_UID}/_cluster/health' || exit 1"]
+      test: ["CMD-SHELL", "curl -s -u 'admin:${OPENSEARCH_ADMIN_PASSWORD}' 'http://opensearch:${OPENSEARCH_PORT}/_cluster/health' || exit 1"]
       <<: *healthcheck_default
     <<: [*ulimits, *logger]
 
@@ -154,22 +150,21 @@ services:
       args:
         VALKEY_IMAGE:
     command:
-      - /etc/valkey/cache.conf
+      - /cache.conf
       - --bind
       - cache
       - --port
-      - "${VALKEY_CACHE_UID}"
+      - "${VALKEY_CACHE_PORT}"
       - --maxmemory
       - "${VALKEY_CACHE_SIZE}"
       - --requirepass
       - "${VALKEY_PASSWORD}"
     expose:
-      - "${VALKEY_CACHE_UID}"
+      - "${VALKEY_CACHE_PORT}"
     networks:
       - frontend
     volumes:
-      - ${CONTAINER_DATA_PATH}/valkey-cache:/data
-    user: "${VALKEY_CACHE_UID}:${VALKEY_CACHE_UID}"
+      - valkey-cache:/data
     restart: unless-stopped
     mem_limit: ${VALKEY_CACHE_SIZE}
     <<: [*ulimits, *logger]
@@ -184,26 +179,25 @@ services:
       <<: *valkey_build
       target: session
     command:
-      - /etc/valkey/session.conf
+      - /session.conf
       - --bind
       - session
       - --port
-      - "${VALKEY_SESSION_UID}"
+      - "${VALKEY_SESSION_PORT}"
       - --maxmemory
       - "${VALKEY_SESSION_SIZE}"
       - --requirepass
       - "${VALKEY_PASSWORD}"
     expose:
-      - "${VALKEY_SESSION_UID}"
+      - "${VALKEY_SESSION_PORT}"
     networks:
       - frontend
     volumes:
-      - ${CONTAINER_DATA_PATH}/valkey-session:/data
-    user: "${VALKEY_SESSION_UID}:${VALKEY_SESSION_UID}"
+      - valkey-session:/data
     restart: unless-stopped
     mem_limit: ${VALKEY_SESSION_SIZE}
     healthcheck:
-      test: ["CMD", "valkey-cli", "-h", "session", "-p", "${VALKEY_SESSION_UID}", "-a", "${VALKEY_PASSWORD}", "ping"]
+      test: ["CMD", "valkey-cli", "-h", "session", "-p", "${VALKEY_SESSION_PORT}", "-a", "${VALKEY_PASSWORD}", "ping"]
       <<: *healthcheck_default
     <<: [*ulimits, *logger]
 
@@ -223,15 +217,15 @@ services:
       RABBITMQ_DEFAULT_USER: ${BRAND}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
       RABBITMQ_DEFAULT_VHOST: ${BRAND}
+      RABBITMQ_ENABLED_PLUGINS_FILE: /enabled_plugins
     expose:
-      - "5672"
-      - "15672"
+      - "${RABBITMQ_PORT}"
+      - "${RABBITMQ_MANAGE_PORT}"
     networks:
       - frontend
     volumes:
-      - ${CONTAINER_DATA_PATH}/rabbitmq:/var/lib/rabbitmq
-      - ${CONTAINER_DATA_PATH}/rabbitmq/log:/var/log/rabbitmq
-    user: "${RABBITMQ_UID}:${RABBITMQ_UID}"
+      - rabbitmq:/var/lib/rabbitmq
+      - rabbitmq-logs:/var/log/rabbitmq
     restart: unless-stopped
     mem_limit: 1G
     <<: [*ulimits, *logger]
@@ -248,6 +242,7 @@ services:
         <<: *build_labels
       args:
         VARNISH_IMAGE:
+        VARNISH_DEV_IMAGE:
         VARNISH_SIZE:
         TIMEZONE:
     develop:
@@ -261,12 +256,25 @@ services:
       - nginx
       - php
     ports:
-      - "${VARNISH_PRIVATE_IP}:80"
+      - "${HOST_PRIVATE_IP}:${HOST_PRIVATE_PORT}:${VARNISH_PORT}"
     networks:
       - frontend
     tmpfs:
-      - /var/lib/varnish/varnishd:exec,uid=${VARNISH_UID},gid=${VARNISH_UID},mode=1770,size=128m
-    user: "${VARNISH_UID}:${VARNISH_UID}"
+      - /var/lib/varnish/varnishd:exec,uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770,size=256m
+    command:
+      - -F
+      - -a 
+      - varnish:80
+      - -T 
+      - varnish:6082
+      - -f 
+      - /etc/varnish/default.vcl
+      - -S 
+      - /etc/varnish/secret
+      - -s 
+      - malloc,${VARNISH_SIZE}
+      - -I 
+      - /etc/varnish/varnish_params
     restart: unless-stopped
     mem_limit: ${VARNISH_SIZE}
     healthcheck:
@@ -288,11 +296,10 @@ services:
       args: &php_magento_args
         PHP_DEV_IMAGE:
         PHP_FPM_IMAGE:
-        PHP_USER:
         PHP_IMAGE:
         PHP_EXTENSION:
         PHP_FPM:
-        PHP_UID:
+        PHP_FPM_PORT:
         PIE_IMAGE:
         PIE_MODULES:
         BUSYBOX_IMAGE:
@@ -301,7 +308,7 @@ services:
         DOMAIN:
         ADMIN_PATH:
         MAGENTO_ROOT_PATH:
-        MAGENTO_UID:
+        DHI_STACK_UID:
         TIMEZONE:
         CURRENT_SYMLINK:
     develop:
@@ -326,7 +333,7 @@ services:
       mariadb:
         condition: service_healthy
     expose:
-      - "${PHP_UID}"
+      - "${PHP_FPM_PORT}"
     networks:
       - backend
       - frontend
@@ -336,7 +343,6 @@ services:
       - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var
       - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media
     working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
-    user: "${PHP_UID}:${PHP_UID}"
     entrypoint: ["php-fpm", "-F"]
     restart: unless-stopped
     <<: [*ulimits, *logger]
@@ -370,7 +376,6 @@ services:
     networks:
       - backend
       - frontend
-    user: "${MAGENTO_UID}:${PHP_UID}"
     entrypoint: ["/bin/sh", "/entrypoint.sh"]
     <<: [*ulimits, *logger]
 
@@ -388,7 +393,6 @@ services:
         <<: *php_magento_args
         NGINX_IMAGE:
         NGINX_DEV_IMAGE:
-        PHP_FPM:
         PROFILER:
         RESOLVER:
         RABBITMQ_PATH:
@@ -403,7 +407,7 @@ services:
       php:
         condition: service_started
     expose:
-      - "80"
+      - "${NGINX_PORT}"
     networks:
       - frontend 
     volumes:
@@ -411,10 +415,9 @@ services:
       - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var:ro
       - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media:ro
       - ${MAGENTO_ROOT_PATH}/releases:${MAGENTO_ROOT_PATH}/releases:ro
-      - ${CONTAINER_DATA_PATH}/nginx/log:/var/log/nginx
-      - ${CONTAINER_DATA_PATH}/nginx/cache:/var/cache/nginx
+      - nginx-logs:/var/log/nginx
+      - nginx-cache:/var/cache/nginx
     working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
-    user: "${NGINX_UID}:${NGINX_UID}"
     restart: unless-stopped
     <<: [*ulimits, *logger]
 
@@ -435,7 +438,7 @@ services:
         SUPERCRONIC_URL:
     develop:
       watch:
-        - path: ./cron
+        - path: ./php
           action: rebuild
     environment:
       <<: *php_magento_env
@@ -451,9 +454,8 @@ services:
       - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var
       - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media
     working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
-    user: "${PHP_UID}:${PHP_UID}"
     entrypoint: ["/usr/local/bin/supercronic"]
-    command: ["${MAGENTO_ROOT_PATH}/crontabs/${PHP_USER}"]
+    command: ["${MAGENTO_ROOT_PATH}/crontab"]
     restart: unless-stopped
     <<: [*ulimits, *logger]
 
@@ -489,11 +491,11 @@ services:
     volumes:
       - ${MAGENTO_ROOT_PATH}/shared/pub/media:${MAGENTO_ROOT_PATH}/shared/pub/media:ro
     expose:
-      - "${IMGPROXY_UID}"
+      - "${IMGPROXY_PORT}"
     networks:
       - frontend
     working_dir: "${MAGENTO_ROOT_PATH}/shared/pub/media"
-    user: "${IMGPROXY_UID}:${IMGPROXY_UID}"
+    user: "${DHI_STACK_UID}:${DHI_STACK_UID}"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "imgproxy", "health"]
@@ -507,3 +509,18 @@ services:
 networks:
   frontend:
   backend:
+  
+# -----------------------------------------------------------------------------------------------------------------------
+#   Named volumes
+# ----------------------------------------------------------------------------------------------------------------------- 
+
+volumes:
+  mariadb:
+  opensearch:
+  opensearch-logs:
+  valkey-session:
+  valkey-cache:
+  rabbitmq:
+  rabbitmq-logs:
+  nginx-cache:
+  nginx-logs:

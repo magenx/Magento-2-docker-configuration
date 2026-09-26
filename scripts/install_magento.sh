@@ -5,6 +5,15 @@
 
 MAGENX_INSTALL_GITHUB_REPO="https://raw.githubusercontent.com/magenx/Magento-2-server-installation/master"
 
+docker compose exec -e MYSQL_PWD="$MARIADB_ROOT_PASSWORD" mariadb \
+  mariadb -hmariadb -uroot -e "
+    DROP DATABASE IF EXISTS test;
+    DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+    CREATE DATABASE IF NOT EXISTS ${MARIADB_DATABASE};
+    CREATE USER IF NOT EXISTS '${MARIADB_USER}'@'%' IDENTIFIED BY '${MARIADB_PASSWORD}';
+    ALTER USER '${MARIADB_USER}'@'%' IDENTIFIED BY '${MARIADB_PASSWORD}';
+    GRANT ALL ON ${MARIADB_DATABASE}.* TO '${MARIADB_USER}'@'%';"
+
 # Get Magento composer.json
 docker compose run --rm magento composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition . --no-install
 

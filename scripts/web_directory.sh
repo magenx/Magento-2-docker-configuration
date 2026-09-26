@@ -2,10 +2,7 @@
 
 . .env
 
-MAGENTO_UID="10${MAGENTO_UID}"
-PHP_UID="10${PHP_UID}"
-NGINX_UID="10${NGINX_UID}"
-IMGPROXY_UID="10${IMGPROXY_UID}"
+MAGENTO_UID="1${DHI_STACK_UID}"
 
 if [ ! -d "${MAGENTO_ROOT_PATH}/releases" ] || [ -z "$(ls -A ${MAGENTO_ROOT_PATH}/releases)" ]; then
   INSTALLATION_RELEASE="$(date +'%Y%m%d%H%M')"
@@ -23,7 +20,4 @@ find ${MAGENTO_ROOT_PATH}/shared -type f ! -perm 660 -exec chmod 660 {} \;
 find ${MAGENTO_ROOT_PATH}/public ${MAGENTO_ROOT_PATH}/releases -type d ! -perm 2750 -exec chmod 2750 {} \;
 find ${MAGENTO_ROOT_PATH}/public ${MAGENTO_ROOT_PATH}/releases -type f ! -perm 640 -exec chmod 640 {} \;
 
-setfacl -R -m u:${PHP_UID}:r-X,d:u:${PHP_UID}:r-X ${MAGENTO_ROOT_PATH}/{releases,public}
-setfacl -R -m u:${PHP_UID}:rwX,d:u:${PHP_UID}:rwX ${MAGENTO_ROOT_PATH}/shared/pub/media ${MAGENTO_ROOT_PATH}/shared/var
-setfacl -R -m u:${NGINX_UID}:r-X,d:u:${NGINX_UID}:r-X ${MAGENTO_ROOT_PATH}/{releases,public,shared}
-setfacl -R -m u:${IMGPROXY_UID}:r-X,d:u:${IMGPROXY_UID}:r-X ${MAGENTO_ROOT_PATH}/shared/pub/media
+setfacl -R -m u:${MAGENTO_UID}:rwX,o::---,d:u:${MAGENTO_UID}:rwX,o::--- ${MAGENTO_ROOT_PATH}

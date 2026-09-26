@@ -2,7 +2,7 @@
 
 ARG NGINX_IMAGE
 ARG NGINX_DEV_IMAGE
-FROM ${NGINX_DEV_IMAGE} AS builder
+FROM ${NGINX_DEV_IMAGE} AS build
 
 ARG BRAND
 ARG DOMAIN
@@ -67,7 +67,7 @@ RUN <<EOF
     target_file="/etc/nginx/${relative_path%.template}";
     target_dir=$(dirname "$target_file");
     mkdir -p "$target_dir";
-    envsubst '${BRAND} ${DOMAIN} ${PHP_USER} ${PHP_FPM} ${TIMEZONE} ${PROFILER} ${RESOLVER} ${MAGENTO_ROOT_PATH} ${ADMIN_PATH} ${RABBITMQ_PATH} ${ADMINER_PATH}' \
+    envsubst '${BRAND} ${DOMAIN} ${PHP_FPM} ${TIMEZONE} ${PROFILER} ${RESOLVER} ${MAGENTO_ROOT_PATH} ${ADMIN_PATH} ${RABBITMQ_PATH} ${ADMINER_PATH}' \
     < "$template" > "$target_file";
     echo "Processed: $template -> $target_file";
   done
@@ -85,6 +85,6 @@ EOF
 # Final runtime
 FROM ${NGINX_IMAGE}
 # Copy all libs and configurations
-COPY --from=builder /out/modules/ /usr/lib/nginx/modules/
-COPY --from=builder /out/lib/ /usr/lib/x86_64-linux-gnu/
-COPY --from=builder /etc/nginx /etc/nginx
+COPY --from=build /out/modules/ /usr/lib/nginx/modules/
+COPY --from=build /out/lib/ /usr/lib/x86_64-linux-gnu/
+COPY --from=build /etc/nginx /etc/nginx

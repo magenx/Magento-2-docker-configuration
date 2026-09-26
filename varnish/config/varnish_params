@@ -1,0 +1,11 @@
+param.set  thread_pool_min 200
+param.set  thread_pool_max 4000
+param.set  thread_pool_add_delay 2
+param.set  cli_timeout 25
+param.set  syslog_cli_traffic off
+param.set  feature +esi_ignore_https
+param.set  feature +esi_disable_xml_check
+param.set  feature +esi_ignore_other_elements
+param.set  vcc_allow_inline_c on
+param.set  http_resp_hdr_len 65536
+param.set  timeout_linger 100
