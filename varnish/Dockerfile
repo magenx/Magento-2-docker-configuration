@@ -18,7 +18,7 @@ EOF
 RUN <<EOF
   apt-get update && apt-get install -y --no-install-recommends \
   git ca-certificates autoconf automake libtool make pkg-config \
-  python3 python3-docutils libgetdns-dev
+  python3 python3-docutils
 EOF
 
 RUN <<EOF
@@ -34,11 +34,7 @@ RUN <<EOF
   VMODDIR="$(pkg-config --variable=vmoddir varnishapi)"
   mkdir -p "/out${VMODDIR}"
   cp src/.libs/libvmod_dynamic.so "/out${VMODDIR}/"
-  # carry getdns and its deps; skip core glibc libs the runtime already has
-  ldd "/out${VMODDIR}/libvmod_dynamic.so" \
-    | awk '/=> \// {print $3}' \
-    | grep -Ev '/(libc|libm|libpthread|libdl|librt|ld-linux[^/]*)\.so' \
-    | xargs -r cp -aL --parents -t /out
+  ldd "/out${VMODDIR}/libvmod_dynamic.so"
 EOF
 
 FROM ${VARNISH_IMAGE}
