@@ -30,7 +30,7 @@ Two isolated Docker networks:
 - Random 6-character paths for admin and RabbitMQ endpoints
 - 12-character random profiler token
 - MariaDB root password auto-generated and logged once
-- All passwords stored in `.env` file (excluded from git)
+- All passwords, Magento keys and random paths stored in `.env.secrets` (mode `600`, in `.gitignore`), settings in `.env`
 
 ### 5. **File System Permissions**
 **Data directories** (read-write for service users):
@@ -119,7 +119,8 @@ Containers monitored with health checks:
 │
 └── docker/                            # Docker configuration
     ├── docker-compose.yml
-    ├── .env                           # Environment variables & passwords
+    ├── .env                           # Environment variables (settings)
+    ├── .env.secrets                   # Passwords, Magento keys, random paths (600)
     ├── php/
     ├── nginx/
     ├── mariadb/
@@ -222,7 +223,7 @@ volumes:
 
 ### Security Tokens
 - Auto-generated during setup via `scripts/random_generator.sh`
-- Stored in `.env` file
+- Stored in `.env.secrets` file, loaded with `COMPOSE_ENV_FILES=.env,.env.secrets`
 - Includes: Redis, RabbitMQ, MariaDB, OpenSearch passwords
 - Admin and RabbitMQ paths randomized
 

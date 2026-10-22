@@ -75,34 +75,37 @@ What the script does, in order:
 1. Asks you to agree to the terms.
 2. Writes `/etc/docker/daemon.json` with `"userns-remap": "default"`.
 3. Adds the official Docker apt repo, upgrades the system and installs `docker-ce`, `buildx`, `compose` plugin, plus `git vim screen syslog-ng-core ufw apache2-utils acl`.
-4. Adds alias `doco='docker compose'` to `~/.bash_profile`.
+4. Adds alias `doco='docker compose'` and `export COMPOSE_ENV_FILES=.env,.env.secrets` to `~/.bash_profile`, so compose loads both env files.
 5. Clones this repository into `/opt/BRAND/docker` and moves you there.
-6. Copies `.env.template` to `.env` and **opens it in `vim`** (see Step 2).
-7. `scripts/random_generator.sh` appends random passwords for all services, plus random admin / rabbitmq / adminer paths and profiler key, to `.env`.
+6. Copies `.env.template` to `.env` and `.env.secrets.template` to `.env.secrets` and **opens both in `vim`** (see Step 2).
+7. `scripts/random_generator.sh` appends random passwords for all services, plus random admin / rabbitmq / adminer paths and profiler key, to `.env.secrets`.
 8. `scripts/web_directory.sh` creates the `/opt/BRAND/magento` release layout, first release folder and `current` symlink, sets owner `165532`, permissions and ACL.
 9. `scripts/get_nginx_config.sh` pulls magento2 nginx configs from [magenx/Magento-nginx-config](https://github.com/magenx/Magento-nginx-config) into `nginx/templates` (rendered with `envsubst` at build time).
-10. Tightens permissions on `/opt/BRAND/docker` and raises kernel key limits (`/etc/sysctl.d/99-docker-maxkeys.conf`).
+10. Tightens permissions on `/opt/BRAND/docker`, sets `.env.secrets` to `600` and raises kernel key limits (`/etc/sysctl.d/99-docker-maxkeys.conf`).
 
 > [!WARNING]
-> `scripts/random_generator.sh` deletes everything below `## generated passwords for services` in `.env` and writes new values.  
+> `scripts/random_generator.sh` deletes everything below `## generated passwords for services` in `.env.secrets` and writes new values.  
 > Do not re-run it after deployment, or your services and database credentials will no longer match.
 
 <br />
 
-### Step 2. Edit `.env`
-`vim` opens during Step 1. Required values:
+### Step 2. Edit `.env` and `.env.secrets`
+`vim` opens both during Step 1 (`:n` for the next file). Settings go in `.env`, secrets in `.env.secrets`.  
+`.env.secrets` is in `.gitignore`. Keep it out of git or commit it encrypted, and back it up off the server: without `CRYPT_KEY` Magento cannot decrypt its stored config values.  
+Required values:
 
 | Variable | What to set |
 |---|---|
 | `BRAND` | same brand name you passed to `docker.sh` |
 | `DOMAIN` | shop domain, e.g. `domain.com` |
 | `HOST_PRIVATE_IP` / `HOST_PRIVATE_PORT` | host IP:port where varnish listens (your load balancer target) |
-| `COMPOSER_AUTH` | your own `repo.magento.com` keys |
-| `CRYPT_KEY` / `GRAPHQL_ID_SALT` | Magento keys (set before install, keep secret) |
+| `COMPOSER_AUTH` | `.env.secrets`: your own `repo.magento.com` keys |
+| `CRYPT_KEY` / `GRAPHQL_ID_SALT` | `.env.secrets`: Magento keys (set before install, keep secret) |
 | `TIMEZONE` | e.g. `Europe/Berlin` |
 
 Optional: memory sizes (`VALKEY_*_SIZE`, `VARNISH_SIZE`, `OPENSEARCH_XMS/XMX`), `PHP_EXTENSION`, `PIE_MODULES`, PHP 8.4 / 8.5 image block, imgproxy settings.  
-After Step 1 finishes, check the generated passwords at the end of `.env`.
+After Step 1 finishes, check the generated passwords at the end of `.env.secrets`.  
+Compose stops with `missing, load .env.secrets` if it runs without the secrets file.
 
 <br />
 
@@ -151,13 +154,13 @@ bash rabbitmq/create_user.sh     # delete guest, add vhost BRAND, set permission
 bash scripts/install_magento.sh
 ```
 What the script does:
-1. Removes the `test` database, creates the `BRAND` database and user in MariaDB with passwords from `.env`.
+1. Removes the `test` database, creates the `BRAND` database and user in MariaDB with passwords from `.env.secrets`.
 2. `composer create-project` of `magento/project-community-edition` into the current release (`--no-install`).
 3. Adds `replace` rules from `php/config/cli/composer_replace` to `composer.json` to drop unused modules.
 4. `composer install`.
 5. Asks `Execute magento setup:install? [y/n]`. With `y` it installs Magento connected to mariadb, valkey `session` + `cache`, rabbitmq and opensearch, admin user `admin` with random password.
 
-> Save the admin password shown in the output. Admin URL: `https://DOMAIN/ADMIN_PATH` (`ADMIN_PATH` is in `.env`).
+> Save the admin password shown in the output. Admin URL: `https://DOMAIN/ADMIN_PATH` (`ADMIN_PATH` is in `.env.secrets`).
 
 <br />
 
@@ -174,14 +177,15 @@ doco run --rm magento n98 --version
 ```
 doco exec -it php php -v
 doco exec -it php top
+. .env.secrets
 doco exec -it cache valkey-cli -h cache -p 6380 -a "$VALKEY_PASSWORD" info
 doco exec -it session valkey-cli -h session -p 6379 -a "$VALKEY_PASSWORD" ping
 doco exec -it nginx nginx -t
 ```
-- Credentials: all passwords are in `/opt/BRAND/docker/.env` (`MARIADB_ROOT_PASSWORD`, `MARIADB_PASSWORD`, `VALKEY_PASSWORD`, `RABBITMQ_PASSWORD`, `OPENSEARCH_PASSWORD`, `OPENSEARCH_ADMIN_PASSWORD`).
+- Credentials: all passwords are in `/opt/BRAND/docker/.env.secrets` (`MARIADB_ROOT_PASSWORD`, `MARIADB_PASSWORD`, `VALKEY_PASSWORD`, `RABBITMQ_PASSWORD`, `OPENSEARCH_PASSWORD`, `OPENSEARCH_ADMIN_PASSWORD`).
 - Database shell:
 ```
-. .env && doco exec -e MYSQL_PWD="$MARIADB_ROOT_PASSWORD" mariadb mariadb -uroot
+. .env.secrets && doco exec -e MYSQL_PWD="$MARIADB_ROOT_PASSWORD" mariadb mariadb -uroot
 ```
 - Rebuild one service after config change:
 ```

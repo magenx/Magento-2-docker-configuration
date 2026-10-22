@@ -148,7 +148,7 @@ services:
     user: "${DHI_STACK_UID}:${DHI_STACK_UID}"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -s -u 'admin:${OPENSEARCH_ADMIN_PASSWORD}' 'http://opensearch:${OPENSEARCH_PORT}/_cluster/health' || exit 1"]
+      test: ["CMD-SHELL", "curl -s -u 'admin:${OPENSEARCH_ADMIN_PASSWORD:?missing, load .env.secrets}' 'http://opensearch:${OPENSEARCH_PORT}/_cluster/health' || exit 1"]
       <<: *healthcheck_default
     tmpfs:
       - /tmp:exec,uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
@@ -176,7 +176,7 @@ services:
       - --maxmemory
       - "${VALKEY_CACHE_SIZE}"
       - --requirepass
-      - "${VALKEY_PASSWORD}"
+      - "${VALKEY_PASSWORD:?missing, load .env.secrets}"
     expose:
       - "${VALKEY_CACHE_PORT}"
     networks:
@@ -207,7 +207,7 @@ services:
       - --maxmemory
       - "${VALKEY_SESSION_SIZE}"
       - --requirepass
-      - "${VALKEY_PASSWORD}"
+      - "${VALKEY_PASSWORD:?missing, load .env.secrets}"
     expose:
       - "${VALKEY_SESSION_PORT}"
     networks:
@@ -217,7 +217,7 @@ services:
     restart: unless-stopped
     mem_limit: ${VALKEY_SESSION_SIZE}
     healthcheck:
-      test: ["CMD", "valkey-cli", "-h", "session", "-p", "${VALKEY_SESSION_PORT}", "-a", "${VALKEY_PASSWORD}", "ping"]
+      test: ["CMD", "valkey-cli", "-h", "session", "-p", "${VALKEY_SESSION_PORT}", "-a", "${VALKEY_PASSWORD:?missing, load .env.secrets}", "ping"]
       <<: *healthcheck_default
     tmpfs:
       - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
@@ -237,7 +237,7 @@ services:
         RABBITMQ_IMAGE:
     environment:
       RABBITMQ_DEFAULT_USER: ${BRAND}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:?missing, load .env.secrets}"
       RABBITMQ_DEFAULT_VHOST: ${BRAND}
       RABBITMQ_ENABLED_PLUGINS_FILE: /enabled_plugins
     expose:

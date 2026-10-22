@@ -87,6 +87,7 @@ echo ""
 echo "Update docker compose alias"
 echo "alias for docker compose command = [ doco ]"
 echo "alias doco='docker compose'" >> ~/.bash_profile
+echo "export COMPOSE_ENV_FILES=.env,.env.secrets" >> ~/.bash_profile
 source ~/.bash_profile
 
 echo ""
@@ -99,7 +100,8 @@ echo "Clone docker compose configuration"
 git clone https://github.com/magenx/Magento-2-docker-configuration.git .
 
 mv .env.template .env
-vim .env
+mv .env.secrets.template .env.secrets
+vim .env .env.secrets
 
 echo ""
 echo "Generating random passwords and paths"
@@ -115,6 +117,7 @@ bash scripts/get_nginx_config.sh
 
 find /opt/${BRAND}/docker -type d -exec chmod 2770 {} \;
 find /opt/${BRAND}/docker -type f -exec chmod 660 {} \;
+chmod 600 /opt/${BRAND}/docker/.env.secrets
 
 cat > /etc/sysctl.d/99-docker-maxkeys.conf <<EOF
 # Session key quota fixes for Docker

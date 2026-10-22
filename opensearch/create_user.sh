@@ -1,5 +1,7 @@
 #!/bin/bash
 . .env
+. .env.secrets
+export COMPOSE_ENV_FILES=.env,.env.secrets
 docker compose exec -it opensearch curl -XPUT -u admin:${OPENSEARCH_ADMIN_PASSWORD} "opensearch:9200/_plugins/_security/api/roles/${BRAND}"   -H "Content-Type: application/json"   -d "$(cat <<EOF
 {
     "cluster_permissions": [

@@ -5,18 +5,20 @@
 # # ---------------------------------------------------------------------------------------------------------------------#
 
 
-sed -i '0,/## generated passwords for services/!d' .env
+sed -i '0,/## generated passwords for services/!d' .env.secrets
 
 for SERVICE in VALKEY RABBITMQ MARIADB MARIADB_ROOT OPENSEARCH_ADMIN OPENSEARCH DASHBOARD
 do
 PASSWORD=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9%&?' | fold -w 32 | head -n 1)
-echo "${SERVICE}_PASSWORD='${PASSWORD}'" >> .env
+echo "${SERVICE}_PASSWORD='${PASSWORD}'" >> .env.secrets
 done
 
 for THIS in ADMIN RABBITMQ ADMINER
 do
 RANDOM_PATH=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 6 | head -n 1)
-echo "${THIS}_PATH='${THIS,,}_${RANDOM_PATH}'" >> .env
+echo "${THIS}_PATH='${THIS,,}_${RANDOM_PATH}'" >> .env.secrets
 done
 
-echo "PROFILER=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)" >> .env
+echo "PROFILER=$(head -c 500 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)" >> .env.secrets
+
+chmod 600 .env.secrets
