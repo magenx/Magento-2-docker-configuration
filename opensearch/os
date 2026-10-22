@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 . .env
+. .env.secrets
+export COMPOSE_ENV_FILES=.env,.env.secrets
 
 DOCKER_EXEC="docker compose exec opensearch"
 OS_ENDPOINT="opensearch:9200"

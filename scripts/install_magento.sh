@@ -2,6 +2,8 @@
 # Install Magento
 
 . .env
+. .env.secrets
+export COMPOSE_ENV_FILES=.env,.env.secrets
 
 MAGENX_INSTALL_GITHUB_REPO="https://raw.githubusercontent.com/magenx/Magento-2-server-installation/master"
 
