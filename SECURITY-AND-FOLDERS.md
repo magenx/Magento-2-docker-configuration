@@ -46,15 +46,17 @@ ACL: u:UID:rwX,g:UID:rwX,o::-
 
 ### 6. **Container Security Hardening**
 - **ulimits**: Increased file descriptors (65536) and memlock (-1)
-- **capabilities**: SYS_PTRACE only (for PHP debugging)
+- **capabilities**: all dropped (`cap_drop: ALL`), `no-new-privileges:true`
+- **read-only root filesystem**: `read_only: true` on all containers, writable paths are volumes or tmpfs only
+- **pids_limit**: 1024 processes per container
 - **read-only mounts**: Application code mounted read-only for nginx and php-fpm
-- **tmpfs**: Varnish uses tmpfs for cache (64MB, mode 1770)
+- **tmpfs**: `/tmp` on every container (owner `DHI_STACK_UID`, mode 1770), Varnish working dir (256MB, mode 1770)
 - **no privileged mode**: All containers run unprivileged
 
 ### 7. **Service Security Configuration**
 - **PHP**: `expose_php=Off`, `display_errors=Off`, opcache enabled
 - **Redis**: Password protected, maxmemory policies, lazyfree enabled
-- **OpenSearch**: SSL transport disabled (internal network), admin password required
+- **OpenSearch**: demo security config disabled, transport TLS with own CA and node/admin certificates generated at image build (CA key not shipped), HTTP plain on internal network, only `admin` internal user with password hashed at build from a BuildKit secret
 - **RabbitMQ**: Custom vhost, user authentication required
 - **Varnish**: ACL for PURGE requests (internal networks only), X-Powered-By/Server headers removed
 

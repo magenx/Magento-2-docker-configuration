@@ -112,13 +112,19 @@ EOF
 # Collect runtime shared libraries pulled in by the compiled extensions
 RUN <<EOF
   set -e
-  mkdir -p /tmp/runtime-libs
+  MULTIARCH="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
+  LIBDIR="/tmp/runtime-libs/${MULTIARCH}"
+  mkdir -p "${LIBDIR}"
   copy_deps() {
     for file in "$@"; do
       if [ -f "$file" ]; then
         ldd "$file" 2>/dev/null | grep "=> /" | awk '{print $3}' | while read dep; do
-          if [ -f "$dep" ] && [ ! -f "/tmp/runtime-libs/$(basename "$dep")" ]; then
-            cp "$dep" /tmp/runtime-libs/ 2>/dev/null || true
+          # skip glibc, the runtime image ships its own
+          case "$(basename "$dep")" in
+            libc.so.*|libm.so.*|libmvec.so.*|libpthread.so.*|libdl.so.*|librt.so.*|libresolv.so.*|libutil.so.*|libanl.so.*|ld-linux*.so.*) continue ;;
+          esac
+          if [ -f "$dep" ] && [ ! -f "${LIBDIR}/$(basename "$dep")" ]; then
+            cp "$dep" "${LIBDIR}/" 2>/dev/null || true
           fi
         done
       fi
@@ -128,10 +134,10 @@ RUN <<EOF
     copy_deps "$so_file"
   done
   for lib in \
-      /usr/lib/x86_64-linux-gnu/libgcrypt*.so* \
-      /usr/lib/x86_64-linux-gnu/libgpg-error*.so* \
-      /usr/lib/x86_64-linux-gnu/libbz2*.so*; do
-      cp $lib /tmp/runtime-libs/ 2>/dev/null || true
+      /usr/lib/${MULTIARCH}/libgcrypt*.so* \
+      /usr/lib/${MULTIARCH}/libgpg-error*.so* \
+      /usr/lib/${MULTIARCH}/libbz2*.so*; do
+      cp $lib "${LIBDIR}/" 2>/dev/null || true
   done
 EOF
 
@@ -194,8 +200,9 @@ FROM build AS build-cron
 ARG MAGENTO_ROOT_PATH
 ARG CURRENT_SYMLINK
 ARG BRAND
-ARG SUPERCRONIC
-ARG SUPERCRONIC_SHA1SUM
+ARG TARGETARCH
+ARG SUPERCRONIC_SHA1SUM_AMD64
+ARG SUPERCRONIC_SHA1SUM_ARM64
 ARG SUPERCRONIC_URL
 
 COPY config/cli/ /tmp/cli/
@@ -204,9 +211,14 @@ RUN <<EOF
   set -e
   envsubst < /tmp/cli/zz-cli-override.ini > ${PHP_INI_DIR}/conf.d/zz-cli-override.ini
 
-  curl -fsSL "${SUPERCRONIC_URL}" -o /tmp/${SUPERCRONIC}
-  echo "${SUPERCRONIC_SHA1SUM}  /tmp/${SUPERCRONIC}" | sha1sum -c -
-  chmod +x "/tmp/${SUPERCRONIC}"
+  case "${TARGETARCH}" in
+    amd64) SUPERCRONIC_SHA1SUM="${SUPERCRONIC_SHA1SUM_AMD64}" ;;
+    arm64) SUPERCRONIC_SHA1SUM="${SUPERCRONIC_SHA1SUM_ARM64}" ;;
+    *) echo "supercronic: unsupported arch ${TARGETARCH}"; exit 1 ;;
+  esac
+  curl -fsSL "${SUPERCRONIC_URL}/supercronic-linux-${TARGETARCH}" -o /tmp/supercronic
+  echo "${SUPERCRONIC_SHA1SUM}  /tmp/supercronic" | sha1sum -c -
+  chmod +x /tmp/supercronic
 
   echo "* * * * * php ${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}/bin/magento cron:run 2>&1" > ${MAGENTO_ROOT_PATH}/crontab
 EOF
@@ -226,7 +238,7 @@ COPY --from=build-php ${PHP_PREFIX}/etc/php-fpm.conf        ${PHP_PREFIX}/etc/ph
 COPY --from=build-php ${PHP_INI_DIR}/conf.d/                ${PHP_INI_DIR}/conf.d/
 COPY --from=build-php /etc/timezone                         /etc/timezone
 COPY --from=build-php /tmp/localtime                        /etc/localtime
-COPY --from=build-php /tmp/runtime-libs/                    /usr/lib/x86_64-linux-gnu/
+COPY --from=build-php /tmp/runtime-libs/                    /usr/lib/
 
 # =====================================================================
 #  RUNTIME: shared base for magento + cron
@@ -236,7 +248,7 @@ FROM ${PHP_IMAGE} AS magento-base
 COPY --from=build ${PHP_PREFIX}/lib/php/extensions/ ${PHP_PREFIX}/lib/php/extensions/
 COPY --from=build /etc/timezone                     /etc/timezone
 COPY --from=build /tmp/localtime                    /etc/localtime
-COPY --from=build /tmp/runtime-libs/                /usr/lib/x86_64-linux-gnu/
+COPY --from=build /tmp/runtime-libs/                /usr/lib/
 
 COPY --from=busybox /bin/busybox /bin/busybox
 COPY --from=busybox /bin/sh      /bin/sh
@@ -247,11 +259,10 @@ COPY --from=busybox /bin/sh      /bin/sh
 FROM magento-base AS cron
 
 ARG MAGENTO_ROOT_PATH
-ARG SUPERCRONIC
 
 COPY --from=build-cron ${PHP_INI_DIR}/conf.d/                       ${PHP_INI_DIR}/conf.d/
 COPY --from=build-cron ${MAGENTO_ROOT_PATH}                         ${MAGENTO_ROOT_PATH}
-COPY --from=build-cron /tmp/${SUPERCRONIC}                          /usr/local/bin/supercronic
+COPY --from=build-cron /tmp/supercronic                             /usr/local/bin/supercronic
 
 # =====================================================================
 #  RUNTIME: magento  (service magento) default target
