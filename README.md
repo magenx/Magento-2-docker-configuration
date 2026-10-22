@@ -198,6 +198,34 @@ doco down
 
 <br />
 
+# :package: Build, test and release images
+For a per-customer repository: images are built in GitHub Actions, pushed to `ghcr.io` and the server only pulls them.  
+`.github/workflows/release.yml` runs on every push to `main`:
+1. [release-please](https://github.com/googleapis/release-please) keeps a release PR from [conventional commits](https://www.conventionalcommits.org/) (`fix:` patch, `feat:` minor, `feat!:` major). Merging it creates a **draft** release and tag `vX.Y.Z`.
+2. Builds the 10 images on a runner with the server arch, tagged `ghcr.io/<owner>/BRAND-<service>:X.Y.Z` (`IMAGE_REGISTRY`, `IMAGE_TAG`). Stops if a tag already exists.
+3. Starts the stack with `docker-compose.ci.yml` (json-file logging, varnish on localhost), waits for all health checks, checks php extensions, composer and `nginx -t`.
+4. Pushes the images and attaches `docker-compose.release.yml` with the image digests to the draft release.
+5. Publishes the release.
+
+Repository setup:
+- Commit `.env` with the shop settings. Never commit `.env.secrets` unencrypted.
+- Variable `BUILD_IMAGES=true`. Without it only the release is published, no images.
+- Variable `BUILD_RUNNER`: `ubuntu-latest` (amd64, default) or `ubuntu-24.04-arm` (arm64), same arch as the server.
+- Secrets `DHI_USER`, `DHI_PAT`: `dhi.io` login.
+- Secret `BUILD_SECRETS`: the lines from the server `.env.secrets` that are built into images: `OPENSEARCH_ADMIN_PASSWORD`, `ADMIN_PATH`, `RABBITMQ_PATH`, `ADMINER_PATH`, `PROFILER`. All other passwords in CI are throwaway values.
+- Settings > Actions > General: allow GitHub Actions to create pull requests (release-please).
+- Settings > General > Releases: enable release immutability, so a published release and its lock file cannot change.
+
+Deploy a release on the server (`.env` and `.env.secrets` stay on the server, `docker login ghcr.io` with a classic PAT with `read:packages`):
+```
+gh release download vX.Y.Z -p docker-compose.release.yml --clobber
+doco -f docker-compose.yml -f docker-compose.release.yml pull
+doco -f docker-compose.yml -f docker-compose.release.yml up -d --no-build
+```
+Roll back: download the lock file of the previous release and run the same commands.
+
+<br />
+
 # :hammer_and_wrench: Stack components in use
 Docker Hardened Images - https://hub.docker.com/hardened-images/catalog  
 Versions below match `.env.template`, images are pinned by digest and updated by Renovate.

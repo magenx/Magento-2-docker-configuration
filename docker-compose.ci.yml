@@ -1,0 +1,35 @@
+# -----------------------------------------------------------------------------------------------------------------------
+#  CI override for the release workflow test step
+#  docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --wait
+#  - json-file logging, runners have no syslog socket at /dev/log
+#  - varnish on localhost, HOST_PRIVATE_IP does not exist on the runner
+# -----------------------------------------------------------------------------------------------------------------------
+x-ci-logging: &ci_logging
+  logging: !override
+    driver: json-file
+
+services:
+  mariadb:
+    <<: *ci_logging
+  opensearch:
+    <<: *ci_logging
+  cache:
+    <<: *ci_logging
+  session:
+    <<: *ci_logging
+  rabbitmq:
+    <<: *ci_logging
+  varnish:
+    <<: *ci_logging
+    ports: !override
+      - "127.0.0.1:8080:${VARNISH_PORT}"
+  php:
+    <<: *ci_logging
+  magento:
+    <<: *ci_logging
+  nginx:
+    <<: *ci_logging
+  cron:
+    <<: *ci_logging
+  imgproxy:
+    <<: *ci_logging
