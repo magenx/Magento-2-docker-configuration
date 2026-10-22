@@ -91,7 +91,7 @@ FROM ${OPENSEARCH_IMAGE}
 ARG DHI_STACK_UID
 
 COPY --from=build /usr/share/opensearch/plugins /usr/share/opensearch/plugins
-COPY --from=build --chown=${DHI_STACK_UID}:${DHI_STACK_UID} --chmod=0400 \
+COPY --from=build --chmod=0400 \
   /usr/share/opensearch/config/opensearch.yml \
   /certs/root-ca.pem \
   /certs/node.pem \
@@ -99,7 +99,16 @@ COPY --from=build --chown=${DHI_STACK_UID}:${DHI_STACK_UID} --chmod=0400 \
   /certs/admin.pem \
   /certs/admin-key.pem \
   /usr/share/opensearch/config/
-COPY --from=build --chown=${DHI_STACK_UID}:${DHI_STACK_UID} --chmod=0600 \
+COPY --from=build --chmod=0600 \
   /usr/share/opensearch/config/opensearch.keystore /usr/share/opensearch/config/
-COPY --from=build --chown=${DHI_STACK_UID}:${DHI_STACK_UID} --chmod=0400 \
+COPY --from=build --chmod=0400 \
   /certs/internal_users.yml /usr/share/opensearch/config/opensearch-security/
+
+# dhi opensearch runs as uid 1000, run it as DHI_STACK_UID like the rest of the stack
+SHELL ["/bin/bash", "-c"]
+USER root
+RUN chown -R ${DHI_STACK_UID}:${DHI_STACK_UID} \
+  /usr/share/opensearch/config \
+  /usr/share/opensearch/data \
+  /usr/share/opensearch/logs
+USER ${DHI_STACK_UID}:${DHI_STACK_UID}
