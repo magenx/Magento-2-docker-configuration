@@ -463,8 +463,8 @@ services:
         <<: *build_labels
       args:
         <<: *php_magento_args
-        SUPERCRONIC:
-        SUPERCRONIC_SHA1SUM:
+        SUPERCRONIC_SHA1SUM_AMD64:
+        SUPERCRONIC_SHA1SUM_ARM64:
         SUPERCRONIC_URL:
     develop:
       watch:

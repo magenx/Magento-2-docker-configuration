@@ -49,9 +49,10 @@ RUN <<EOF
   set -e
   ls -la /build/nginx-${NGINX_VERSION}/objs/*.so
   ldd /build/nginx-${NGINX_VERSION}/objs/ngx_http_zstd_filter_module.so
-  mkdir -p /out/modules /out/lib
+  MULTIARCH="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
+  mkdir -p /out/modules /out/lib/${MULTIARCH}
   cp /build/nginx-${NGINX_VERSION}/objs/ngx_http_zstd_filter_module.so /out/modules/
-  cp -a /usr/lib/x86_64-linux-gnu/*zstd* /out/lib/
+  cp -a /usr/lib/${MULTIARCH}/libzstd.so* /out/lib/${MULTIARCH}/
 EOF
 
 # Build nginx configurations
@@ -86,5 +87,5 @@ EOF
 FROM ${NGINX_IMAGE}
 # Copy all libs and configurations
 COPY --from=build /out/modules/ /usr/lib/nginx/modules/
-COPY --from=build /out/lib/ /usr/lib/x86_64-linux-gnu/
+COPY --from=build /out/lib/ /usr/lib/
 COPY --from=build /etc/nginx /etc/nginx
