@@ -145,6 +145,7 @@ services:
     volumes:
       - opensearch:/usr/share/opensearch/data
       - opensearch-logs:/usr/share/opensearch/logs
+    user: "${DHI_STACK_UID}:${DHI_STACK_UID}"
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -s -u 'admin:${OPENSEARCH_ADMIN_PASSWORD}' 'http://opensearch:${OPENSEARCH_PORT}/_cluster/health' || exit 1"]

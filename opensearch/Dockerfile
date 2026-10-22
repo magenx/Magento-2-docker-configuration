@@ -104,11 +104,12 @@ COPY --from=build --chmod=0600 \
 COPY --from=build --chmod=0400 \
   /certs/internal_users.yml /usr/share/opensearch/config/opensearch-security/
 
-# dhi opensearch runs as uid 1000, run it as DHI_STACK_UID like the rest of the stack
+# dhi opensearch runs as uid 1000, compose runs it as DHI_STACK_UID like the rest of the stack
 SHELL ["/bin/bash", "-c"]
 USER root
 RUN chown -R ${DHI_STACK_UID}:${DHI_STACK_UID} \
   /usr/share/opensearch/config \
   /usr/share/opensearch/data \
   /usr/share/opensearch/logs
+# do not leave root as the image default user
 USER ${DHI_STACK_UID}:${DHI_STACK_UID}
