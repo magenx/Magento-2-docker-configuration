@@ -62,6 +62,7 @@ x-hardening: &hardening
     - ALL
   security_opt:
     - no-new-privileges:true
+  pids_limit: 1024
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Services configuration parameters
@@ -101,7 +102,10 @@ services:
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized", "--innodb_buffer_pool_loaded"]
       <<: *healthcheck_default
-    <<: [*ulimits, *logger]
+    tmpfs:
+      - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
+      - /run/mariadb:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=0750
+    <<: [*ulimits, *logger, *hardening]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Opensearch is a powerful open source search and analytics engine
@@ -144,7 +148,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -s -u 'admin:${OPENSEARCH_ADMIN_PASSWORD}' 'http://opensearch:${OPENSEARCH_PORT}/_cluster/health' || exit 1"]
       <<: *healthcheck_default
-    <<: [*ulimits, *logger]
+    tmpfs:
+      - /tmp:exec,uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
+    <<: [*ulimits, *logger, *hardening]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Valkey is an open source key-value store that functions as a data structure server.
@@ -177,7 +183,9 @@ services:
       - valkey-cache:/data
     restart: unless-stopped
     mem_limit: ${VALKEY_CACHE_SIZE}
-    <<: [*ulimits, *logger]
+    tmpfs:
+      - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
+    <<: [*ulimits, *logger, *hardening]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Valkey is an open source key-value store that functions as a data structure server.
@@ -209,7 +217,9 @@ services:
     healthcheck:
       test: ["CMD", "valkey-cli", "-h", "session", "-p", "${VALKEY_SESSION_PORT}", "-a", "${VALKEY_PASSWORD}", "ping"]
       <<: *healthcheck_default
-    <<: [*ulimits, *logger]
+    tmpfs:
+      - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
+    <<: [*ulimits, *logger, *hardening]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  RabbitMQ is an open source multi-protocol messaging broker
@@ -238,7 +248,9 @@ services:
       - rabbitmq-logs:/var/log/rabbitmq
     restart: unless-stopped
     mem_limit: 1G
-    <<: [*ulimits, *logger]
+    tmpfs:
+      - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
+    <<: [*ulimits, *logger, *hardening]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Varnish is an HTTP accelerator designed for content-heavy dynamic web sites as well as APIs.
@@ -290,7 +302,7 @@ services:
     healthcheck:
       test: ["CMD", "varnishadm", "ping"]
       <<: *healthcheck_default
-    <<: [*ulimits, *logger]
+    <<: [*ulimits, *logger, *hardening]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Configure container to run php and php-fpm
@@ -355,7 +367,9 @@ services:
     working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
     entrypoint: ["php-fpm", "-F"]
     restart: unless-stopped
-    <<: [*ulimits, *logger]
+    tmpfs:
+      - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
+    <<: [*ulimits, *logger, *hardening]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Configure container for magento app
@@ -377,6 +391,7 @@ services:
       <<: *php_magento_env
       COMPOSER_MEMORY_LIMIT:
       COMPOSER_AUTH:
+      COMPOSER_HOME: /tmp/composer
     volumes:
       - ${MAGENTO_ROOT_PATH}/public:${MAGENTO_ROOT_PATH}/public
       - ${MAGENTO_ROOT_PATH}/shared/var:${MAGENTO_ROOT_PATH}/shared/var
@@ -387,7 +402,9 @@ services:
       - backend
       - frontend
     entrypoint: ["/bin/sh", "/entrypoint.sh"]
-    <<: [*ulimits, *logger]
+    tmpfs:
+      - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
+    <<: [*ulimits, *logger, *hardening]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #  Nginx is an open source reverse proxy server for HTTP, HTTPS
@@ -429,7 +446,9 @@ services:
       - nginx-cache:/var/cache/nginx
     working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
     restart: unless-stopped
-    <<: [*ulimits, *logger]
+    tmpfs:
+      - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
+    <<: [*ulimits, *logger, *hardening]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #   Cron job scheduler run arbitrary commands, or "jobs", according to a schedule
@@ -467,7 +486,9 @@ services:
     entrypoint: ["/usr/local/bin/supercronic"]
     command: ["${MAGENTO_ROOT_PATH}/crontab"]
     restart: unless-stopped
-    <<: [*ulimits, *logger]
+    tmpfs:
+      - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
+    <<: [*ulimits, *logger, *hardening]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #   Fast and secure standalone server for resizing, processing, and converting images
@@ -510,7 +531,9 @@ services:
     healthcheck:
       test: ["CMD", "imgproxy", "health"]
       <<: *healthcheck_default
-    <<: [*ulimits, *logger]
+    tmpfs:
+      - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
+    <<: [*ulimits, *logger, *hardening]
 
 
 # -----------------------------------------------------------------------------------------------------------------------
