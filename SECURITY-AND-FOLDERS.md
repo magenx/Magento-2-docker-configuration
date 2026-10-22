@@ -56,7 +56,7 @@ ACL: u:UID:rwX,g:UID:rwX,o::-
 ### 7. **Service Security Configuration**
 - **PHP**: `expose_php=Off`, `display_errors=Off`, opcache enabled
 - **Redis**: Password protected, maxmemory policies, lazyfree enabled
-- **OpenSearch**: SSL transport disabled (internal network), admin password required
+- **OpenSearch**: demo security config disabled, transport TLS with own CA and node/admin certificates generated at image build (CA key not shipped), HTTP plain on internal network, only `admin` internal user with password hashed at build from a BuildKit secret
 - **RabbitMQ**: Custom vhost, user authentication required
 - **Varnish**: ACL for PURGE requests (internal networks only), X-Powered-By/Server headers removed
 

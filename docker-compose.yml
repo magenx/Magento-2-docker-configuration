@@ -120,6 +120,11 @@ services:
       args:
         OPENSEARCH_IMAGE:
         OPENSEARCH_DEV_IMAGE:
+        OPENSEARCH_CERT_DAYS:
+        BRAND:
+        DHI_STACK_UID:
+      secrets:
+        - opensearch_admin_password
     develop:
       watch:
         - path: ./opensearch
@@ -131,12 +136,8 @@ services:
       - discovery.type=single-node
       - cluster.routing.allocation.enable=all
       - bootstrap.memory_lock=true
-      - transport.ssl.enforce_hostname_verification=false
-      - plugins.security.ssl.http.enabled=false
-      - plugins.security.allow_unsafe_democertificates=true
-      - plugins.security.allow_default_init_securityindex=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
       - OPENSEARCH_JAVA_OPTS=${OPENSEARCH_XMS} ${OPENSEARCH_XMX}
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_ADMIN_PASSWORD}
     expose:
       - "${OPENSEARCH_PORT}"
     networks:
@@ -557,3 +558,11 @@ volumes:
   rabbitmq-logs:
   nginx-cache:
   nginx-logs:
+
+# -----------------------------------------------------------------------------------------------------------------------
+#   Build secrets
+# -----------------------------------------------------------------------------------------------------------------------
+
+secrets:
+  opensearch_admin_password:
+    environment: OPENSEARCH_ADMIN_PASSWORD
