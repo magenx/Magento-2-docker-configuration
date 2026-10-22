@@ -111,5 +111,3 @@ RUN chown -R ${DHI_STACK_UID}:${DHI_STACK_UID} \
   /usr/share/opensearch/config \
   /usr/share/opensearch/data \
   /usr/share/opensearch/logs
-# do not leave root as the image default user
-USER ${DHI_STACK_UID}:${DHI_STACK_UID}
