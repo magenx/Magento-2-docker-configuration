@@ -1,12 +1,17 @@
 name: release
 
 # release-please opens a release PR from conventional commits. Merging it creates a draft release and tag,
-# then images are built, tested and pushed to ghcr.io, their digests are attached to the release
-# as docker-compose.release.yml and the release is published (immutable when release immutability is on).
+# then changed images are built with buildx bake, the stack is tested, new images are pushed to ghcr.io,
+# the digests of all images are attached to the release as docker-compose.release.yml
+# and the release is published (immutable when release immutability is on).
+#
+# Images are tagged by fingerprint (scripts/image_fingerprint.sh): an image whose inputs did not change
+# keeps its tag and digest from an earlier release and is not rebuilt.
 #
 # Build runs only in repos with variable BUILD_IMAGES=true. It needs:
 #   - .env with the shop settings committed to the repo
 #   - variable BUILD_RUNNER: runner with the server arch, default ubuntu-latest (amd64), ubuntu-24.04-arm for arm64
+#   - variable BUILD_EPOCH (optional): bump it to rebuild all images, picks up unpinned apt and download updates
 #   - secrets DHI_USER, DHI_PAT: dhi.io login
 #   - secret BUILD_SECRETS: lines from the server .env.secrets that are baked into images:
 #     OPENSEARCH_ADMIN_PASSWORD, ADMIN_PATH, RABBITMQ_PATH, ADMINER_PATH, PROFILER
@@ -50,8 +55,8 @@ jobs:
     env:
       IMAGE_TAG: ${{ needs.release-please.outputs.version }}
       TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+      BUILD_EPOCH: ${{ vars.BUILD_EPOCH || '0' }}
       COMPOSE_ENV_FILES: .env,.env.secrets
-      COMPOSE_FILE: docker-compose.yml:docker-compose.ci.yml
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -92,18 +97,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      - name: Refuse to overwrite released images
-        run: |
-          docker compose config --format json \
-            | jq -r '.services | to_entries[] | select(.value.build) | "\(.key) \(.value.image)"' \
-            > "$RUNNER_TEMP/images.txt"
-          echo "SERVICES=$(cut -d' ' -f1 "$RUNNER_TEMP/images.txt" | xargs)" >> "$GITHUB_ENV"
-          while read -r _ img; do
-            if docker manifest inspect "${img}" >/dev/null 2>&1; then
-              echo "::error::${img} already exists, release images are immutable"
-              exit 1
-            fi
-          done < "$RUNNER_TEMP/images.txt"
+      - name: Set up buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: OCI labels
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          tags: type=raw,value=${{ needs.release-please.outputs.version }}
 
       - name: Prepare nginx templates and magento paths
         run: |
@@ -115,15 +116,67 @@ jobs:
           sudo chown -R "${DHI_STACK_UID}:${DHI_STACK_UID}" "${MAGENTO_ROOT_PATH}"
           sudo sysctl -w vm.max_map_count=262144
 
-      - name: Build images
+      - name: Fingerprint images, find the ones to build
         run: |
-          read -ra services <<< "${SERVICES}"
-          docker compose build "${services[@]}"
+          registry="${IMAGE_REGISTRY}"
+          . ./.env
+          IMAGE_REGISTRY="${registry}"
+          images="$RUNNER_TEMP/docker-compose.images.yml"
+          build=()
+          pull=()
+          echo "services:" > "${images}"
+          while read -r svc fingerprint; do
+            ref="${IMAGE_REGISTRY}/${BRAND}-${svc}:${fingerprint}"
+            printf '  %s:\n    image: %s\n' "${svc}" "${ref}" >> "${images}"
+            echo "${svc} ${ref}" >> "$RUNNER_TEMP/images.txt"
+            if docker manifest inspect "${ref}" >/dev/null 2>&1; then
+              pull+=("${svc}")
+            else
+              build+=("${svc}")
+            fi
+          done < <(bash scripts/image_fingerprint.sh)
+          cat "${images}"
+          echo "build: ${build[*]:-none}, reuse: ${pull[*]:-none}"
+          {
+            echo "BUILD_SERVICES=${build[*]}"
+            echo "PULL_SERVICES=${pull[*]}"
+            echo "COMPOSE_FILE=docker-compose.yml:docker-compose.ci.yml:${images}"
+          } >> "$GITHUB_ENV"
+
+      - name: Build changed images with bake
+        if: env.BUILD_SERVICES != ''
+        env:
+          LABELS: ${{ steps.meta.outputs.labels }}
+        run: |
+          registry="${IMAGE_REGISTRY}"
+          set -a
+          . ./.env
+          . ./.env.secrets
+          set +a
+          IMAGE_REGISTRY="${registry}"
+          read -ra targets <<< "${BUILD_SERVICES}"
+          args=()
+          while IFS= read -r label; do
+            [ -n "${label}" ] && args+=(--set "*.labels.${label}")
+          done <<< "${LABELS}"
+          for target in "${targets[@]}"; do
+            cache="${IMAGE_REGISTRY}/${BRAND}-${target}:buildcache"
+            args+=(--set "${target}.cache-from=type=registry,ref=${cache}")
+            args+=(--set "${target}.cache-to=type=registry,ref=${cache},mode=max")
+          done
+          docker buildx bake -f docker-compose.yml -f "$RUNNER_TEMP/docker-compose.images.yml" \
+            --load "${args[@]}" "${targets[@]}"
+
+      - name: Pull unchanged images
+        if: env.PULL_SERVICES != ''
+        run: |
+          read -ra services <<< "${PULL_SERVICES}"
+          docker compose pull "${services[@]}"
 
       - name: Start stack and wait for health checks
         run: |
           mapfile -t services < <(docker compose config --services | grep -vx magento)
-          docker compose up -d --wait --wait-timeout 600 "${services[@]}"
+          docker compose up -d --no-build --wait --wait-timeout 600 "${services[@]}"
 
       - name: Smoke tests
         run: |
@@ -148,9 +201,10 @@ jobs:
         if: always()
         run: docker compose down -v || true
 
-      - name: Push images
+      - name: Push changed images
+        if: env.BUILD_SERVICES != ''
         run: |
-          read -ra services <<< "${SERVICES}"
+          read -ra services <<< "${BUILD_SERVICES}"
           docker compose push "${services[@]}"
 
       - name: Attach image digest lock file to the draft release
@@ -159,10 +213,10 @@ jobs:
             echo "# ${TAG_NAME} images pinned by digest"
             echo "# docker compose -f docker-compose.yml -f docker-compose.release.yml pull"
             echo "services:"
-            while read -r svc img; do
-              digest=$(docker buildx imagetools inspect "${img}" --format '{{json .Manifest}}' | jq -r .digest)
+            while read -r svc ref; do
+              digest=$(docker buildx imagetools inspect "${ref}" --format '{{json .Manifest}}' | jq -r .digest)
               echo "  ${svc}:"
-              echo "    image: ${img%:*}@${digest}"
+              echo "    image: ${ref%:*}@${digest}"
             done < "$RUNNER_TEMP/images.txt"
           } > docker-compose.release.yml
           cat docker-compose.release.yml

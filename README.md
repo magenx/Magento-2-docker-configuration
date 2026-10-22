@@ -202,15 +202,16 @@ doco down
 For a per-customer repository: images are built in GitHub Actions, pushed to `ghcr.io` and the server only pulls them.  
 `.github/workflows/release.yml` runs on every push to `main`:
 1. [release-please](https://github.com/googleapis/release-please) keeps a release PR from [conventional commits](https://www.conventionalcommits.org/) (`fix:` patch, `feat:` minor, `feat!:` major). Merging it creates a **draft** release and tag `vX.Y.Z`.
-2. Builds the 10 images on a runner with the server arch, tagged `ghcr.io/<owner>/BRAND-<service>:X.Y.Z` (`IMAGE_REGISTRY`, `IMAGE_TAG`). Stops if a tag already exists.
+2. `scripts/image_fingerprint.sh` hashes the inputs of each image: build args the Dockerfile declares (incl. base image digests), target, build context files and build secret. Images are tagged `ghcr.io/<owner>/BRAND-<service>:<fingerprint>`. A tag that already exists is reused, only changed images are built, with `docker buildx bake` from `docker-compose.yml` and a registry layer cache (`:buildcache`).
 3. Starts the stack with `docker-compose.ci.yml` (json-file logging, varnish on localhost), waits for all health checks, checks php extensions, composer and `nginx -t`.
-4. Pushes the images and attaches `docker-compose.release.yml` with the image digests to the draft release.
+4. Pushes the new images and attaches `docker-compose.release.yml` with the digests of all images to the draft release. Unchanged images keep their digest, so the server does not recreate those containers.
 5. Publishes the release.
 
 Repository setup:
 - Commit `.env` with the shop settings. Never commit `.env.secrets` unencrypted.
 - Variable `BUILD_IMAGES=true`. Without it only the release is published, no images.
 - Variable `BUILD_RUNNER`: `ubuntu-latest` (amd64, default) or `ubuntu-24.04-arm` (arm64), same arch as the server.
+- Variable `BUILD_EPOCH` (optional, default `0`): bump it to rebuild all images on the next release. The fingerprint does not see unpinned downloads during the build (apt packages, n98-magerun2, nginx templates fetched by `scripts/get_nginx_config.sh` when not committed).
 - Secrets `DHI_USER`, `DHI_PAT`: `dhi.io` login.
 - Secret `BUILD_SECRETS`: the lines from the server `.env.secrets` that are built into images: `OPENSEARCH_ADMIN_PASSWORD`, `ADMIN_PATH`, `RABBITMQ_PATH`, `ADMINER_PATH`, `PROFILER`. All other passwords in CI are throwaway values.
 - Settings > Actions > General: allow GitHub Actions to create pull requests (release-please).
