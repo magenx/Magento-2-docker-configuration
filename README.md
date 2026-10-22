@@ -80,7 +80,7 @@ What the script does, in order:
 6. Copies `.env.template` to `.env` and `.env.secrets.template` to `.env.secrets` and **opens both in `vim`** (see Step 2).
 7. `scripts/random_generator.sh` appends random passwords for all services, plus random admin / rabbitmq / adminer paths and profiler key, to `.env.secrets`.
 8. `scripts/web_directory.sh` creates the `/opt/BRAND/magento` release layout, first release folder and `current` symlink, sets owner `165532`, permissions and ACL.
-9. `scripts/get_nginx_config.sh` pulls magento2 nginx configs from [magenx/Magento-nginx-config](https://github.com/magenx/Magento-nginx-config) into `nginx/templates` (rendered with `envsubst` at build time).
+9. `scripts/get_nginx_config.sh` pulls magento2 nginx configs from [magenx/Magento-nginx-config](https://github.com/magenx/Magento-nginx-config) into `nginx/templates` (rendered with `envsubst` at build time). Run it once, then the templates are yours to edit.
 10. Tightens permissions on `/opt/BRAND/docker`, sets `.env.secrets` to `600` and raises kernel key limits (`/etc/sysctl.d/99-docker-maxkeys.conf`).
 
 > [!WARNING]
@@ -208,10 +208,10 @@ For a per-customer repository: images are built in GitHub Actions, pushed to `gh
 5. Publishes the release.
 
 Repository setup:
-- Commit `.env` with the shop settings. Never commit `.env.secrets` unencrypted.
+- Commit `.env` with the shop settings and `nginx/templates` (fetch once with `scripts/get_nginx_config.sh`, then edit them in the repo). Never commit `.env.secrets` unencrypted.
 - Variable `BUILD_IMAGES=true`. Without it only the release is published, no images.
 - Variable `BUILD_RUNNER`: `ubuntu-latest` (amd64, default) or `ubuntu-24.04-arm` (arm64), same arch as the server.
-- Variable `BUILD_EPOCH` (optional, default `0`): bump it to rebuild all images on the next release. The fingerprint does not see unpinned downloads during the build (apt packages, n98-magerun2, nginx templates fetched by `scripts/get_nginx_config.sh` when not committed).
+- Variable `BUILD_EPOCH` (optional, default `0`): bump it to rebuild all images on the next release. The fingerprint does not see unpinned downloads during the build (apt packages, n98-magerun2).
 - Secrets `DHI_USER`, `DHI_PAT`: `dhi.io` login.
 - Secret `BUILD_SECRETS`: the lines from the server `.env.secrets` that are built into images: `OPENSEARCH_ADMIN_PASSWORD`, `ADMIN_PATH`, `RABBITMQ_PATH`, `ADMINER_PATH`, `PROFILER`. All other passwords in CI are throwaway values.
 - Settings > Actions > General: allow GitHub Actions to create pull requests (release-please).

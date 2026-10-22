@@ -9,7 +9,7 @@ name: release
 # keeps its tag and digest from an earlier release and is not rebuilt.
 #
 # Build runs only in repos with variable BUILD_IMAGES=true. It needs:
-#   - .env with the shop settings committed to the repo
+#   - .env with the shop settings and nginx/templates committed to the repo
 #   - variable BUILD_RUNNER: runner with the server arch, default ubuntu-latest (amd64), ubuntu-24.04-arm for arm64
 #   - variable BUILD_EPOCH (optional): bump it to rebuild all images, picks up unpinned apt and download updates
 #   - secrets DHI_USER, DHI_PAT: dhi.io login
@@ -106,9 +106,9 @@ jobs:
         with:
           tags: type=raw,value=${{ needs.release-please.outputs.version }}
 
-      - name: Prepare nginx templates and magento paths
+      - name: Prepare magento paths
         run: |
-          [ -d nginx/templates ] || bash scripts/get_nginx_config.sh
+          [ -d nginx/templates ] || { echo "::error::nginx/templates must be committed, fetch once with scripts/get_nginx_config.sh"; exit 1; }
           . ./.env
           sudo mkdir -p "${MAGENTO_ROOT_PATH}"/{releases/ci,shared/var/log,shared/var/tmp,shared/pub/media,public}
           sudo ln -sfn ../releases/ci "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
