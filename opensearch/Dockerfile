@@ -106,7 +106,8 @@ COPY --from=build --chmod=0400 \
 
 # dhi opensearch runs as uid 1000, compose runs it as DHI_STACK_UID like the rest of the stack
 SHELL ["/bin/bash", "-c"]
-USER root
+# numeric uid, the dhi runtime image has no root entry in /etc/passwd
+USER 0:0
 RUN chown -R ${DHI_STACK_UID}:${DHI_STACK_UID} \
   /usr/share/opensearch/config \
   /usr/share/opensearch/data \
