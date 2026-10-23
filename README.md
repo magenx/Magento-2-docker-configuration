@@ -204,7 +204,7 @@ For a per-customer repository: images are built in GitHub Actions, pushed to `gh
 1. [release-please](https://github.com/googleapis/release-please) keeps a release PR from [conventional commits](https://www.conventionalcommits.org/) (`fix:` patch, `feat:` minor, `feat!:` major). Merging it creates a **draft** release and tag `vX.Y.Z`.
 2. `scripts/image_fingerprint.sh` hashes the inputs of each image: build args the Dockerfile declares (incl. base image digests), target, build context files and build secret. Images are tagged `ghcr.io/<owner>/BRAND-<service>:<fingerprint>`. A tag that already exists is reused, only changed images are built, with `docker buildx bake` from `docker-compose.yml` and a registry layer cache (`:buildcache`).
 3. Starts the stack with `docker-compose.ci.yml` (json-file logging, varnish on localhost), waits for all health checks, checks php extensions, composer and `nginx -t`.
-4. Pushes the new images and attaches `docker-compose.release.yml` with the digests of all images to the draft release. Unchanged images keep their digest, so the server does not recreate those containers.
+4. Pushes the new images and tags all 10 with the release version as well (`BRAND-<service>:X.Y.Z`, same digest as the fingerprint tag). Attaches `docker-compose.release.yml` with the digests of all images to the draft release. Unchanged images keep their digest, so the server does not recreate those containers.
 5. Publishes the release.
 
 Repository setup:

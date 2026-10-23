@@ -207,6 +207,14 @@ jobs:
           read -ra services <<< "${BUILD_SERVICES}"
           docker compose push "${services[@]}"
 
+      - name: Tag all images with the release version
+        run: |
+          # alias tag for people browsing ghcr.io, same digest as the fingerprint tag, no rebuild
+          # deploys still pin by digest from docker-compose.release.yml
+          while read -r _ ref; do
+            docker buildx imagetools create -t "${ref%:*}:${IMAGE_TAG}" "${ref}"
+          done < "$RUNNER_TEMP/images.txt"
+
       - name: Attach image digest lock file to the draft release
         run: |
           {
