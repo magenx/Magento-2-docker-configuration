@@ -161,8 +161,11 @@ jobs:
           done <<< "${LABELS}"
           for target in "${targets[@]}"; do
             cache="${IMAGE_REGISTRY}/${BRAND}-${target}:buildcache"
+            # the opensearch build stage holds the root CA key, cache only the final image layers
+            mode=max
+            [ "${target}" = opensearch ] && mode=min
             args+=(--set "${target}.cache-from=type=registry,ref=${cache}")
-            args+=(--set "${target}.cache-to=type=registry,ref=${cache},mode=max")
+            args+=(--set "${target}.cache-to=type=registry,ref=${cache},mode=${mode}")
           done
           docker buildx bake -f docker-compose.yml -f "$RUNNER_TEMP/docker-compose.images.yml" \
             --load "${args[@]}" "${targets[@]}"
