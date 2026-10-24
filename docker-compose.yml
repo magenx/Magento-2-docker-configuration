@@ -150,7 +150,9 @@ services:
     user: "${DHI_STACK_UID}:${DHI_STACK_UID}"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -s -u 'admin:${OPENSEARCH_ADMIN_PASSWORD:?missing, load .env.secrets}' 'http://opensearch:${OPENSEARCH_PORT}/_cluster/health' || exit 1"]
+      # no curl in the minimal dhi runtime image needed, bash only: plain HTTP over /dev/tcp,
+      # 200 or 401 means http is up and the security plugin is initialized (503 before that)
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/$$0 && printf 'GET /_cluster/health HTTP/1.0\\r\\n\\r\\n' >&3 && read -r -t 5 proto status _ <&3 && [[ $$status == 200 || $$status == 401 ]]", "${OPENSEARCH_PORT}"]
       <<: *healthcheck_default
     tmpfs:
       - /tmp:exec,uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
