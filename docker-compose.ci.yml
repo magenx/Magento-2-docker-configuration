@@ -3,6 +3,7 @@
 #  docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --wait
 #  - json-file logging, runners have no syslog socket at /dev/log
 #  - varnish on localhost, HOST_PRIVATE_IP does not exist on the runner
+#  - opensearch disk watermarks off, a full runner disk blocks index creation and the stack never gets healthy
 # -----------------------------------------------------------------------------------------------------------------------
 x-ci-logging: &ci_logging
   logging: !override
@@ -13,6 +14,8 @@ services:
     <<: *ci_logging
   opensearch:
     <<: *ci_logging
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=false
   cache:
     <<: *ci_logging
   session:
