@@ -71,17 +71,23 @@ jobs:
           BUILD_SECRETS: ${{ secrets.BUILD_SECRETS }}
         run: |
           test -f .env || { echo "::error::.env with the shop settings must be committed"; exit 1; }
-          printf '%s\n' "$BUILD_SECRETS" | grep -q '^OPENSEARCH_ADMIN_PASSWORD=' \
-            || { echo "::error::BUILD_SECRETS must contain OPENSEARCH_ADMIN_PASSWORD"; exit 1; }
           cp .env.secrets.template .env.secrets
           bash scripts/random_generator.sh
           # replace the generated values that end up in images with the real ones
-          printf '%s\n' "$BUILD_SECRETS" | grep -E '^[A-Z_]+=' > "$RUNNER_TEMP/build.secrets"
+          trap 'rm -f "$RUNNER_TEMP/build.secrets"' EXIT
+          printf '%s\n' "$BUILD_SECRETS" | tr -d '\r' | grep -E '^[A-Z_]+=' > "$RUNNER_TEMP/build.secrets"
           while IFS= read -r line; do
             sed -i "/^${line%%=*}=/d" .env.secrets
           done < "$RUNNER_TEMP/build.secrets"
           cat "$RUNNER_TEMP/build.secrets" >> .env.secrets
-          rm -f "$RUNNER_TEMP/build.secrets"
+          # every value baked into images must come from BUILD_SECRETS and be set;
+          # report key names only, never values
+          for key in OPENSEARCH_ADMIN_PASSWORD ADMIN_PATH RABBITMQ_PATH ADMINER_PATH PROFILER; do
+            grep -q "^${key}=" "$RUNNER_TEMP/build.secrets" \
+              || { echo "::error::BUILD_SECRETS must contain ${key}"; exit 1; }
+            value=$(set -a; . ./.env.secrets; printf '%s' "${!key:-}")
+            [ -n "${value}" ] || { echo "::error::${key} in BUILD_SECRETS has an empty value"; exit 1; }
+          done
 
       - name: Login to dhi.io
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
@@ -125,6 +131,9 @@ jobs:
           build=()
           pull=()
           echo "services:" > "${images}"
+          # a failing script must fail this step, not leave the build list empty
+          bash scripts/image_fingerprint.sh > "$RUNNER_TEMP/fingerprints.txt"
+          [ -s "$RUNNER_TEMP/fingerprints.txt" ] || { echo "::error::no images fingerprinted"; exit 1; }
           while read -r svc fingerprint; do
             ref="${IMAGE_REGISTRY}/${BRAND}-${svc}:${fingerprint}"
             printf '  %s:\n    image: %s\n' "${svc}" "${ref}" >> "${images}"
@@ -134,7 +143,7 @@ jobs:
             else
               build+=("${svc}")
             fi
-          done < <(bash scripts/image_fingerprint.sh)
+          done < "$RUNNER_TEMP/fingerprints.txt"
           cat "${images}"
           echo "build: ${build[*]:-none}, reuse: ${pull[*]:-none}"
           {
