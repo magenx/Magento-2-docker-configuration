@@ -108,7 +108,12 @@ COPY --from=build --chmod=0400 \
 SHELL ["/bin/bash", "-c"]
 # numeric uid, the dhi runtime image has no root entry in /etc/passwd
 USER 0:0
-RUN chown -R ${DHI_STACK_UID}:${DHI_STACK_UID} \
-  /usr/share/opensearch/config \
-  /usr/share/opensearch/data \
-  /usr/share/opensearch/logs
+# plugins keep the dhi file modes, some jars are readable by uid 1000 only: make them readable, not writable
+RUN <<EOF
+  set -e
+  chmod -R a+rX /usr/share/opensearch/plugins
+  chown -R ${DHI_STACK_UID}:${DHI_STACK_UID} \
+    /usr/share/opensearch/config \
+    /usr/share/opensearch/data \
+    /usr/share/opensearch/logs
+EOF
