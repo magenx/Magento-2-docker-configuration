@@ -204,8 +204,10 @@ jobs:
       - name: Smoke tests
         run: |
           . ./.env
-          for svc in php magento; do
-            modules=$(docker compose run --rm --no-deps --entrypoint php "${svc}" -m)
+          # the php service runs the fpm runtime image, it has php-fpm and no php cli
+          for svc_bin in php:php-fpm magento:php; do
+            svc="${svc_bin%%:*}"
+            modules=$(docker compose run --rm --no-deps --entrypoint "${svc_bin#*:}" "${svc}" -m)
             for ext in ${PHP_EXTENSION} redis igbinary lz4; do
               grep -qix "${ext}" <<< "${modules}" || { echo "::error::${svc}: php extension ${ext} not loaded"; exit 1; }
             done
