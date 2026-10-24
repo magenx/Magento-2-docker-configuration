@@ -80,7 +80,7 @@ What the script does, in order:
 6. Copies `.env.template` to `.env` and `.env.secrets.template` to `.env.secrets` and **opens both in `vim`** (see Step 2).
 7. `scripts/random_generator.sh` appends random passwords for all services, plus random admin / rabbitmq / adminer paths and profiler key, to `.env.secrets`.
 8. `scripts/web_directory.sh` creates the `/opt/BRAND/magento` release layout, first release folder and `current` symlink, sets owner `165532`, permissions and ACL.
-9. `scripts/get_nginx_config.sh` pulls magento2 nginx configs from [magenx/Magento-nginx-config](https://github.com/magenx/Magento-nginx-config) into `nginx/templates` (rendered with `envsubst` at build time).
+9. `scripts/get_nginx_config.sh` pulls magento2 nginx configs from [magenx/Magento-nginx-config](https://github.com/magenx/Magento-nginx-config) into `nginx/templates` (rendered with `envsubst` at build time). Run it once, then the templates are yours to edit.
 10. Tightens permissions on `/opt/BRAND/docker`, sets `.env.secrets` to `600` and raises kernel key limits (`/etc/sysctl.d/99-docker-maxkeys.conf`).
 
 > [!WARNING]
@@ -195,6 +195,35 @@ doco up -d --build nginx
 ```
 doco down
 ```
+
+<br />
+
+# :package: Build, test and release images
+For a per-customer repository: images are built in GitHub Actions, pushed to `ghcr.io` and the server only pulls them.  
+`.github/workflows/release.yml` runs on every push to `main`:
+1. [release-please](https://github.com/googleapis/release-please) keeps a release PR from [conventional commits](https://www.conventionalcommits.org/) (`fix:` patch, `feat:` minor, `feat!:` major). Merging it creates a **draft** release and tag `vX.Y.Z`.
+2. `scripts/image_fingerprint.sh` hashes the inputs of each image: build args the Dockerfile declares (incl. base image digests), target, build context files and build secret. Images are tagged `ghcr.io/<owner>/BRAND-<service>:<fingerprint>`. A tag that already exists is reused, only changed images are built, with `docker buildx bake` from `docker-compose.yml` and a registry layer cache (`:buildcache`).
+3. Starts the stack with `docker-compose.ci.yml` (json-file logging, varnish on localhost), waits for all health checks, checks php extensions, composer and `nginx -t`.
+4. Pushes the new images and tags all 10 with the release version as well (`BRAND-<service>:X.Y.Z`, same digest as the fingerprint tag). Attaches `docker-compose.release.yml` with the digests of all images to the draft release. Unchanged images keep their digest, so the server does not recreate those containers.
+5. Publishes the release.
+
+Repository setup:
+- Commit `.env` with the shop settings and `nginx/templates` (fetch once with `scripts/get_nginx_config.sh`, then edit them in the repo). Never commit `.env.secrets` unencrypted.
+- Variable `BUILD_IMAGES=true`. Without it only the release is published, no images.
+- Variable `BUILD_RUNNER`: `ubuntu-latest` (amd64, default) or `ubuntu-24.04-arm` (arm64), same arch as the server.
+- Variable `BUILD_EPOCH` (optional, default `0`): bump it to rebuild all images on the next release. The fingerprint does not see unpinned downloads during the build (apt packages, n98-magerun2).
+- Secrets `DHI_USER`, `DHI_PAT`: `dhi.io` login.
+- Secret `BUILD_SECRETS`: the lines from the server `.env.secrets` that are built into images: `OPENSEARCH_ADMIN_PASSWORD`, `ADMIN_PATH`, `RABBITMQ_PATH`, `ADMINER_PATH`, `PROFILER`. All other passwords in CI are throwaway values.
+- Settings > Actions > General: allow GitHub Actions to create pull requests (release-please).
+- Settings > General > Releases: enable release immutability, so a published release and its lock file cannot change.
+
+Deploy a release on the server (`.env` and `.env.secrets` stay on the server, `docker login ghcr.io` with a classic PAT with `read:packages`):
+```
+gh release download vX.Y.Z -p docker-compose.release.yml --clobber
+doco -f docker-compose.yml -f docker-compose.release.yml pull
+doco -f docker-compose.yml -f docker-compose.release.yml up -d --no-build
+```
+Roll back: download the lock file of the previous release and run the same commands.
 
 <br />
 

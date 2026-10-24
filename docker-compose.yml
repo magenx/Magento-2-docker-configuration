@@ -75,6 +75,7 @@ services:
   mariadb:
     container_name: mariadb
     hostname: mariadb
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-mariadb:${IMAGE_TAG:?}
     build:
       context: ./mariadb
       labels:
@@ -113,6 +114,7 @@ services:
   opensearch:
     container_name: opensearch
     hostname: opensearch
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-opensearch:${IMAGE_TAG:?}
     build:
       context: ./opensearch
       labels:
@@ -148,7 +150,9 @@ services:
     user: "${DHI_STACK_UID}:${DHI_STACK_UID}"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -s -u 'admin:${OPENSEARCH_ADMIN_PASSWORD:?missing, load .env.secrets}' 'http://opensearch:${OPENSEARCH_PORT}/_cluster/health' || exit 1"]
+      # no curl in the minimal dhi runtime image needed, bash only: plain HTTP over /dev/tcp,
+      # 200 or 401 means http is up and the security plugin is initialized (503 before that)
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/$$0 && printf 'GET /_cluster/health HTTP/1.0\\r\\n\\r\\n' >&3 && read -r -t 5 proto status _ <&3 && [[ $$status == 200 || $$status == 401 ]]", "${OPENSEARCH_PORT}"]
       <<: *healthcheck_default
     tmpfs:
       - /tmp:exec,uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
@@ -160,6 +164,7 @@ services:
   cache:
     container_name: cache
     hostname: cache
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-cache:${IMAGE_TAG:?}
     build: &valkey_build
       context: ./valkey
       target: cache
@@ -185,6 +190,9 @@ services:
       - valkey-cache:/data
     restart: unless-stopped
     mem_limit: ${VALKEY_CACHE_SIZE}
+    healthcheck:
+      test: ["CMD", "valkey-cli", "-h", "cache", "-p", "${VALKEY_CACHE_PORT}", "-a", "${VALKEY_PASSWORD:?missing, load .env.secrets}", "ping"]
+      <<: *healthcheck_default
     tmpfs:
       - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
     <<: [*ulimits, *logger, *hardening]
@@ -195,6 +203,7 @@ services:
   session:
     container_name: session
     hostname: session
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-session:${IMAGE_TAG:?}
     build:
       <<: *valkey_build
       target: session
@@ -229,6 +238,7 @@ services:
   rabbitmq:
     container_name: rabbitmq
     hostname: rabbitmq
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-rabbitmq:${IMAGE_TAG:?}
     build:
       context: ./rabbitmq
       labels:
@@ -250,6 +260,9 @@ services:
       - rabbitmq-logs:/var/log/rabbitmq
     restart: unless-stopped
     mem_limit: 1G
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      <<: *healthcheck_default
     tmpfs:
       - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
     <<: [*ulimits, *logger, *hardening]
@@ -260,6 +273,7 @@ services:
   varnish:
     container_name: varnish
     hostname: varnish
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-varnish:${IMAGE_TAG:?}
     build:
       context: ./varnish
       labels:
@@ -312,6 +326,7 @@ services:
   php:
     container_name: php
     hostname: php
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-php:${IMAGE_TAG:?}
     build:
       context: ./php
       target: php
@@ -369,6 +384,9 @@ services:
     working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
     entrypoint: ["php-fpm", "-F"]
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "php-fpm", "-t"]
+      <<: *healthcheck_default
     tmpfs:
       - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
     <<: [*ulimits, *logger, *hardening]
@@ -378,6 +396,7 @@ services:
 # -----------------------------------------------------------------------------------------------------------------------    
   magento:
     container_name: magento
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-magento:${IMAGE_TAG:?}
     build:
       context: ./php
       target: magento
@@ -414,6 +433,7 @@ services:
   nginx:
     container_name: nginx
     hostname: nginx
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-nginx:${IMAGE_TAG:?}
     build:
       context: ./nginx
       labels:
@@ -448,6 +468,9 @@ services:
       - nginx-cache:/var/cache/nginx
     working_dir: "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      <<: *healthcheck_default
     tmpfs:
       - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
     <<: [*ulimits, *logger, *hardening]
@@ -457,6 +480,7 @@ services:
 # ----------------------------------------------------------------------------------------------------------------------- 
   cron:
     container_name: cron
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-cron:${IMAGE_TAG:?}
     build:
       context: ./php
       target: cron
@@ -488,6 +512,9 @@ services:
     entrypoint: ["/usr/local/bin/supercronic"]
     command: ["${MAGENTO_ROOT_PATH}/crontab"]
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/supercronic", "-test", "${MAGENTO_ROOT_PATH}/crontab"]
+      <<: *healthcheck_default
     tmpfs:
       - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
     <<: [*ulimits, *logger, *hardening]
