@@ -203,9 +203,12 @@ For a per-customer repository: images are built in GitHub Actions, pushed to `gh
 `.github/workflows/release.yml` runs on every push to `main`:
 1. [release-please](https://github.com/googleapis/release-please) keeps a release PR from [conventional commits](https://www.conventionalcommits.org/) (`fix:` patch, `feat:` minor, `feat!:` major). Merging it creates a **draft** release and tag `vX.Y.Z`.
 2. `scripts/image_fingerprint.sh` hashes the inputs of each image: build args the Dockerfile declares (incl. base image digests), target, build context files and build secret. Images are tagged `ghcr.io/<owner>/BRAND-<service>:<fingerprint>`. A tag that already exists is reused, only changed images are built, with `docker buildx bake` from `docker-compose.yml` and a registry layer cache (`:buildcache`).
-3. Starts the stack with `docker-compose.ci.yml` (json-file logging, varnish on localhost), waits for all health checks, checks php extensions, composer and `nginx -t`.
-4. Pushes the new images and tags all 10 with the release version as well (`BRAND-<service>:X.Y.Z`, same digest as the fingerprint tag). Attaches `docker-compose.release.yml` with the digests of all images to the draft release. Unchanged images keep their digest, so the server does not recreate those containers.
-5. Publishes the release.
+3. Scans the changed images with [Trivy](https://trivy.dev) (`scripts/scan_images.sh`, vulnerabilities only). A CRITICAL or HIGH CVE that has a fixed version fails the build, CVEs without a fix are listed in the job summary.
+4. Starts the stack with `docker-compose.ci.yml` (json-file logging, varnish on localhost), waits for all health checks, checks php extensions, composer and `nginx -t`. Generates an SPDX SBOM of every image with [Syft](https://github.com/anchore/syft).
+5. Pushes the new images and tags all 10 with the release version as well (`BRAND-<service>:X.Y.Z`, same digest as the fingerprint tag). Attaches `docker-compose.release.yml` with the digests of all images and `sbom.tar.gz` (one SPDX file per image) to the draft release. Unchanged images keep their digest, so the server does not recreate those containers.
+6. Publishes the release.
+
+`.github/workflows/image-scan.yml` scans the images of the latest release every night for CVEs published since the release. Findings go into one open issue with label `image-cve`, which is updated and commented when they change and closed on a clean run.
 
 Repository setup:
 - Commit `.env` with the shop settings and `nginx/templates` (fetch once with `scripts/get_nginx_config.sh`, then edit them in the repo). Never commit `.env.secrets` unencrypted.
@@ -224,6 +227,16 @@ doco -f docker-compose.yml -f docker-compose.release.yml pull
 doco -f docker-compose.yml -f docker-compose.release.yml up -d --no-build
 ```
 Roll back: download the lock file of the previous release and run the same commands.
+
+A CVE scan fails a release or opens the `image-cve` issue:
+- update the base image digest or the package; for unpinned apt packages bump `BUILD_EPOCH`
+- if the fix cannot be taken yet or the package is not used at runtime, add the CVE id to `.trivyignore` with the image, the reason and a review date
+
+Which images contain a library, e.g. after a new CVE: download the SBOMs of the release and search them:
+```
+gh release download vX.Y.Z -p sbom.tar.gz && tar -xzf sbom.tar.gz
+jq -r '.packages[] | "\(.name) \(.versionInfo)"' php.spdx.json | grep -i openssl
+```
 
 <br />
 

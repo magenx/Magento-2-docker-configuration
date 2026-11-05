@@ -16,6 +16,11 @@ name: release
 #   - secret BUILD_SECRETS: lines from the server .env.secrets that are baked into images:
 #     OPENSEARCH_ADMIN_PASSWORD, ADMIN_PATH, RABBITMQ_PATH, ADMINER_PATH, PROFILER
 #   all other passwords are throwaway values generated for the test run
+#
+# Changed images are scanned with trivy (scripts/scan_images.sh) before the stack test and the push:
+# a CRITICAL or HIGH CVE with a fixed version fails the build, exceptions go in .trivyignore.
+# syft generates an SPDX SBOM of every image, attached to the release as sbom.tar.gz.
+# The image-scan workflow re-scans the images of the latest release every night.
 
 on:
   push:
@@ -62,6 +67,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Install syft and trivy
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          INSTALL_DIR="$RUNNER_TEMP/bin" bash scripts/install_tools.sh
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
       - name: Set image registry
         run: echo "IMAGE_REGISTRY=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
@@ -190,11 +201,33 @@ jobs:
           docker buildx prune -af
           df -h /
 
+      - name: Scan changed images for CVEs
+        if: env.BUILD_SERVICES != ''
+        run: |
+          # unchanged images were scanned when they were built, the nightly image-scan workflow re-scans all of them
+          read -ra services <<< "${BUILD_SERVICES}"
+          for svc in "${services[@]}"; do
+            grep "^${svc} " "$RUNNER_TEMP/images.txt"
+          done > "$RUNNER_TEMP/scan.txt"
+          rc=0
+          bash scripts/scan_images.sh "$RUNNER_TEMP/scan.txt" > "$RUNNER_TEMP/scan.md" || rc=$?
+          tee -a "$GITHUB_STEP_SUMMARY" < "$RUNNER_TEMP/scan.md"
+          [ "${rc}" -ne 1 ] || echo "::error::fixable CRITICAL or HIGH CVEs, see the job summary"
+          exit "${rc}"
+
       - name: Pull unchanged images
         if: env.PULL_SERVICES != ''
         run: |
           read -ra services <<< "${PULL_SERVICES}"
           docker compose pull "${services[@]}"
+
+      - name: Generate SBOMs
+        run: |
+          # every image of the release is local now (built or pulled), one SPDX file per service
+          mkdir -p "$RUNNER_TEMP/sbom"
+          while read -r svc ref; do
+            syft scan --quiet --from docker "${ref}" -o "spdx-json=$RUNNER_TEMP/sbom/${svc}.spdx.json" < /dev/null
+          done < "$RUNNER_TEMP/images.txt"
 
       - name: Start stack and wait for health checks
         run: |
@@ -244,7 +277,7 @@ jobs:
             docker buildx imagetools create -t "${ref%:*}:${IMAGE_TAG}" "${ref}"
           done < "$RUNNER_TEMP/images.txt"
 
-      - name: Attach image digest lock file to the draft release
+      - name: Attach image digest lock file and SBOMs to the draft release
         run: |
           {
             echo "# ${TAG_NAME} images pinned by digest"
@@ -257,7 +290,8 @@ jobs:
             done < "$RUNNER_TEMP/images.txt"
           } > docker-compose.release.yml
           cat docker-compose.release.yml
-          gh release upload "${TAG_NAME}" docker-compose.release.yml --clobber --repo "${GITHUB_REPOSITORY}"
+          tar -czf sbom.tar.gz -C "$RUNNER_TEMP/sbom" .
+          gh release upload "${TAG_NAME}" docker-compose.release.yml sbom.tar.gz --clobber --repo "${GITHUB_REPOSITORY}"
 
   publish:
     needs: [release-please, build]

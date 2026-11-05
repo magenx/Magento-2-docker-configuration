@@ -1,0 +1,5 @@
+# CVEs that scripts/scan_images.sh (release gate and nightly image-scan) does not report.
+# Only for CRITICAL or HIGH CVEs with a fix that cannot be taken yet, or that do not apply to this stack.
+# One CVE id per line, with a comment above it: image, reason and a date to review it again. Example:
+#   # php: libfoo in a build tool, not loaded at runtime, review 2026-12-01
+#   CVE-2026-12345

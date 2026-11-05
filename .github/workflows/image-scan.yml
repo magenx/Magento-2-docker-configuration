@@ -1,0 +1,122 @@
+name: image-scan
+
+# Nightly CVE scan of the images in the latest release (docker-compose.release.yml asset):
+# trivy reports CRITICAL or HIGH CVEs with a fix (exceptions in .trivyignore).
+# CVEs published after the release show up here without a rebuild.
+# Findings are kept in one open issue with label image-cve: created on the first finding, updated and commented
+# when the findings change, closed on a clean run. A failing scan fails the run.
+# Runs only in repos with variable BUILD_IMAGES=true, on BUILD_RUNNER like the release build (same image arch).
+
+on:
+  schedule:
+    - cron: '41 2 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: image-scan
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    if: vars.BUILD_IMAGES == 'true'
+    runs-on: ${{ vars.BUILD_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      LABEL: image-cve
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install trivy
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          INSTALL_DIR="$RUNNER_TEMP/bin" bash scripts/install_tools.sh trivy
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Get the latest release lock file
+        id: release
+        run: |
+          tag=$(gh release view --repo "${GITHUB_REPOSITORY}" --json tagName --jq .tagName)
+          gh release download "${tag}" --repo "${GITHUB_REPOSITORY}" -p docker-compose.release.yml -D "$RUNNER_TEMP" \
+            || { echo "::notice::${tag} has no docker-compose.release.yml, nothing to scan"; exit 0; }
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          awk '/^  [A-Za-z0-9_.-]+:$/ {svc = $1; sub(/:$/, "", svc)} /^    image: / {print svc, $2}' \
+            "$RUNNER_TEMP/docker-compose.release.yml" > "$RUNNER_TEMP/images.txt"
+          cat "$RUNNER_TEMP/images.txt"
+
+      - name: Scan for CVEs
+        id: scan
+        if: steps.release.outputs.tag != ''
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          scan_rc=0
+          bash scripts/scan_images.sh "$RUNNER_TEMP/images.txt" > "$RUNNER_TEMP/scan.md" || scan_rc=$?
+          {
+            echo "Nightly CVE scan of release ${TAG}, run ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            cat "$RUNNER_TEMP/scan.md"
+          } > "$RUNNER_TEMP/report.md"
+          cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
+          findings=false
+          [ "${scan_rc}" -eq 1 ] && findings=true
+          # rows of the fixable CVEs, the issue is commented only when they change
+          hash=$( { grep -E '^\| (CVE|GHSA)-' "$RUNNER_TEMP/scan.md" || true; } | sort | sha256sum | cut -c1-16)
+          {
+            echo "findings=${findings}"
+            echo "hash=${hash}"
+            echo "scan_rc=${scan_rc}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Update the image-cve issue
+        # a failed scan proves nothing either way, leave the issue as it is
+        if: steps.scan.outputs.findings != '' && steps.scan.outputs.scan_rc != '2'
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          FINDINGS: ${{ steps.scan.outputs.findings }}
+          HASH: ${{ steps.scan.outputs.hash }}
+        run: |
+          issue=$(gh issue list --repo "${GITHUB_REPOSITORY}" --label "${LABEL}" --state open \
+            --json number --jq '.[0].number // empty' 2>/dev/null || true)
+          if [ "${FINDINGS}" = true ]; then
+            body="$RUNNER_TEMP/report.md"
+            echo "<!-- findings:${HASH} -->" >> "${body}"
+            if [ -z "${issue}" ]; then
+              gh label create "${LABEL}" --repo "${GITHUB_REPOSITORY}" --color B60205 \
+                --description "Nightly image-scan findings" --force
+              gh issue create --repo "${GITHUB_REPOSITORY}" --label "${LABEL}" \
+                --title "Release images: known CVEs with a fix" --body-file "${body}"
+            else
+              previous=$(gh issue view "${issue}" --repo "${GITHUB_REPOSITORY}" --json body --jq .body \
+                | grep -oE 'findings:[0-9a-f]+' || true)
+              gh issue edit "${issue}" --repo "${GITHUB_REPOSITORY}" --body-file "${body}"
+              if [ "${previous}" != "findings:${HASH}" ]; then
+                gh issue comment "${issue}" --repo "${GITHUB_REPOSITORY}" \
+                  --body "Findings changed in the nightly scan of ${TAG}, see the issue description."
+              fi
+            fi
+          elif [ -n "${issue}" ]; then
+            gh issue close "${issue}" --repo "${GITHUB_REPOSITORY}" --reason completed \
+              --comment "Clean nightly scan of ${TAG}: no fixable CRITICAL or HIGH CVEs."
+          fi
+
+      - name: Fail on scan errors
+        if: steps.scan.outputs.scan_rc == '2'
+        run: |
+          echo "::error::trivy could not scan every image, see the job summary"
+          exit 1
