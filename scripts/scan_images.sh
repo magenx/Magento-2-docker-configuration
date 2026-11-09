@@ -11,6 +11,9 @@ set -euo pipefail
 
 list="${1:?usage: scan_images.sh <file with service and image ref per line>}"
 cache="${TRIVY_CACHE_DIR:-${RUNNER_TEMP:-/tmp}/trivy-cache}"
+# trivy exports local images and downloads its Java DB into TMPDIR. On ubuntu-26.04 runners /tmp is a tmpfs
+# with a quota, too small for that ("disk quota exceeded"), so on a runner use RUNNER_TEMP on the disk.
+export TMPDIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 out=$(mktemp -d)
 trap 'rm -rf "${out}"' EXIT
 
