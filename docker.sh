@@ -86,9 +86,11 @@ apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin do
 echo ""
 echo "Update docker compose alias"
 echo "alias for docker compose command = [ doco ]"
-echo "alias doco='docker compose'" >> ~/.bash_profile
-echo "export COMPOSE_ENV_FILES=.env,.env.secrets" >> ~/.bash_profile
-source ~/.bash_profile
+# ~/.bashrc covers non-login shells too (screen, su without -); login shells source it from ~/.bash_profile
+grep -qxF "alias doco='docker compose'" ~/.bashrc 2>/dev/null || echo "alias doco='docker compose'" >> ~/.bashrc
+grep -qxF "export COMPOSE_ENV_FILES=.env,.env.secrets" ~/.bashrc 2>/dev/null || echo "export COMPOSE_ENV_FILES=.env,.env.secrets" >> ~/.bashrc
+grep -qF '.bashrc' ~/.bash_profile 2>/dev/null || echo '[ -f ~/.bashrc ] && . ~/.bashrc' >> ~/.bash_profile
+source ~/.bashrc
 
 echo ""
 echo "Create /opt/${BRAND}/docker directory"
