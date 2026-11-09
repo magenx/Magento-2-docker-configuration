@@ -75,7 +75,7 @@ What the script does, in order:
 1. Asks you to agree to the terms.
 2. Writes `/etc/docker/daemon.json` with `"userns-remap": "default"`.
 3. Adds the official Docker apt repo, upgrades the system and installs `docker-ce`, `buildx`, `compose` plugin, plus `git vim screen syslog-ng-core ufw apache2-utils acl`.
-4. Adds alias `doco='docker compose'` and `export COMPOSE_ENV_FILES=.env,.env.secrets` to `~/.bash_profile`, so compose loads both env files.
+4. Adds alias `doco='docker compose'` and `export COMPOSE_ENV_FILES=.env,.env.secrets` to `~/.bashrc`, so compose loads both env files in every shell (`screen`, `su` without `-` too), and makes `~/.bash_profile` source `~/.bashrc` for login shells.
 5. Clones this repository into `/opt/BRAND/docker` and moves you there.
 6. Copies `.env.template` to `.env` and `.env.secrets.template` to `.env.secrets` and **opens both in `vim`** (see Step 2).
 7. `scripts/random_generator.sh` appends random passwords for all services, plus random admin / rabbitmq / adminer paths and profiler key, to `.env.secrets`.
@@ -186,6 +186,10 @@ doco exec -it nginx nginx -t
 - Database shell:
 ```
 . .env.secrets && doco exec -e MYSQL_PWD="$MARIADB_ROOT_PASSWORD" mariadb mariadb -uroot
+```
+- Import a SQL dump into the `BRAND` database. `-T` turns off the TTY, otherwise compose stops with `cannot attach stdin to a TTY-enabled container`. The password goes in `MYSQL_PWD`: `-p` asks on a terminal, there is none. A dump usually drops and recreates its tables, so back up the current database first:
+```
+. .env.secrets && doco exec -T -e MYSQL_PWD="$MARIADB_ROOT_PASSWORD" mariadb mariadb -uroot BRAND < backup.sql
 ```
 - Rebuild one service after config change:
 ```

@@ -19,6 +19,7 @@ ARG CURRENT_SYMLINK
 
 # Install build essential
 RUN <<EOF
+  set -e
   apt-get update
   apt-get install -y --no-install-recommends \
   build-essential gzip git wget libzstd-dev libpcre2-dev zlib1g-dev
