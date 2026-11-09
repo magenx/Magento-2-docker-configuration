@@ -45,7 +45,8 @@ EOF
 # Admin user only, no demo users. Password comes from a build secret, not a build arg
 RUN --mount=type=secret,id=opensearch_admin_password,required=true <<EOF
   set -e
-  hash=$(/usr/share/opensearch/plugins/opensearch-security/tools/hash.sh \
+  # run through bash: the DHI 3.8.0 image ships hash.sh without the execute bit
+  hash=$(bash /usr/share/opensearch/plugins/opensearch-security/tools/hash.sh \
     -p "$(cat /run/secrets/opensearch_admin_password)" | tail -n 1)
   case "${hash}" in \$2*) ;; *) echo "hash.sh failed: ${hash}"; exit 1 ;; esac
   cat > /certs/internal_users.yml <<YML
