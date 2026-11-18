@@ -1,0 +1,6 @@
+# zone + resolve: names are resolved at runtime through the docker DNS resolver (http.d/core.conf),
+# nginx starts when a container is down or missing and follows its new IP after a recreate
+upstream rabbitmq { zone rabbitmq_upstream 64k; server rabbitmq:15672 resolve max_fails=3 fail_timeout=10s; }
+# adminer profile (php-fpm): 502 on /mariadb/ while it is not running
+upstream adminer { zone adminer_upstream 64k; server adminer:9000 resolve; }
+upstream imgproxy { zone imgproxy_upstream 64k; server imgproxy:4593 resolve max_fails=3 fail_timeout=10s; }

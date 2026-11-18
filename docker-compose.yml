@@ -247,10 +247,14 @@ services:
       args:
         RABBITMQ_IMAGE:
     environment:
-      RABBITMQ_DEFAULT_USER: ${BRAND}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?}
       RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:?missing, load .env.secrets}"
       RABBITMQ_DEFAULT_VHOST: ${BRAND}
       RABBITMQ_ENABLED_PLUGINS_FILE: /enabled_plugins
+      # Management UI under /rabbitmq/ for the private admin vhost (nginx sites-available/private_admin.conf).
+      # Set as an Erlang app argument: the broker in this image starts with "Config file(s): (none)", so a
+      # management.path_prefix in a rabbitmq.conf would not be applied.
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: '-rabbitmq_management path_prefix "/rabbitmq"'
     expose:
       - "${RABBITMQ_PORT}"
       - "${RABBITMQ_MANAGE_PORT}"
@@ -445,8 +449,6 @@ services:
         NGINX_DEV_IMAGE:
         PROFILER:
         RESOLVER:
-        RABBITMQ_PATH:
-        ADMINER_PATH:
     develop:
       watch:
         - path: ./nginx
@@ -565,6 +567,78 @@ services:
       - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770
     <<: [*ulimits, *logger, *hardening]
 
+# -----------------------------------------------------------------------------------------------------------------------
+#   Cloudflare Tunnel: admin access through Cloudflare Zero Trust, instead of public admin paths and IP allowlists.
+#   Starts with the stack (TUNNEL_TOKEN in .env.secrets).
+#   Dashboard-managed tunnel: one public hostname to http://nginx:8081 (Magento admin, /rabbitmq/ RabbitMQ management,
+#   /mariadb/ Adminer) and the Access applications in front of it are set in Cloudflare Zero Trust, see README.
+#   Outbound connection only, nothing published on the host. Varnish is not in this path.
+# -----------------------------------------------------------------------------------------------------------------------
+  cloudflared:
+    container_name: cloudflared
+    hostname: cloudflared
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-cloudflared:${IMAGE_TAG:?}
+    build:
+      context: ./cloudflared
+      labels:
+        <<: *build_labels
+      args:
+        CLOUDFLARED_IMAGE:
+    # the image entrypoint is cloudflared --no-autoupdate
+    command: ["tunnel", "run"]
+    # values in .env (TUNNEL_TOKEN in .env.secrets), see the comments there
+    environment:
+      TUNNEL_TOKEN:
+      TUNNEL_METRICS:
+      TUNNEL_LOGLEVEL:
+    networks:
+      # nginx:8081, the admin hostname of the tunnel
+      - frontend
+    restart: unless-stopped
+    healthcheck:
+      # no shell in the dhi runtime image: tunnel ready exits 1 until a connection to the Cloudflare edge is up
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "${TUNNEL_METRICS}", "ready"]
+      <<: *healthcheck_default
+    tmpfs:
+      - /tmp:mode=1777
+    <<: [*ulimits, *logger, *hardening]
+
+# -----------------------------------------------------------------------------------------------------------------------
+#   Adminer: MariaDB web UI, MySQL-only build on the stack's php-fpm image (php/Dockerfile target adminer). Served at
+#   /mariadb/ of the private admin vhost (nginx:8081), reached through the cloudflared tunnel behind its
+#   own Access path application. Profile "adminer", see README.
+# -----------------------------------------------------------------------------------------------------------------------
+  adminer:
+    container_name: adminer
+    hostname: adminer
+    image: ${IMAGE_REGISTRY:?}/${BRAND:?}-adminer:${IMAGE_TAG:?}
+    build:
+      context: ./php
+      target: adminer
+      labels:
+        <<: *build_labels
+      args:
+        <<: *php_magento_args
+        ADMINER_VERSION:
+        ADMINER_SHA256:
+    profiles: [adminer]
+    # no environment: the pool clears it anyway, Adminer logs in with the form's credentials only
+    entrypoint: ["php-fpm", "-F"]
+    expose:
+      - "9000"
+    networks:
+      # nginx
+      - frontend
+      # mariadb
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "php-fpm", "-t"]
+      <<: *healthcheck_default
+    tmpfs:
+      # php sessions and uploads
+      - /tmp:uid=${DHI_STACK_UID},gid=${DHI_STACK_UID},mode=1770,size=128m
+    <<: [*ulimits, *logger, *hardening]
 
 # -----------------------------------------------------------------------------------------------------------------------
 #   Named networks list

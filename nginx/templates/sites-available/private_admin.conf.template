@@ -1,0 +1,71 @@
+## Magento admin, RabbitMQ management (/rabbitmq/) and Adminer (/mariadb/)
+## on one private hostname,
+## container to container only (never published).
+## Reached through cloudflared (Cloudflare Tunnel, starts with the stack), which terminates https before nginx:
+## one hostname behind Cloudflare Access. Who may connect is set by the Access policies (the whole hostname
+## for the admin, one path application per tool), not by ipset/allow.conf.
+## Magento must use that hostname as custom admin URL, see README. Varnish is not in this path.
+server {
+  listen nginx:8081;
+  server_name _;
+
+  root $root_path/pub;
+
+  ## Location headers stay relative: the client talks https to Cloudflare, nginx sees http
+  absolute_redirect off;
+
+  ## Extra protection rules
+  include conf_m2/protect.conf;
+
+  ## Error pages
+  include conf_m2/error_page.conf;
+
+  ## Static files and media used by the admin pages
+  include conf_m2/static.conf;
+  include conf_m2/media.conf;
+
+  ## No redirect from / to the admin path: / answers 404 (location / below), so nginx never names
+  ## ADMIN_PATH, even when an access rule in front is wrong. Admins open /ADMIN_PATH/ (App Launcher tile).
+
+  ## RabbitMQ management, served under /rabbitmq by rabbitmq itself (management path_prefix,
+  ## RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS in docker-compose.yml): the request URI goes through unchanged,
+  ## %2F vhost names included
+  location ^~ /rabbitmq/ {
+    proxy_pass http://rabbitmq;
+  }
+
+  ## Adminer (adminer profile): php-fpm in its own container, one file for every request (its css and js
+  ## come from ?file= on the same script), the original URI in DOCUMENT_URI. Log in with a MariaDB user.
+  location ^~ /mariadb/ {
+    fastcgi_pass adminer;
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME /var/www/adminer/index.php;
+    fastcgi_param DOCUMENT_URI $uri;
+    ## TLS ended at Cloudflare: secure session cookie, https links
+    fastcgi_param HTTPS on;
+    ## SQL dump import (timeouts come from fastcgi_params)
+    client_max_body_size 64m;
+    add_header Cache-Control "no-store" always;
+  }
+
+  location = /rabbitmq { return 301 /rabbitmq/; }
+  location = /mariadb { return 301 /mariadb/; }
+
+  ## Admin only, the shop stays on DOMAIN
+  location ~ ^/(index\.php/)?(${ADMIN_PATH}|adminhtml)(/|$) {
+    try_files $uri /index.php$is_args$args;
+  }
+
+  ## Entry points, reached only by the admin location, static.conf and media.conf above
+  location ~ ^/(index|get|static)\.php$ {
+    internal;
+    include conf_m2/php_backend.conf;
+    ## TLS ended at Cloudflare: Magento builds https admin URLs
+    fastcgi_param HTTPS on;
+    try_files $uri =404;
+  }
+
+  location / {
+    return 404;
+  }
+}

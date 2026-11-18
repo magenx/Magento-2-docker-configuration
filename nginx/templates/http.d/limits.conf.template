@@ -1,0 +1,2 @@
+## Basic DdoS protection (see conf_m2/protect.conf)
+limit_req_zone $limit_all_request zone=catalog:35m rate=1r/s;

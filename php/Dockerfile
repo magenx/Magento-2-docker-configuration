@@ -152,6 +152,28 @@ EOF
 # ---------------------------------------------------------------------
 #  PER-TARGET BUILD STAGES
 # ---------------------------------------------------------------------
+# adminer: the MySQL-only single-file release (checksum pinned in .env) and its php-fpm pool config.
+# The runtime is the php image itself (pdo_mysql, runtime libs, timezone), see target adminer below.
+FROM build AS build-adminer
+
+ARG ADMINER_VERSION
+ARG ADMINER_SHA256
+ARG TIMEZONE
+
+COPY config/adminer/ /tmp/adminer-conf/
+
+RUN <<EOF
+  set -e
+  stage=/tmp/adminer
+  mkdir -p ${stage}/www ${stage}/etc/php-fpm.d
+  wget -q -O ${stage}/www/index.php \
+    "https://github.com/vrana/adminer/releases/download/v${ADMINER_VERSION}/adminer-${ADMINER_VERSION}-mysql-en.php"
+  echo "${ADMINER_SHA256}  ${stage}/www/index.php" | sha256sum -c -
+  envsubst < /tmp/adminer-conf/php-fpm.conf > ${stage}/etc/php-fpm.conf
+  envsubst < /tmp/adminer-conf/www.conf     > ${stage}/etc/php-fpm.d/www.conf
+  chmod -R a+rX,go-w ${stage}
+EOF
+
 # php
 FROM build AS build-php
 
@@ -239,6 +261,18 @@ COPY --from=build-php ${PHP_INI_DIR}/conf.d/                ${PHP_INI_DIR}/conf.
 COPY --from=build-php /etc/timezone                         /etc/timezone
 COPY --from=build-php /tmp/localtime                        /etc/localtime
 COPY --from=build-php /tmp/runtime-libs/                    /usr/lib/
+
+# =====================================================================
+#  RUNTIME: adminer (service adminer, profile adminer), php-fpm on :9000
+#  The php image with the Adminer file and its own pool in place of the Magento pool
+# =====================================================================
+FROM php AS adminer
+
+COPY --from=build-adminer /tmp/adminer/etc/php-fpm.conf     ${PHP_PREFIX}/etc/php-fpm.conf
+COPY --from=build-adminer /tmp/adminer/etc/php-fpm.d/www.conf ${PHP_PREFIX}/etc/php-fpm.d/www.conf
+COPY --from=build-adminer /tmp/adminer/www/                 /var/www/adminer/
+
+WORKDIR /var/www/adminer
 
 # =====================================================================
 #  RUNTIME: shared base for magento + cron

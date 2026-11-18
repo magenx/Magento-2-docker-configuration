@@ -1,0 +1,30 @@
+# Limit all requests
+limit_req zone=catalog burst=1 nodelay;
+limit_req_status 429;
+
+if ($deny_ip) { return 403; }
+if ($bad_user_agent) { return 403; }
+if ($search_bot_return_410) { return 410; }
+
+# Deny files that only for internal use (work with ssh or ftp to download)
+location ~ /\.(svn|git|hg|htpasswd|htaccess|bash|ssh|php_cs|config|env) { deny all; }
+location ~ /.*\.(sh|pl|py|lua|inc|swp|phar|php_|phtml|log|ini|md|sql|conf|yml|zip|tar|.+gz)$ { deny all; }
+#location ~ ^/([^/])+\.(txt|zip|tar|.+gz)$ { deny all; }
+
+# Deny access per default .htaccess rules
+location ~ ^/(errors/.*\.xml|media/(customer/|customer_address/|custom_options/|downloadable/|import/|theme_customization/.*\.xml)) { deny all; }
+location ~ ^/(opt|media|static|\.well-known)/.*\.php$ { deny all; }
+
+# Deny cron and favorite entry points for hackers and script kiddie
+location ~ ^/customer/address_file/upload { deny all; }
+location ~ ^/(cron|phpminiadmin|pma|sqlyog|adminer.+)\.php { deny all; }
+location ~ ^/(magento_version|php[mM]y[aA]dmin|pma) { deny all; }
+
+# Deny auth and composer
+location ~ (auth|package|composer)\.(json|lock)$ { deny all; }
+
+# Disable admin backup
+location ~ /admin_.*/backup/index {
+  return 200 'Backup disabled';
+  add_header Content-Type text/plain;
+}

@@ -1,0 +1,12 @@
+## Response compression
+zstd on;
+zstd_min_length 256;
+zstd_comp_level 6;
+zstd_buffers 4 16k;
+
+gzip                on;
+gzip_vary           on;
+gzip_proxied        any;
+gzip_types          application/javascript application/x-javascript application/json application/rss+xml application/xml text/javascript text/css text/plain text/xml image/x-icon image/svg+xml font/ttf font/otf;
+gzip_buffers        4 16k;
+gzip_comp_level     5;

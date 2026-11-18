@@ -1,0 +1,57 @@
+## Magento shop on DOMAIN, behind varnish (backend nginx:80, Host: DOMAIN)
+server {
+  listen nginx:80;
+  server_name ${DOMAIN};
+   
+  root $root_path/pub;
+
+  ## Extra protection rules
+  include conf_m2/protect.conf;
+  
+  ## Protect admin path
+  include conf_m2/admin.conf;
+  
+  ## Error pages
+  include conf_m2/error_page.conf;  
+
+  ## Server maintenance block.
+  include conf_m2/maintenance.conf;
+  
+  ## sitemap and feeds?
+  include conf_m2/sitemap.conf;
+  
+  ## Static files push only
+  include conf_m2/static.conf;
+ 
+  ## Product images and all media/ files
+  include conf_m2/media.conf;  
+  
+  ## Nginx and php-fpm status
+  include conf_m2/status.conf;
+  
+  ## Deny all internal locations
+  location ~ ^/(app|generated|lib|bin|var|tmp|phpserver|vendor)/ { 
+    deny all; 
+  }
+   
+  location / {
+    try_files $uri $uri/ /index.php$is_args$args;
+  }
+	   
+  ## Process php files (strict rule, define files to be executed)
+  location ~ ^/(index|health_check|get|static|errors/(report|404|503))\.php$ {
+   
+    include conf_m2/php_backend.conf;
+    try_files $uri =404;
+
+    ## Enable POST logging
+#    if ($request_method = POST) {set $ispostlog A;}
+#    if ($request_uri ~* "/${ADMIN_PATH}/") {set $ispostlog "${ispostlog}B";}
+#    if ($ispostlog = AB) { access_log /var/log/nginx/postlog.log postlog;}
+  }
+	
+  ## Block other undefined php files, possible injections and random malware hooks.
+  location ~* \.php$ { 
+    return 404; 
+  }
+}

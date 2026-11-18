@@ -1,0 +1,5 @@
+Every server block in sites-available is linked here at build time (nginx/Dockerfile):
+
+- default.conf        catches unknown host names (444)
+- magento2.conf       the shop on nginx:80, behind varnish
+- private_admin.conf  Magento admin, /rabbitmq/ and /mariadb/ on nginx:8081, reached only through cloudflared

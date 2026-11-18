@@ -1,0 +1,2 @@
+## Imgproxy cache
+proxy_cache_path /var/cache/nginx/imgproxy levels=1:2 keys_zone=imgproxy:100m max_size=10g inactive=30d use_temp_path=off;

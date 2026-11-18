@@ -14,7 +14,7 @@ name: release
 #   - variable BUILD_EPOCH (optional): bump it to rebuild all images, picks up unpinned apt and download updates
 #   - secrets DHI_USER, DHI_PAT: dhi.io login
 #   - secret BUILD_SECRETS: lines from the server .env.secrets that are baked into images:
-#     OPENSEARCH_ADMIN_PASSWORD, ADMIN_PATH, RABBITMQ_PATH, ADMINER_PATH, PROFILER
+#     OPENSEARCH_ADMIN_PASSWORD, ADMIN_PATH, PROFILER
 #   all other passwords are throwaway values generated for the test run
 #
 # Changed images are scanned with trivy (scripts/scan_images.sh) before the stack test and the push:
@@ -93,7 +93,7 @@ jobs:
           cat "$RUNNER_TEMP/build.secrets" >> .env.secrets
           # every value baked into images must come from BUILD_SECRETS and be set;
           # report key names only, never values
-          for key in OPENSEARCH_ADMIN_PASSWORD ADMIN_PATH RABBITMQ_PATH ADMINER_PATH PROFILER; do
+          for key in OPENSEARCH_ADMIN_PASSWORD ADMIN_PATH PROFILER; do
             grep -q "^${key}=" "$RUNNER_TEMP/build.secrets" \
               || { echo "::error::BUILD_SECRETS must contain ${key}"; exit 1; }
             value=$(set -a; . ./.env.secrets; printf '%s' "${!key:-}")
@@ -133,7 +133,6 @@ jobs:
 
       - name: Prepare magento paths
         run: |
-          [ -d nginx/templates ] || { echo "::error::nginx/templates must be committed, fetch once with scripts/get_nginx_config.sh"; exit 1; }
           . ./.env
           sudo mkdir -p "${MAGENTO_ROOT_PATH}"/{releases/ci,shared/var/log,shared/var/tmp,shared/pub/media,public}
           sudo ln -sfn ../releases/ci "${MAGENTO_ROOT_PATH}/${CURRENT_SYMLINK}"
@@ -231,7 +230,8 @@ jobs:
 
       - name: Start stack and wait for health checks
         run: |
-          mapfile -t services < <(docker compose config --services | grep -vx magento)
+          # magento is a one-off CLI; cloudflared needs a tunnel token, none in CI (smoke tested below)
+          mapfile -t services < <(docker compose config --services | grep -vxE 'magento|cloudflared')
           docker compose up -d --no-build --wait --wait-timeout 600 "${services[@]}"
 
       - name: Smoke tests
@@ -247,6 +247,29 @@ jobs:
           done
           docker compose run --rm --no-deps --entrypoint php magento /usr/local/bin/composer --version
           docker compose exec -T nginx nginx -t
+          # cloudflared is not started: no tunnel token in CI. Its binary must run with the service hardening.
+          docker compose run --rm --no-deps cloudflared version
+          # private admin vhost (nginx:8081, the tunnel target): RabbitMQ and Adminer (adminer profile)
+          docker compose up -d --no-build --wait --wait-timeout 120 adminer
+          code=$(curl -s -o "$RUNNER_TEMP/rabbitmq.html" -w '%{http_code}' http://127.0.0.1:8081/rabbitmq/)
+          [ "${code}" = 200 ] || {
+            # the body tells nginx (html error page) from rabbitmq (json, path_prefix not applied) apart
+            echo "::error::nginx:8081/rabbitmq/ answered ${code}: $(head -c 300 "$RUNNER_TEMP/rabbitmq.html")"
+            docker compose exec -T rabbitmq rabbitmqctl eval 'application:get_env(rabbitmq_management, path_prefix).' || true
+            exit 1
+          }
+          # adminer started after nginx: the "resolve" upstream picks it up on the next DNS refresh
+          # (resolver valid=30s, http.d/core.conf), so nginx answers 502 "no live upstreams" until then
+          for i in $(seq 1 12); do
+            code=$(curl -s -o "$RUNNER_TEMP/adminer.html" -w '%{http_code}' http://127.0.0.1:8081/mariadb/)
+            [ "${code}" = 200 ] && grep -q 'Adminer' "$RUNNER_TEMP/adminer.html" && break
+            sleep 5
+          done
+          [ "${code}" = 200 ] && grep -q 'Adminer' "$RUNNER_TEMP/adminer.html" \
+            || { echo "::error::nginx:8081/mariadb/ is not the Adminer login page (${code}): $(head -c 300 "$RUNNER_TEMP/adminer.html")"; exit 1; }
+          # / never redirects to the admin path: it answers 404
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8081/)
+          [ "${code}" = 404 ] || { echo "::error::nginx:8081/ answered ${code}, want 404 (no redirect to ADMIN_PATH)"; exit 1; }
           docker compose ps
 
       - name: Show logs on failure

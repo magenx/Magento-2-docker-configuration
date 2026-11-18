@@ -18,7 +18,9 @@ set -a
 . ./.env.secrets
 set +a
 
-config=$(docker compose -f docker-compose.yml config --format json)
+# every profile: an image of a profile service (adminer) is built and released even when
+# COMPOSE_PROFILES in .env does not start it; services without a build section are skipped below
+config=$(docker compose -f docker-compose.yml --profile '*' config --format json)
 
 for svc in $(jq -r '.services | to_entries[] | select(.value.build) | .key' <<< "${config}" | sort); do
   context=$(jq -r --arg s "${svc}" '.services[$s].build.context' <<< "${config}")

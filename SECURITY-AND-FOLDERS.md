@@ -22,12 +22,13 @@ Each service runs as a non-root user with specific UID:
 
 ### 3. **Network Segmentation**
 Two isolated Docker networks:
-- **frontend**: Public-facing services (nginx, varnish, cache, session, opensearch, rabbitmq, imgproxy, cron)
-- **backend**: Database services (mariadb, php, cron, magento)
+- **frontend**: Public-facing services (nginx, varnish, cache, session, opensearch, rabbitmq, imgproxy, cron, cloudflared; adminer with the `adminer` profile)
+- **backend**: Database services (mariadb, php, cron, magento; adminer with the `adminer` profile)
+- **cloudflared** (starts with the stack): joins frontend and connects outbound to Cloudflare. Nothing is published on the host; its hostname to `nginx:8081` (Magento admin, `/rabbitmq/`, `/mariadb/`) and the Cloudflare Access applications in front of it are set in the Zero Trust dashboard
 
 ### 4. **Password Security**
 - Random 32-character passwords generated for all services (alphanumeric + special chars: `%&?`)
-- Random 6-character paths for admin and RabbitMQ endpoints
+- Random 6-character admin path
 - 12-character random profiler token
 - MariaDB root password auto-generated and logged once
 - All passwords, Magento keys and random paths stored in `.env.secrets` (mode `600`, in `.gitignore`), settings in `.env`
@@ -225,7 +226,7 @@ volumes:
 - Auto-generated during setup via `scripts/random_generator.sh`
 - Stored in `.env.secrets` file, loaded with `COMPOSE_ENV_FILES=.env,.env.secrets`
 - Includes: Redis, RabbitMQ, MariaDB, OpenSearch passwords
-- Admin and RabbitMQ paths randomized
+- Admin path randomized; RabbitMQ and Adminer only on the private admin hostname behind Cloudflare Access
 
 ---
 
