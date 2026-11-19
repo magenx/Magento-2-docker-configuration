@@ -13,8 +13,6 @@ ARG PROFILER
 ARG RESOLVER
 ARG MAGENTO_ROOT_PATH
 ARG ADMIN_PATH
-ARG RABBITMQ_PATH
-ARG ADMINER_PATH
 ARG CURRENT_SYMLINK
 
 # Install build essential
@@ -69,13 +67,15 @@ RUN <<EOF
     target_file="/etc/nginx/${relative_path%.template}";
     target_dir=$(dirname "$target_file");
     mkdir -p "$target_dir";
-    envsubst '${BRAND} ${DOMAIN} ${PHP_FPM} ${TIMEZONE} ${PROFILER} ${RESOLVER} ${MAGENTO_ROOT_PATH} ${ADMIN_PATH} ${RABBITMQ_PATH} ${ADMINER_PATH}' \
+    envsubst '${BRAND} ${DOMAIN} ${PHP_FPM} ${TIMEZONE} ${PROFILER} ${RESOLVER} ${MAGENTO_ROOT_PATH} ${ADMIN_PATH}' \
     < "$template" > "$target_file";
     echo "Processed: $template -> $target_file";
   done
   
-  ln -snf /etc/nginx/sites-available/magento2.conf /etc/nginx/sites-enabled/magento2.conf
-  ln -snf /etc/nginx/sites-available/default.conf /etc/nginx/sites-enabled/default.conf
+  # enable every server block in sites-available
+  for site in /etc/nginx/sites-available/*.conf; do
+    ln -snf "${site}" "/etc/nginx/sites-enabled/$(basename "${site}")"
+  done
   
   rm -rf /tmp/templates
 

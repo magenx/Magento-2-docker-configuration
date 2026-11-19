@@ -113,10 +113,6 @@ echo ""
 echo "Generating app web directory"
 bash scripts/web_directory.sh
 
-echo ""
-echo "Pull nginx config"
-bash scripts/get_nginx_config.sh
-
 find /opt/${BRAND}/docker -type d -exec chmod 2770 {} \;
 find /opt/${BRAND}/docker -type f -exec chmod 660 {} \;
 chmod 600 /opt/${BRAND}/docker/.env.secrets

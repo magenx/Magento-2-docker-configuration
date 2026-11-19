@@ -1,0 +1,5 @@
+## Log formats and default logs
+log_format  main  '$remote_addr - $remote_user [$time_local] "$request_method $scheme://$host:$server_port$request_uri $server_protocol" $status $bytes_sent "$http_referer" "$http_user_agent" $request_time - "$request_id"';
+
+access_log  /var/log/nginx/access.log  main if=$writelog;
+error_log   /var/log/nginx/error.log  error;

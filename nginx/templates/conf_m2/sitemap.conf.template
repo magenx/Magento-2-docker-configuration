@@ -1,0 +1,13 @@
+
+location ~ ^/(robots\.txt|google.*\.html) { 
+  root $root_path/pub/media/seo; 
+}
+
+location ~ ^/feeds/.*\.(xml|csv|txt) { 
+  root $root_path/pub/media; 
+}
+
+location = /sitemap.xml {
+  root $root_path/pub/media/sitemap;
+  try_files /$sitemap =404;
+}
