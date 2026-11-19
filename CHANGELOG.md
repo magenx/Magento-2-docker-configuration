@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/magenx/Magento-2-docker-configuration/compare/v1.1.1...v1.2.0) (2026-11-19)
+
+
+### Features
+
+* private admin access through Cloudflare Tunnel, with Adminer and the RabbitMQ UI ([#312](https://github.com/magenx/Magento-2-docker-configuration/issues/312)) ([348de47](https://github.com/magenx/Magento-2-docker-configuration/commit/348de473564aac78e1d74cdfe3e8ba066e4ccb54))
+
 ## [1.1.1](https://github.com/magenx/Magento-2-docker-configuration/compare/v1.1.0...v1.1.1) (2026-11-09)
 
 
