@@ -139,7 +139,9 @@ services:
       - cluster.routing.allocation.enable=all
       - bootstrap.memory_lock=true
       - DISABLE_INSTALL_DEMO_CONFIG=true
-      - OPENSEARCH_JAVA_OPTS=${OPENSEARCH_XMS} ${OPENSEARCH_XMX}
+      # -XX:-UseBASE64Intrinsics: mitigation for CVE-2026-114938 (Java4Shell) in Temurin 21.0.13,
+      # remove once the image ships Temurin 21.0.13.1+2 or later
+      - OPENSEARCH_JAVA_OPTS=${OPENSEARCH_XMS} ${OPENSEARCH_XMX} -XX:-UseBASE64Intrinsics
     expose:
       - "${OPENSEARCH_PORT}"
     networks:
