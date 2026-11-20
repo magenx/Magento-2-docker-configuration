@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/magenx/Magento-2-docker-configuration/compare/v1.2.0...v1.2.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* bump php and opensearch image digests ([#314](https://github.com/magenx/Magento-2-docker-configuration/issues/314)) ([3ddcd1f](https://github.com/magenx/Magento-2-docker-configuration/commit/3ddcd1fe0b3d7da947d25dffaef7f27f0bed8d59))
+
 ## [1.2.0](https://github.com/magenx/Magento-2-docker-configuration/compare/v1.1.1...v1.2.0) (2026-11-19)
 
 
