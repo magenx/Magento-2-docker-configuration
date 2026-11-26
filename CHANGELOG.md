@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/magenx/Magento-2-docker-configuration/compare/v1.2.1...v1.2.2) (2026-11-26)
+
+
+### Bug Fixes
+
+* bump base image versions and digests ([#316](https://github.com/magenx/Magento-2-docker-configuration/issues/316)) ([e254edf](https://github.com/magenx/Magento-2-docker-configuration/commit/e254edfa39615c02c3c6ceb7b31f553336d9d98e))
+
 ## [1.2.1](https://github.com/magenx/Magento-2-docker-configuration/compare/v1.2.0...v1.2.1) (2026-11-20)
 
 
